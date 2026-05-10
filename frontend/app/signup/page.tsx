@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import api from '../../lib/api';
 import { Mail, Lock, User, Loader, Trees, Check, ArrowRight } from 'lucide-react';
-import { AnimatedButton } from '../../components/AnimatedButton';
+import AnimatedButton from '../../components/AnimatedButton';
 import { AnimatedBackground } from '../../components/AnimatedBackground';
 
 export default function SignupPage() {

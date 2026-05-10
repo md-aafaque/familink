@@ -7,6 +7,7 @@ import treeRoutes from './tree';
 import authRoutes from './auth';
 import adminRoutes from './admin';
 import notificationsRoutes from './notifications';
+import invitationRoutes from './invitations';
 
 export default async function routes(fastify: FastifyInstance) {
   await fastify.register(authRoutes);
@@ -17,4 +18,5 @@ export default async function routes(fastify: FastifyInstance) {
   await fastify.register(claimRoutes);
   await fastify.register(treeRoutes);
   await fastify.register(notificationsRoutes);
+  await fastify.register(invitationRoutes);
 }

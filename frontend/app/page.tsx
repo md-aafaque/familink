@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Trees, Users, Share2, Lock, Sparkles, ArrowRight } from 'lucide-react';
 import supabase from '../lib/supabaseClient';
-import { AnimatedButton } from '../components/AnimatedButton';
-import { AnimatedCard } from '../components/AnimatedCard';
+import AnimatedButton from '../components/AnimatedButton';
+import AnimatedCard from '../components/AnimatedCard';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { FloatingIcon } from '../components/FloatingIcon';
 

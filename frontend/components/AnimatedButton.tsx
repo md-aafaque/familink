@@ -7,12 +7,12 @@ interface AnimatedButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   type?: 'button' | 'submit' | 'reset';
 }
 
-export function AnimatedButton({
+export default function AnimatedButton({
   children,
   onClick,
   disabled,
@@ -23,10 +23,18 @@ export function AnimatedButton({
 }: AnimatedButtonProps) {
   const baseStyles = 'relative font-semibold rounded-lg transition-all duration-200 overflow-hidden group';
 
-  const variants = {
-    primary: 'bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/50',
-    secondary: 'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:shadow-lg hover:shadow-blue-500/50',
-    outline: 'border-2 border-slate-300 text-slate-700 hover:border-orange-400 hover:bg-slate-50',
+const variants = {
+  primary:
+    'bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/50',
+
+  secondary:
+    'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:shadow-lg hover:shadow-blue-500/50',
+
+  outline:
+    'border-2 border-slate-300 text-slate-700 hover:border-orange-400 hover:bg-slate-50',
+
+  danger:
+    'bg-gradient-to-r from-red-600 to-red-500 text-white hover:shadow-lg hover:shadow-red-500/50',
   };
 
   const sizes = {

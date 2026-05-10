@@ -260,4 +260,138 @@ export default async function authRoutes(fastify: FastifyInstance) {
       await session.close();
     }
   });
+
+  /**
+   * Sign up through invitation link
+   * - Admin invitations: directly create admin user
+   * - Member/Viewer invitations: create pending user awaiting approval
+   */
+  fastify.post('/auth/signup-with-invitation', async (request: any, reply) => {
+    const { token, email, password, name } = request.body
+
+    if (!token || !email || !password || !name) {
+      return reply.status(400).send({ error: 'All fields required' })
+    }
+
+    const session = getSession()
+    try {
+      // Get invitation details
+      const inviteResult = await session.run(
+        `MATCH (i:TreeInvitation {token: $token})-[:FOR_TREE]->(t:FamilyTree)
+         RETURN i, t`,
+        { token }
+      )
+
+      if (!inviteResult.records.length) {
+        return reply.status(400).send({ error: 'Invalid invitation token' })
+      }
+
+      const invite = inviteResult.records[0].get('i').properties
+      const tree = inviteResult.records[0].get('t').properties
+
+      // Check expiration
+      if (invite.expiresAt < Date.now()) {
+        return reply.status(410).send({ error: 'Invitation expired' })
+      }
+
+      if (invite.status !== 'active') {
+        return reply.status(410).send({ error: 'Invitation no longer active' })
+      }
+
+      const treeId = tree.id
+      const invitationType = invite.invitationType
+
+      // Create user in Supabase
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        email: email.toLowerCase().trim(),
+        password,
+        email_confirm: true,
+        user_metadata: { name },
+      })
+
+      if (error || !data.user) {
+        return reply.status(400).send({ error: error?.message })
+      }
+
+      // Create user node in Neo4j
+      await session.run(
+        `
+        CREATE (u:User {
+          id: $id,
+          email: $email,
+          name: $name,
+          role: 'user',
+          status: 'approved',
+          createdAt: timestamp()
+        })
+        `,
+        { id: data.user.id, email: email.toLowerCase().trim(), name }
+      )
+
+      // Handle based on invitation type
+      if (invitationType === 'admin') {
+        // For admin invitations, directly add as admin
+        await session.run(
+          `MATCH (u:User {id: $userId}), (t:FamilyTree {id: $treeId})
+           CREATE (u)-[:MEMBER_OF {role: 'admin', joinedAt: timestamp()}]->(t)`,
+          { userId: data.user.id, treeId }
+        )
+
+        // Create person node
+        await session.run(
+          `MATCH (u:User {id: $userId}), (t:FamilyTree {id: $treeId})
+           CREATE (p:Person {id: $personId, name: $name, email: $email, treeId: $treeId, accountId: $userId}),
+           (p)-[:BELONGS_TO_TREE]->(t),
+           (u)-[:REPRESENTS]->(p)`,
+          { userId: data.user.id, treeId, personId: uuidv4(), name, email }
+        )
+
+        return reply.send({
+          message: 'Admin account created successfully',
+          userId: data.user.id,
+          role: 'admin',
+          treeId
+        })
+      } else {
+        // For member/viewer invitations, create access request (pending approval)
+        const accessRequestId = uuidv4()
+        await session.run(
+          `MATCH (u:User {id: $userId}), (t:FamilyTree {id: $treeId})
+           CREATE (ar:TreeAccessRequest {
+             id: $requestId,
+             userId: $userId,
+             treeId: $treeId,
+             invitationType: $invitationType,
+             status: 'pending',
+             createdAt: timestamp(),
+             userName: $userName,
+             userEmail: $userEmail
+           })-[:REQUESTS_ACCESS_TO]->(t)`,
+          { 
+            requestId: accessRequestId, 
+            userId: data.user.id, 
+            treeId, 
+            invitationType,
+            userName: name,
+            userEmail: email.toLowerCase().trim()
+          }
+        )
+
+        return reply.send({
+          message: 'Account created. Awaiting admin approval to join tree.',
+          userId: data.user.id,
+          treeId,
+          requestId: accessRequestId,
+          status: 'pending',
+          role: invitationType
+        })
+      }
+
+    } catch (err) {
+      console.error(err)
+      return reply.status(500).send({ error: 'Signup failed' })
+    } finally {
+      await session.close()
+    }
+  })
 }

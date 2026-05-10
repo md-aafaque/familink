@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import supabase from '../../lib/supabaseClient';
 import api from '../../lib/api';
 import { Mail, Trees, Lock, Loader, ArrowRight } from 'lucide-react';
-import { AnimatedButton } from '../../components/AnimatedButton';
+import AnimatedButton from '../../components/AnimatedButton';
 import { AnimatedBackground } from '../../components/AnimatedBackground';
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

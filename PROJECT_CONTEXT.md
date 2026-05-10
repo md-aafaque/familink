@@ -93,12 +93,83 @@ Ghost profiles:
   - Member added/removed from tree (for that member only)
   - Role changes (for that member only)
 
-### 9. Member Invitation
-- Admin can invite members via email 
-- Invitation includes link to join specific family tree
-- Invitee can accept and choose to join
-- Admin assigns role when inviting (Admin/Member/Viewer)
-- Invitee recieves a mail and also a notification in the website with link to join a tree
+### 9. Member Invitation - Three Types of Invitation Links with Role Hierarchy
+Admin can create **3 types of public invitation links** that can be shared on public platforms (WhatsApp, social media, etc.):
+
+**Role Hierarchy**: Admin (highest) > Member > Viewer (lowest)
+
+#### A. Admin Invitation Link
+- Creates a new admin user account
+- Direct setup process (email, password, name)
+- No approval required
+- Use case: Inviting trusted family members who will manage the tree
+- Link expires in 7 days
+
+#### B. Member Invitation Link
+- For adding members with creation and editing permissions
+- **New User Flow**:
+  - Link shared publicly
+  - Clicks link → lands on invitation page
+  - New user signs up (email, password, name)
+  - Account created but **pending admin approval**
+  - Admin receives notification of new member request
+  - Admin approves → user gains Member access to tree
+- **Existing User (in another tree) Flow**:
+  - User exists but NOT in this tree
+  - Clicks link → creates access request
+  - **Pending admin approval**
+  - Admin approves → user added to tree as Member
+- **Existing User (already in this tree) Flow**:
+  - If current role is Admin/Member → **direct access** (higher or equal in hierarchy)
+  - If current role is Viewer → **creates upgrade request** (needs approval to upgrade from Viewer to Member)
+  - No additional prompts if already has equal or higher permissions
+
+#### C. Viewer Invitation Link
+- For adding viewers with read-only permissions
+- **New User Flow**:
+  - Link shared publicly
+  - Clicks link → lands on invitation page
+  - New user signs up (email, password, name)
+  - Account created but **pending admin approval**
+  - Admin receives notification of new viewer request
+  - Admin approves → user gains Viewer access to tree
+- **Existing User (in another tree) Flow**:
+  - User exists but NOT in this tree
+  - Clicks link → creates access request
+  - **Pending admin approval**
+- **Existing User (already in this tree) Flow**:
+  - If current role is Admin/Member/Viewer → **directly opens family tree** (can view with their existing role)
+  - No approval needed if already in tree
+  - Seamless experience
+
+#### Invitation Link Workflow with Role Hierarchy
+1. Admin generates invitation link (type: admin/member/viewer)
+2. Link includes unique token + invitationType + treeId
+3. Link can be shared publicly (WhatsApp, Facebook, etc.)
+4. Token valid for 7 days (configurable)
+5. When clicked by **new user** (doesn't exist in system):
+   - Sign up form → pending approval for member/viewer
+   - Direct access for admin type
+6. When clicked by **existing user NOT in this tree**:
+   - Creates access request → pending admin approval
+7. When clicked by **existing user ALREADY in this tree**:
+   - **Admin role**: Always has direct access (highest privilege)
+   - **Member role** clicking member/viewer link: Direct access (member ≥ viewer)
+   - **Member role** clicking admin link: Pending approval to upgrade
+   - **Viewer role** clicking viewer link: Direct access (same role)
+   - **Viewer role** clicking member/admin link: Pending approval to upgrade
+8. Admin dashboard shows pending approvals with ability to accept/reject
+9. Notifications sent to admin when new requests arrive
+10. When approved, user gets notified and tree appears in their dashboard
+
+#### Token Structure
+- Each invitation token includes:
+  - Unique identifier
+  - Invitation type (admin/member/viewer)
+  - Tree ID
+  - Created timestamp
+  - Expiration timestamp
+  - One-time use for security (can regenerate link if needed)
 
 ---
 
@@ -158,13 +229,32 @@ Ghost profiles:
 5. User added as a node in that tree
 6. Dashboard shows this new tree
 
-### Flow 2: Invite Members to Tree
-1. Admin goes to tree settings
-2. Enters email(s) of people to invite
-3. System sends invitation
-4. Invitee receives notification + link
-5. Invitee joins tree with specified role
-6. Invitee becomes a node in the tree
+### Flow 2: Invite Members to Tree - Admin Creates Invitation Links with Role Hierarchy
+1. Admin goes to tree settings → "Invite Members"
+2. Admin selects invitation type (Admin/Member/Viewer)
+3. System generates unique invitation link with token
+4. Admin shares link (WhatsApp, email, social media, etc.)
+5. Anyone clicking the link sees invitation page with tree details
+6. **If New User (never joined this tree before)**:
+   - Clicks "Accept" → signup form (email, password, name)
+   - Account created → marked as "pending approval" (for member/viewer)
+   - Admin receives notification of new request
+   - Admin reviews and approves/rejects
+   - If approved → user added to tree with requested role
+   - If rejected → user account remains but denied tree access
+7. **If Existing User (exists in system but NOT in this tree)**:
+   - Clicks link → system recognizes they're not in this tree
+   - Creates access request → marked as "pending approval"
+   - Admin reviews request
+   - Admin approves → user added to this tree with requested role
+8. **If Existing User (already in this tree) - Applies Role Hierarchy**:
+   - Admin role: Directly opens tree (highest privilege, always allowed)
+   - Member role clicking member/viewer link: Directly opens tree (member ≥ viewer)
+   - Member role clicking admin link: Creates upgrade request (needs approval)
+   - Viewer role clicking viewer link: Directly opens tree (same role)
+   - Viewer role clicking member/admin link: Creates upgrade request (needs approval)
+9. User added as a node in the tree (if not already present)
+10. Tree now appears in their dashboard
 
 ### Flow 3: Create and Claim Ghost Profile
 1. Member creates ghost profile for deceased relative "John"
@@ -202,6 +292,22 @@ Ghost profiles:
 4. Wants to merge the relationship of the ghost node created by john and profile details of the isolated node. 
 5. Delete that ghost node and replace it with his node. 
 
+### Flow 7: Approve/Reject New Invitation Requests
+1. Admin receives notification of new member/viewer request
+2. Admin goes to tree settings → "Pending Requests"
+3. Views list of users awaiting approval with their invitation type (Member/Viewer)
+4. Can see user's signup info (name, email)
+5. Admin clicks "Approve" or "Reject"
+6. If Approve:
+   - User added to tree with requested role
+   - User notification sent (now has access)
+   - Tree appears in user's dashboard
+7. If Reject:
+   - User account remains active
+   - Denied from this tree
+   - User notification sent (request rejected)
+8. Link remains valid for other new users to accept
+
 ---
 
 ## Why This Tech Stack?
@@ -227,10 +333,12 @@ Ghost profiles:
 6. User can then create/join family trees
 
 ### Data Model
-- **User nodes**: One per registered user
+- **User nodes**: One per registered user; properties include status (approved/pending/rejected)
 - **Person nodes**: Represent family members (may or may not have accounts)
 - **FamilyTree nodes**: Represent rooms/workspaces
-- **MEMBER_OF relationships**: Connect users to family trees with roles
+- **TreeInvitation nodes**: Represent invitation links (token, type, treeId, status, expiry)
+- **TreeAccessRequest nodes**: Pending member/viewer requests awaiting admin approval (userId, treeId, invitationType, status)
+- **MEMBER_OF relationships**: Connect users to family trees with roles (admin/member/viewer)
 - **Relationships**: Connect people (Parent, Spouse, Sibling, etc.)
 
 ### Authorization Pattern
