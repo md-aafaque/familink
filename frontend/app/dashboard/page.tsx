@@ -20,6 +20,7 @@ import {
 import DataState from "../../components/shared/DataState";
 import { motion } from "framer-motion";
 import Skeleton from "../../components/shared/Skeleton";
+import { cn } from "@/lib/cn";
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -125,7 +126,7 @@ export default function DashboardPage() {
 
               <div>
                 <p className="text-3xl font-black text-slate-900">
-                  {trees?.length || 0}
+                  {trees?.filter((t: any) => t.status === 'active').length || 0}
                 </p>
 
                 <p className="text-sm font-medium text-slate-500">
@@ -226,18 +227,27 @@ export default function DashboardPage() {
               {trees.map((tree: any) => (
                 <Link
                   key={tree.id}
-                  href={`/tree/${tree.id}`}
-                  className="group bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5 transition-all relative overflow-hidden"
+                  href={tree.status === 'pending' ? '#' : `/tree/${tree.id}`}
+                  className={cn(
+                    "group bg-white p-8 rounded-3xl border border-slate-100 shadow-sm transition-all relative overflow-hidden",
+                    tree.status === 'pending' ? "opacity-75 cursor-not-allowed" : "hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5"
+                  )}
                 >
                   <div className="relative z-10 space-y-6">
                     <div className="flex items-center justify-between">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                        Role: {tree.role}
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
+                        tree.status === 'pending' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"
+                      )}>
+                        {tree.status === 'pending' ? "Waiting Approval" : `Role: ${tree.role}`}
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="text-2xl font-black text-slate-900 group-hover:text-orange-600 transition-colors">
+                      <h3 className={cn(
+                        "text-2xl font-black transition-colors",
+                        tree.status === 'pending' ? "text-slate-400" : "text-slate-900 group-hover:text-orange-600"
+                      )}>
                         {tree.name}
                       </h3>
 
@@ -249,10 +259,16 @@ export default function DashboardPage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 text-orange-600 font-bold text-sm">
-                      Open Tree
+                    <div className={cn(
+                      "flex items-center gap-2 font-bold text-sm",
+                      tree.status === 'pending' ? "text-slate-300" : "text-orange-600"
+                    )}>
+                      {tree.status === 'pending' ? "Access Restricted" : "Open Tree"}
 
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className={cn(
+                        "w-4 h-4 transition-transform",
+                        tree.status !== 'pending' && "group-hover:translate-x-1"
+                      )} />
                     </div>
                   </div>
                 </Link>

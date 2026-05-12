@@ -62,7 +62,7 @@ export default async function treeRoutes(fastify: FastifyInstance) {
   });
 
   /**
-   * Get all trees the user is a member of
+   * Get all trees the user is a member of (including pending requests)
    */
   fastify.get('/trees', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const user = request.user!;
@@ -70,15 +70,25 @@ export default async function treeRoutes(fastify: FastifyInstance) {
 
     try {
       const result = await session.run(
-        `MATCH (u:User {id: $userId})-[m:MEMBER_OF]->(t:FamilyTree)
-         RETURN t, m.role as role
-         ORDER BY t.createdAt DESC`,
+        `
+        MATCH (u:User {id: $userId})
+        OPTIONAL MATCH (u)-[m:MEMBER_OF]->(t1:FamilyTree)
+        OPTIONAL MATCH (u)-[ar:TreeAccessRequest {status: 'pending'}]-[:REQUESTS_ACCESS_TO]->(t2:FamilyTree)
+        WITH 
+          collect({tree: t1, role: m.role, status: 'active'}) + 
+          collect({tree: t2, role: ar.requestedRole, status: 'pending'}) as entries
+        UNWIND entries as entry
+        WITH entry WHERE entry.tree IS NOT NULL
+        RETURN entry.tree as t, entry.role as role, entry.status as status
+        ORDER BY t.createdAt DESC
+        `,
         { userId: user.id }
       );
 
       const trees = result.records.map(r => ({
         ...r.get('t').properties,
-        role: r.get('role')
+        role: r.get('role'),
+        status: r.get('status')
       }));
 
       return { success: true, data: trees };

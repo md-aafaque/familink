@@ -34,6 +34,15 @@ export default function TreePage() {
   const [isProposing, setIsProposing] = useState(false);
   const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual');
 
+  const { data: treeData, isLoading: treeLoading } = useQuery({
+    queryKey: ['tree', id],
+    queryFn: async () => {
+      const response = await api.get(`/trees/${id}`);
+      return (response as any).data;
+    },
+    enabled: !!id,
+  });
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['tree-neighborhood', id],
     queryFn: async () => {
@@ -42,6 +51,9 @@ export default function TreePage() {
     },
     enabled: !!id,
   });
+
+  const userRole = treeData?.role || 'viewer';
+  const isViewer = userRole === 'viewer';
 
   const createMutation = useMutation({
     mutationFn: async (vals: any) => {
@@ -95,20 +107,29 @@ export default function TreePage() {
         <div className="flex items-center justify-between">
           <h1>Family Tree</h1>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsProposing(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm"
-            >
-              <Link2 className="w-5 h-5 text-blue-600" />
-              Propose Relationship
-            </button>
-            <button
-              onClick={() => setIsAdding(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-2xl font-bold hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/20"
-            >
-              <Plus className="w-5 h-5" />
-              Add Family Member
-            </button>
+            {!isViewer && (
+              <>
+                <button
+                  onClick={() => setIsProposing(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm"
+                >
+                  <Link2 className="w-5 h-5 text-blue-600" />
+                  Propose Relationship
+                </button>
+                <button
+                  onClick={() => setIsAdding(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-2xl font-bold hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/20"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Family Member
+                </button>
+              </>
+            )}
+            {isViewer && (
+              <span className="px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-sm font-bold border border-slate-200">
+                View Only Access
+              </span>
+            )}
           </div>
         </div>
         <DataState isLoading={isLoading} isError={isError} error={error as Error}>

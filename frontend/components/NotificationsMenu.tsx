@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Trash2, Check, X } from 'lucide-react';
 import api from '../lib/api';
+import { useRouter } from 'next/navigation';
 
 type Notification = {
   id: string;
@@ -19,7 +20,7 @@ export default function NotificationsMenu() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     loadNotifications();
@@ -77,6 +78,44 @@ export default function NotificationsMenu() {
     }
   }
 
+  const handleNotificationClick = async (notif: Notification) => {
+    if (!notif.isRead) {
+      await markAsRead(notif.id);
+    }
+
+    setOpen(false);
+
+    if (!notif.data) return;
+
+    try {
+      const data = JSON.parse(notif.data);
+      
+      switch (notif.type) {
+        case 'access_request_pending':
+          router.push('/dashboard/manage/users');
+          break;
+        case 'access_request_approved':
+          if (data.treeId) router.push(`/tree/${data.treeId}`);
+          break;
+        case 'relationship_pending':
+          router.push('/dashboard/manage/proposals');
+          break;
+        case 'relationship_approved':
+        case 'relationship_rejected':
+          if (data.treeId) router.push(`/tree/${data.treeId}`);
+          break;
+        case 'claim_request_pending':
+          router.push('/dashboard/manage/claims');
+          break;
+        default:
+          router.push('/notifications');
+      }
+    } catch (err) {
+      console.error('Failed to parse notification data', err);
+      router.push('/notifications');
+    }
+  };
+
   return (
     <div className="relative">
       {/* Bell Icon Button */}
@@ -106,7 +145,7 @@ export default function NotificationsMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -152,8 +191,9 @@ export default function NotificationsMenu() {
                       key={notif.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className={`p-4 hover:bg-slate-50 transition-colors ${
-                        !notif.isRead ? 'bg-blue-50' : ''
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer ${
+                        !notif.isRead ? 'bg-blue-50/50' : ''
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -174,7 +214,7 @@ export default function NotificationsMenu() {
                           </p>
                         </div>
 
-                        <div className="flex gap-1 flex-shrink-0">
+                        <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           {!notif.isRead && (
                             <button
                               onClick={() => markAsRead(notif.id)}
