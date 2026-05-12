@@ -14,7 +14,20 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
         { userId: user.id }
       );
 
-      const notifications = result.records.map(r => r.get('n').properties);
+      const notifications = result.records.map(r => {
+        const props = r.get('n').properties as Record<string, any>;
+
+        const normalizeNumber = (value: any) =>
+          typeof value === 'object' && value !== null && typeof value.toNumber === 'function'
+            ? value.toNumber()
+            : value;
+
+        return {
+          ...props,
+          createdAt: normalizeNumber(props.createdAt),
+          readAt: normalizeNumber(props.readAt),
+        };
+      });
       return { success: true, data: notifications };
     } finally {
       await session.close();
