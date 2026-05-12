@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Trees, Users, Share2, Lock, Sparkles, ArrowRight } from 'lucide-react';
-import supabase from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import AnimatedButton from '../components/AnimatedButton';
 import AnimatedCard from '../components/AnimatedCard';
 import { AnimatedBackground } from '../components/AnimatedBackground';
@@ -21,7 +21,7 @@ export default function Home() {
         
         if (data.session || token) {
           // User is logged in, redirect to dashboard
-          router.push('/dashboard');
+          router.replace('/dashboard');
         }
       } catch (err) {
         console.error(err);

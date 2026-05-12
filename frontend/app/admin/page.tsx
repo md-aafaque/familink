@@ -20,7 +20,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Pending User Approvals */}
         <button
-          onClick={() => router.push('/admin/pending-users')}
+          onClick={() => router.push('/dashboard/manage/users')}
           className="card group hover:shadow-lg transition-shadow cursor-pointer text-left"
         >
           <div className="flex items-start justify-between mb-4">
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
 
         {/* Pending Relationship Approvals */}
         <button
-          onClick={() => router.push('/admin/pending-relationships')}
+          onClick={() => router.push('/dashboard/manage/proposals')}
           className="card group hover:shadow-lg transition-shadow cursor-pointer text-left"
         >
           <div className="flex items-start justify-between mb-4">

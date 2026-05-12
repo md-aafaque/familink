@@ -1,13 +1,37 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "outDir": "dist",
     "rootDir": "src",
+
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+
+    "moduleResolution": "NodeNext",
+    "typeRoots": ["./src/types", "./node_modules/@types"],
+
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["./src/shared/*"]
+    }
   },
-  "include": ["src"]
+
+  "include": ["src", "src/types"]
 }
+
+// {
+//   "compilerOptions": {
+//     "target": "ES2020",
+//     "module": "CommonJS",
+//     "outDir": "dist",
+//     "rootDir": "src",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "skipLibCheck": true,
+//     "forceConsistentCasingInFileNames": true
+//   },
+//   "include": ["src"]
+// }

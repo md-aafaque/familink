@@ -1,143 +1,292 @@
 "use client";
-import { useEffect, useState } from 'react';
-import api from '../../lib/api'
-import { Plus, User, Calendar, Link as LinkIcon } from 'lucide-react';
 
-type Person = { id: string; name: string; dob?: string | null; dod?: string | null; createdBy?: string };
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../components/providers/AuthProvider";
+import { useQuery } from "@tanstack/react-query";
+import api from "../../lib/api";
+import Link from "next/link";
 
-export default function Dashboard() {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+import {
+  TreeDeciduous,
+  Plus,
+  ArrowRight,
+  Users,
+  ShieldCheck,
+  Clock,
+  Sparkles,
+} from "lucide-react";
 
-  async function load() {
-    try {
-      setError('');
-      const res = await api.get('/people');
-      setPeople(res.data || []);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load people');
-      setPeople([]);
+import DataState from "../../components/shared/DataState";
+import { motion } from "framer-motion";
+import Skeleton from "../../components/shared/Skeleton";
+
+export default function DashboardPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Protect route
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
     }
+  }, [authLoading, user, router]);
+
+  // Wait for auth
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-slate-500 text-lg font-medium">
+          Loading dashboard...
+        </div>
+      </div>
+    );
   }
 
-  useEffect(() => { load(); }, []);
-
-  async function create(e: any) {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setLoading(true);
-    try {
-      await api.post('/people', { name });
-      setName('');
-      setError('');
-      load();
-    } catch (err) {
-      console.error(err);
-      setError('Failed to create person');
-    } finally {
-      setLoading(false);
-    }
+  // Prevent render before redirect
+  if (!user) {
+    return null;
   }
+
+  const {
+    data: trees,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["trees"],
+    enabled: !!user, // only fetch when authenticated
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+
+      const res = await api.get("/trees", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return (res as any).data;
+    },
+  });
+
+  const userName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
+    "User";
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="mb-2">Family Members</h1>
-        <p className="text-slate-600">Manage and explore your family tree</p>
+    <div className="space-y-12">
+      {/* Welcome Header */}
+      <header className="space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100"
+        >
+          <ShieldCheck className="w-3 h-3" />
+          Secure Workspace
+        </motion.div>
+
+        <h1 className="text-5xl font-black text-slate-900 tracking-tight">
+          Welcome back,{" "}
+          <span className="text-orange-600">{userName}</span>
+        </h1>
+
+        <p className="text-lg text-slate-600 max-w-2xl">
+          Your family legacy is growing. Access your trees,
+          manage permissions, and preserve history together.
+        </p>
+      </header>
+
+      {/* Quick Actions / Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {isLoading ? (
+          Array(3)
+            .fill(0)
+            .map((_, i) => (
+              <div
+                key={i}
+                className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4"
+              >
+                <Skeleton className="w-12 h-12 rounded-2xl" />
+
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </div>
+            ))
+        ) : (
+          <>
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
+                <TreeDeciduous className="w-6 h-6 text-orange-600" />
+              </div>
+
+              <div>
+                <p className="text-3xl font-black text-slate-900">
+                  {trees?.length || 0}
+                </p>
+
+                <p className="text-sm font-medium text-slate-500">
+                  Active Trees
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+
+              <div>
+                <p className="text-3xl font-black text-slate-900">
+                  --
+                </p>
+
+                <p className="text-sm font-medium text-slate-500">
+                  Family Members
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+                <Clock className="w-6 h-6 text-purple-600" />
+              </div>
+
+              <div>
+                <p className="text-3xl font-black text-slate-900">
+                  --
+                </p>
+
+                <p className="text-sm font-medium text-slate-500">
+                  Recent Updates
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Create Form */}
-      <div className="card">
-        <div className="card-header">
-          <h3 className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-orange-600" />
-            Add New Family Member
-          </h3>
+      {/* Family Memory Section */}
+      <section className="bg-linear-to-r from-orange-500 to-orange-600 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl shadow-orange-200">
+        <div className="absolute top-0 right-0 p-12 opacity-10">
+          <Sparkles className="w-32 h-32" />
         </div>
-        
-        <form onSubmit={create} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            placeholder="Enter family member's name..."
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="flex-1 input-field"
-            disabled={loading}
-          />
-          <button
-            type="submit"
-            disabled={loading || !name.trim()}
-            className="btn-primary whitespace-nowrap flex items-center justify-center gap-2"
+
+        <div className="relative z-10 max-w-xl space-y-6">
+          <h2 className="text-3xl font-black leading-tight italic">
+            "A family is like a forest; when you are outside it
+            is dense, when you are inside you see that each tree
+            has its place."
+          </h2>
+
+          <p className="text-orange-100 font-medium">
+            Take a moment today to record a small memory about a
+            grandparent or parent.
+          </p>
+
+          <button className="px-6 py-3 bg-white text-orange-600 rounded-2xl font-bold hover:bg-orange-50 transition-all flex items-center gap-2 text-sm shadow-lg">
+            Add a Memory Note
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
+
+      {/* Trees Section */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+            Your Family Trees
+
+            {trees && trees.length > 0 && (
+              <span className="text-sm font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                {trees.length}
+              </span>
+            )}
+          </h2>
+
+          <Link
+            href="/dashboard/new-tree"
+            className="flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            {loading ? 'Adding...' : 'Add Person'}
-          </button>
-        </form>
+            Create New Tree
+          </Link>
+        </div>
 
-        {error && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
-          </div>
-        )}
-      </div>
+        <DataState
+          isLoading={isLoading}
+          isError={isError}
+          error={error as Error}
+        >
+          {trees && trees.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {trees.map((tree: any) => (
+                <Link
+                  key={tree.id}
+                  href={`/tree/${tree.id}`}
+                  className="group bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5 transition-all relative overflow-hidden"
+                >
+                  <div className="relative z-10 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                        Role: {tree.role}
+                      </span>
+                    </div>
 
-      {/* People List */}
-      <div>
-        <h2 className="mb-4">Family Members ({people.length})</h2>
-        
-        {people.length === 0 ? (
-          <div className="card text-center py-12">
-            <User className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-600 mb-2">No family members yet</p>
-            <p className="text-sm text-slate-500">Add your first family member to get started</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {people.map(p => (
-              <a
-                key={p.id}
-                href={`/person/${p.id}`}
-                className="card group hover:border-primary-300"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-linear-to-br from-orange-100 to-blue-100 rounded-lg group-hover:from-orange-200 group-hover:to-blue-200 transition-colors">
-                    <User className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 truncate group-hover:text-orange-600 transition-colors">
-                      {p.name}
-                    </h3>
-                    <div className="flex flex-col gap-1 mt-2 text-sm text-slate-600">
-                      {p.dob && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>Born: {p.dob}</span>
-                        </div>
-                      )}
-                      {p.dod && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>Passed: {p.dod}</span>
-                        </div>
-                      )}
+                    <div>
+                      <h3 className="text-2xl font-black text-slate-900 group-hover:text-orange-600 transition-colors">
+                        {tree.name}
+                      </h3>
+
+                      <p className="text-slate-500 text-sm mt-1">
+                        Started on{" "}
+                        {new Date(
+                          tree.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-orange-600 font-bold text-sm">
+                      Open Tree
+
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <div className="flex items-center gap-2 text-blue-600 text-sm font-medium group-hover:gap-3 transition-all">
-                    View Details
-                    <LinkIcon className="w-4 h-4" />
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center space-y-6">
+              <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto">
+                <Sparkles className="w-10 h-10 text-orange-400" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-slate-900">
+                  No trees found
+                </h3>
+
+                <p className="text-slate-500 max-w-sm mx-auto">
+                  You haven't created or joined any family trees
+                  yet.
+                </p>
+              </div>
+
+              <Link
+                href="/dashboard/new-tree"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-orange-600 text-white rounded-2xl font-bold hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/20"
+              >
+                Create Your First Tree
+
+                <Plus className="w-5 h-5" />
+              </Link>
+            </div>
+          )}
+        </DataState>
+      </section>
     </div>
   );
 }

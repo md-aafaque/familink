@@ -1,289 +1,116 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import api from '@/lib/api'
-import AnimatedButton from '@/components/AnimatedButton'
-import AnimatedCard from '@/components/AnimatedCard'
-import Header from '@/components/Header'
-
-interface InvitationDetails {
-  token: string
-  treeId: string
-  treeName: string
-  invitationType: string
-  expiresAt: number
-}
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import api from "../../../lib/api";
+import DataState from "../../../components/shared/DataState";
+import { 
+  TreeDeciduous, 
+  ArrowRight, 
+  Shield, 
+  Users, 
+  Eye, 
+  CheckCircle2, 
+  Clock,
+  Sparkles
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "../../../lib/cn";
 
 export default function JoinTreePage() {
-  const params = useParams()
-  const router = useRouter()
-  const token = params.token as string
+  const { token } = useParams();
+  const router = useRouter();
 
-  const [invitation, setInvitation] = useState<InvitationDetails | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [step, setStep] = useState<'invitation' | 'signup'>('invitation')
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: '',
-  })
-  const [submitting, setSubmitting] = useState(false)
+  const { data: invite, isLoading, isError, error } = useQuery({
+    queryKey: ["public-invitation", token],
+    queryFn: async () => {
+      const res = await api.get(`/invitations/${token}`);
+      return (res as any).data;
+    },
+    enabled: !!token,
+  });
 
-  useEffect(() => {
-    const fetchInvitation = async () => {
-      try {
-        setLoading(true)
-        const response = await api.get(`/invitations/${token}`)
-        setInvitation(response.data)
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Invalid or expired invitation')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (token) {
-      fetchInvitation()
-    }
-  }, [token])
-
-  const handleAccept = async () => {
-    try {
-      setSubmitting(true)
-      const accessToken = localStorage.getItem('accessToken')
-
-      if (accessToken) {
-        // User is already logged in
-        const response = await api.post(`/invitations/${token}/accept`, {}, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        })
-
-        if (response.data.success) {
-          if (response.data.status === 'pending') {
-            setError(null)
-            // Show pending approval message
-            if (response.data.upgradeFrom) {
-              // Role upgrade scenario
-              alert(`Request submitted to upgrade from ${response.data.currentRole} to ${response.data.requestedRole}! You will be notified once admin approves.`)
-            } else {
-              // New to tree scenario
-              alert('Request submitted for approval! You will be notified once admin approves.')
-            }
-            router.push('/dashboard')
-          } else {
-            // Direct access granted
-            router.push(`/tree/${response.data.treeId}`)
-          }
-        }
+  const joinMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/invitations/${token}/accept`);
+      return res as any;
+    },
+    onSuccess: (data) => {
+      if (data.status === 'pending') {
+        router.push('/dashboard?message=Request submitted for approval');
       } else {
-        // New user - show signup form
-        setStep('signup')
+        router.push(`/tree/${data.treeId}`);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to accept invitation')
-    } finally {
-      setSubmitting(false)
-    }
-  }
+    },
+  });
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      setSubmitting(true)
-
-      const response = await api.post('/auth/signup-with-invitation', {
-        token,
-        email: formData.email.toLowerCase().trim(),
-        password: formData.password,
-        name: formData.name,
-      })
-
-      // Signup successful
-      setError(null)
-      alert(`Account created successfully! ${response.data.message}`)
-      router.push('/login')
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Signup failed')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading invitation...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!invitation) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Header />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <AnimatedCard>
-            <div className="text-center p-8">
-              <h2 className="text-2xl font-bold text-red-600 mb-4">Invalid Invitation</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
-              <AnimatedButton onClick={() => router.push('/')} variant="primary">
-                Go to Home
-              </AnimatedButton>
-            </div>
-          </AnimatedCard>
-        </div>
-      </div>
-    )
-  }
-
-  const expirationDate = new Date(invitation.expiresAt).toLocaleDateString()
-  const roleLabel = {
-    admin: 'Administrator',
-    member: 'Member (Can create and edit)',
-    viewer: 'Viewer (Read-only)',
-  }[invitation.invitationType]
+  const roleInfo = {
+    member: { icon: Users, color: 'bg-blue-100 text-blue-600', label: 'Member' },
+    viewer: { icon: Eye, color: 'bg-slate-100 text-slate-600', label: 'Viewer' },
+    admin: { icon: Shield, color: 'bg-orange-100 text-orange-600', label: 'Admin' },
+  }[invite?.invitationType as 'member' | 'viewer' | 'admin'] || { icon: TreeDeciduous, color: 'bg-orange-100 text-orange-600', label: 'Guest' };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Header />
-      <div className="flex items-center justify-center min-h-[60vh] p-4">
-        <AnimatedCard>
-          {step === 'invitation' ? (
-            <div className="w-full max-w-md">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  You're invited!
-                </h1>
-                <p className="text-gray-600">Join the family tree</p>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="max-w-xl w-full">
+        <DataState isLoading={isLoading} isError={isError} error={error as Error}>
+          {invite && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-[3rem] shadow-2xl shadow-orange-500/10 border border-slate-100 overflow-hidden"
+            >
+              <div className="bg-linear-to-br from-orange-500 to-orange-600 p-12 text-white text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                  <Sparkles className="w-32 h-32" />
+                </div>
+                <div className="relative z-10 space-y-6">
+                  <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-[2rem] flex items-center justify-center mx-auto border border-white/30 shadow-xl">
+                    <TreeDeciduous className="w-10 h-10 text-white" />
+                  </div>
+                  <h1 className="text-3xl font-black tracking-tight">You're Invited!</h1>
+                  <p className="text-orange-100 font-medium">To join a private family tree</p>
+                </div>
               </div>
 
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {invitation.treeName}
-                </h2>
-                <p className="text-sm text-gray-600 mb-3">
-                  <strong>Your Role:</strong> {roleLabel}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Invitation expires on {expirationDate}
-                </p>
+              <div className="p-12 space-y-10">
+                <div className="flex items-start gap-6 p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                  <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm", roleInfo.color)}>
+                    <roleInfo.icon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-slate-900">Access Level: {roleInfo.label}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      You will be able to view the tree and its members. 
+                      {invite.invitationType === 'member' && " You can also add new family members."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                   <div className="flex items-center gap-3 text-sm text-slate-400 font-medium px-2">
+                     <Clock className="w-4 h-4" />
+                     <span>This invitation expires on {new Date(invite.expiresAt).toLocaleDateString()}</span>
+                   </div>
+                   
+                   <button
+                    onClick={() => joinMutation.mutate()}
+                    disabled={joinMutation.isPending}
+                    className="w-full py-5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-lg shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {joinMutation.isPending ? "Processing..." : "Accept Invitation"}
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+
+                  <p className="text-center text-xs text-slate-400 px-8 leading-relaxed">
+                    By accepting, you agree to follow the privacy guidelines set by the tree administrators.
+                  </p>
+                </div>
               </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                  {error}
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <AnimatedButton
-                  onClick={handleAccept}
-                  disabled={submitting}
-                  variant="primary"
-                  className="w-full"
-                >
-                  {submitting ? 'Processing...' : 'Accept Invitation'}
-                </AnimatedButton>
-
-                <AnimatedButton
-                  onClick={() => router.push('/')}
-                  variant="secondary"
-                  className="w-full"
-                >
-                  Cancel
-                </AnimatedButton>
-              </div>
-
-              <p className="text-xs text-gray-500 mt-4 text-center">
-                Don't have an account? You'll be asked to create one on the next step.
-              </p>
-            </div>
-          ) : (
-            <div className="w-full max-w-md">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  Create Your Account
-                </h1>
-                <p className="text-gray-600 text-sm">
-                  Join {invitation.treeName} as {invitation.invitationType}
-                </p>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="you@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="••••••••"
-                    minLength={6}
-                  />
-                </div>
-
-                <AnimatedButton
-                  type="submit"
-                  disabled={submitting}
-                  variant="primary"
-                  className="w-full"
-                >
-                  {submitting ? 'Creating account...' : 'Create Account & Join'}
-                </AnimatedButton>
-              </form>
-
-              <button
-                onClick={() => setStep('invitation')}
-                className="w-full mt-4 px-4 py-2 text-gray-600 hover:text-gray-800 text-sm font-medium transition"
-              >
-                Back
-              </button>
-            </div>
+            </motion.div>
           )}
-        </AnimatedCard>
+        </DataState>
       </div>
     </div>
-  )
+  );
 }

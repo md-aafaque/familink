@@ -1,77 +1,50 @@
 import Fastify from 'fastify';
-import dotenv from 'dotenv';
-import routes from './routes';
-import authPlugin from './plugins/auth';
 import cors from '@fastify/cors';
+import authPlugin from './plugins/auth';
+import { config } from './core/config';
+import { handleError } from './core/errors';
+import peopleRoutes from './routes/people';
+import treeRoutes from './routes/tree';
+import authRoutes from './routes/auth';
+import invitationsRoutes from './routes/invitations';
+import notificationsRoutes from './routes/notifications';
+import claimRoutes from './routes/claim';
+import relationshipsRoutes from './routes/relationships';
 
-dotenv.config();
-
-const server = Fastify({ logger: true });
+const server = Fastify({
+  logger: true,
+});
 
 async function start() {
-  await server.register(cors, { origin: ['http://localhost:3000'] });
-  
-  // Register auth plugin first
-  await server.register(authPlugin);
-  
-  // Add global preHandler hook that applies to ALL routes including prefixed ones
-  server.addHook('preHandler', async (request, reply) => {
-    const auth = request.headers.authorization;
-    
-    if (!auth) {
-      return;
-    }
+  // Error Handler
+  server.setErrorHandler(handleError);
 
-    console.log('[AUTH-GLOBAL] Authorization header present');
-
-    const parts = auth.split(' ');
-    if (parts.length !== 2) {
-      console.log('[AUTH-GLOBAL] Invalid auth format');
-      return;
-    }
-
-    const token = parts[1];
-    
-    // Support a simple mock token format: MOCK:<userId>:<role>
-    if (token.startsWith('MOCK:')) {
-      const [, id, role] = token.split(':');
-      request.user = { id, role: role || 'viewer' };
-      console.log('[AUTH-GLOBAL] MOCK token user:', request.user);
-      return;
-    }
-
-    // Decode JWT token to extract user info
-    try {
-      const jwtParts = token.split('.');
-      
-      if (jwtParts.length === 3) {
-        let payload_b64 = jwtParts[1];
-        payload_b64 += '='.repeat((4 - payload_b64.length % 4) % 4);
-        
-        const decoded = Buffer.from(payload_b64, 'base64').toString('utf8');
-        const payload = JSON.parse(decoded) as any;
-        
-        const userId = payload.sub || payload.user_id;
-        if (userId) {
-          request.user = { id: userId, email: payload.email, role: payload.role || 'user' };
-          console.log('[AUTH-GLOBAL] JWT user extracted:', request.user);
-          return;
-        } else {
-          console.log('[AUTH-GLOBAL] No sub/user_id in JWT payload');
-        }
-      }
-    } catch (err) {
-      console.error('[AUTH-GLOBAL] JWT decode failed:', err);
-    }
+  // Plugins
+  await server.register(cors, { 
+    origin: config.FRONTEND_URL,
+    credentials: true 
   });
   
-  await server.register(routes, { prefix: '/api' });
+  await server.register(authPlugin);
+  
+  // Feature Routes (Modular Monolith Style)
+  await server.register(async (api) => {
+    await api.register(authRoutes);
+    await api.register(peopleRoutes);
+    await api.register(treeRoutes);
+    await api.register(notificationsRoutes);
+    await api.register(invitationsRoutes);
+    await api.register(claimRoutes);
+    await api.register(relationshipsRoutes);
+  }, { prefix: '/api/v1' });
 
+  // Health check
+  server.get('/health', async () => ({ status: 'ok' }));
 
-  const port = Number(process.env.PORT || 3001);
   try {
+    const port = parseInt(config.PORT, 10);
     await server.listen({ port, host: '0.0.0.0' });
-    server.log.info(`Server listening on ${port}`);
+    console.log(`🚀 Server ready at http://localhost:${port}`);
   } catch (err) {
     server.log.error(err);
     process.exit(1);

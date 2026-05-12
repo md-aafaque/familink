@@ -1,0 +1,170 @@
+import { getSession } from '../../core/database';
+import { TreeInvitation, TreeAccessRequest, InvitationType } from '@shared/schemas/invitations';
+import { v4 as uuidv4 } from 'uuid';
+
+export class InvitationsRepository {
+  static async createInvitation(treeId: string, type: InvitationType, createdBy: string): Promise<TreeInvitation> {
+    const session = getSession();
+    try {
+      const token = uuidv4();
+      const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+      const result = await session.run(
+        `
+        MATCH (t:FamilyTree {id: $treeId})
+        CREATE (i:TreeInvitation {
+          token: $token,
+          treeId: $treeId,
+          invitationType: $type,
+          createdBy: $createdBy,
+          createdAt: timestamp(),
+          expiresAt: $expiresAt,
+          status: 'active'
+        })-[:FOR_TREE]->(t)
+        RETURN i
+        `,
+        { treeId, type, createdBy, token, expiresAt }
+      );
+      return result.records[0].get('i').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findInvitationByToken(token: string): Promise<TreeInvitation | null> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (i:TreeInvitation {token: $token}) RETURN i`,
+        { token }
+      );
+      if (result.records.length === 0) return null;
+      return result.records[0].get('i').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async createAccessRequest(
+    userId: string, 
+    treeId: string, 
+    requestedRole: InvitationType,
+    upgradeFrom?: string
+  ): Promise<TreeAccessRequest> {
+    const session = getSession();
+    try {
+      const id = uuidv4();
+      const result = await session.run(
+        `
+        MATCH (u:User {id: $userId}), (t:FamilyTree {id: $treeId})
+        CREATE (ar:TreeAccessRequest {
+          id: $id,
+          userId: $userId,
+          treeId: $treeId,
+          requestedRole: $requestedRole,
+          upgradeFrom: $upgradeFrom,
+          status: 'pending',
+          createdAt: timestamp()
+        })-[:REQUESTS_ACCESS_TO]->(t)
+        RETURN ar
+        `,
+        { id, userId, treeId, requestedRole, upgradeFrom: upgradeFrom || null }
+      );
+      return result.records[0].get('ar').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findRequestById(id: string): Promise<TreeAccessRequest | null> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (ar:TreeAccessRequest {id: $id}) RETURN ar`,
+        { id }
+      );
+      if (result.records.length === 0) return null;
+      return result.records[0].get('ar').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async updateRequestStatus(id: string, status: 'approved' | 'rejected'): Promise<void> {
+    const session = getSession();
+    try {
+      await session.run(
+        `MATCH (ar:TreeAccessRequest {id: $id}) SET ar.status = $status, ar.processedAt = timestamp()`,
+        { id, status }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async addUserToTree(userId: string, treeId: string, role: string): Promise<void> {
+    const session = getSession();
+    try {
+      // Use MERGE for the relationship but update the role
+      await session.run(
+        `
+        MATCH (u:User {id: $userId}), (t:FamilyTree {id: $treeId})
+        MERGE (u)-[r:MEMBER_OF]->(t)
+        SET r.role = $role, r.joinedAt = timestamp()
+        `,
+        { userId, treeId, role }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getPendingRequests(treeId: string): Promise<any[]> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `
+        MATCH (ar:TreeAccessRequest {treeId: $treeId, status: 'pending'})
+        MATCH (u:User {id: ar.userId})
+        RETURN ar, u.email as email, u.name as name
+        ORDER BY ar.createdAt DESC
+        `,
+        { treeId }
+      );
+      return result.records.map(r => ({
+        ...r.get('ar').properties,
+        userEmail: r.get('email'),
+        userName: r.get('name')
+      }));
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findUserCurrentRole(userId: string, treeId: string): Promise<string | null> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (u:User {id: $userId})-[r:MEMBER_OF]->(t:FamilyTree {id: $treeId}) RETURN r.role as role`,
+        { userId, treeId }
+      );
+      if (result.records.length === 0) return null;
+      return result.records[0].get('role');
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async listInvitations(treeId: string): Promise<TreeInvitation[]> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (i:TreeInvitation {treeId: $treeId, status: 'active'}) 
+         RETURN i ORDER BY i.createdAt DESC`,
+        { treeId }
+      );
+      return result.records.map(r => r.get('i').properties);
+    } finally {
+      await session.close();
+    }
+  }
+}
