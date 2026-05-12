@@ -20,6 +20,7 @@ import { cn } from "../../../lib/cn";
 export default function JoinTreePage() {
   const { token } = useParams();
   const router = useRouter();
+  const invitationRoute = `/join/${token}`;
 
   const { data: invite, isLoading, isError, error } = useQuery({
     queryKey: ["public-invitation", token],
@@ -42,7 +43,22 @@ export default function JoinTreePage() {
         router.push(`/tree/${data.treeId}`);
       }
     },
+    onError: (err: any) => {
+      const message = typeof err === 'string' ? err : err?.message?.toString?.() || '';
+      if (message.toLowerCase().includes('unauthorized') || message.toLowerCase().includes('unauthorised')) {
+        router.push(`/login?redirect=${encodeURIComponent(invitationRoute)}&message=Please sign in to accept this invitation`);
+      }
+    },
   });
+
+  const handleAccept = () => {
+    const tokenValue = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!tokenValue) {
+      router.push(`/login?redirect=${encodeURIComponent(invitationRoute)}&message=Please sign in to accept this invitation`);
+      return;
+    }
+    joinMutation.mutate();
+  };
 
   const roleInfo = {
     member: { icon: Users, color: 'bg-blue-100 text-blue-600', label: 'Member' },
@@ -94,13 +110,17 @@ export default function JoinTreePage() {
                    </div>
                    
                    <button
-                    onClick={() => joinMutation.mutate()}
+                    onClick={handleAccept}
                     disabled={joinMutation.isPending}
                     className="w-full py-5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-lg shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                   >
                     {joinMutation.isPending ? "Processing..." : "Accept Invitation"}
                     <ArrowRight className="w-5 h-5" />
                   </button>
+
+                  {joinMutation.isError && (
+                    <p className="text-center text-sm text-red-600 mt-3">{(joinMutation.error as Error)?.message}</p>
+                  )}
 
                   <p className="text-center text-xs text-slate-400 px-8 leading-relaxed">
                     By accepting, you agree to follow the privacy guidelines set by the tree administrators.

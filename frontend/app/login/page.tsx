@@ -15,6 +15,7 @@ function LoginFormContent() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/dashboard';
   const message = searchParams.get('message');
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -43,7 +44,7 @@ function LoginFormContent() {
       console.log("SESSION:", session);
 
       if (session) {
-        router.replace("/dashboard");
+        router.replace(redirect);
         router.refresh();
       } else {
         setError("Login succeeded but session was not created.");
@@ -60,7 +61,7 @@ function LoginFormContent() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}${redirect}`,
       },
     });
     if (error) setError(error.message);
@@ -145,7 +146,7 @@ function LoginFormContent() {
 
         <p className="text-center text-slate-600 mt-8 text-sm">
           Don't have an account?{' '}
-          <Link href="/signup" className="text-orange-600 font-semibold hover:text-orange-700">
+          <Link href={`/signup?redirect=${encodeURIComponent(redirect)}`} className="text-orange-600 font-semibold hover:text-orange-700">
             Sign Up
           </Link>
         </p>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, User, Loader2 } from 'lucide-react';
 import { SiGoogle } from 'react-icons/si';
 import Link from 'next/link';
@@ -14,6 +14,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/dashboard';
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +43,7 @@ export default function SignupPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push('/login?message=Check your email to confirm your account');
+      router.push(`/login?message=Check your email to confirm your account&redirect=${encodeURIComponent(redirect)}`);
     }
   };
 
@@ -49,7 +51,7 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}${redirect}`,
       },
     });
     if (error) setError(error.message);
@@ -143,7 +145,7 @@ export default function SignupPage() {
 
         <p className="text-center text-slate-600 mt-8 text-sm">
           Already have an account?{' '}
-          <Link href="/login" className="text-orange-600 font-semibold hover:text-orange-700">
+          <Link href={`/login?redirect=${encodeURIComponent(redirect)}`} className="text-orange-600 font-semibold hover:text-orange-700">
             Sign In
           </Link>
         </p>
