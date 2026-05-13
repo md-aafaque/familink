@@ -1,6 +1,7 @@
 import { getSession } from '../../core/database';
 import { Person, CreatePersonInput, UpdatePersonInput } from '@shared/schemas/people';
 import { v4 as uuidv4 } from 'uuid';
+import { AppError } from '../../core/errors';
 
 export class PeopleRepository {
   static async create(input: CreatePersonInput & { createdBy: string }): Promise<Person> {
@@ -55,22 +56,32 @@ export class PeopleRepository {
   }
 
   static async update(id: string, input: UpdatePersonInput): Promise<Person> {
-    if (Object.keys(input).length === 0) {
+    const keys = Object.keys(input);
+    if (keys.length === 0) {
       const existing = await this.findById(id);
-      if (!existing) throw new Error('Person not found');
+      if (!existing) throw new AppError('Person not found', 404);
       return existing;
     }
 
     const session = getSession();
     try {
-      const setters = Object.keys(input)
+      // Build the SET clause dynamically but safely using parameters
+      const setters = keys
         .map(key => `p.${key} = $${key}`)
         .join(', ');
       
       const result = await session.run(
-        `MATCH (p:Person {id: $id}) SET ${setters} RETURN p`,
+        `MATCH (p:Person {id: $id}) 
+         WHERE p.deletedAt IS NULL
+         SET ${setters} 
+         RETURN p`,
         { ...input, id }
       );
+
+      if (result.records.length === 0) {
+        throw new AppError('Person not found or already deleted', 404);
+      }
+
       return result.records[0].get('p').properties;
     } finally {
       await session.close();

@@ -1,6 +1,7 @@
 import { getSession } from '../../core/database';
 import { TreeInvitation, TreeAccessRequest, InvitationType } from '@shared/schemas/invitations';
 import { v4 as uuidv4 } from 'uuid';
+import { AppError } from '../../core/errors';
 
 export class InvitationsRepository {
   static async createInvitation(treeId: string, type: InvitationType, createdBy: string): Promise<TreeInvitation> {
@@ -24,6 +25,11 @@ export class InvitationsRepository {
         `,
         { treeId, type, createdBy, token, expiresAt }
       );
+
+      if (result.records.length === 0) {
+        throw new AppError('Failed to create invitation: Tree not found', 404);
+      }
+
       return result.records[0].get('i').properties;
     } finally {
       await session.close();
@@ -56,7 +62,7 @@ export class InvitationsRepository {
       const result = await session.run(
         `
         MATCH (u:User {id: $userId}), (t:FamilyTree {id: $treeId})
-        CREATE (ar:TreeAccessRequest {
+        CREATE (u)-[:HAS_ACCESS_REQUEST]->(ar:TreeAccessRequest {
           id: $id,
           userId: $userId,
           treeId: $treeId,
@@ -69,6 +75,11 @@ export class InvitationsRepository {
         `,
         { id, userId, treeId, requestedRole, upgradeFrom: upgradeFrom || null }
       );
+
+      if (result.records.length === 0) {
+        throw new AppError('Failed to create access request: User or Tree not found', 404);
+      }
+
       return result.records[0].get('ar').properties;
     } finally {
       await session.close();
@@ -92,10 +103,15 @@ export class InvitationsRepository {
   static async updateRequestStatus(id: string, status: 'approved' | 'rejected'): Promise<void> {
     const session = getSession();
     try {
-      await session.run(
-        `MATCH (ar:TreeAccessRequest {id: $id}) SET ar.status = $status, ar.processedAt = timestamp()`,
+      const result = await session.run(
+        `MATCH (ar:TreeAccessRequest {id: $id}) 
+         SET ar.status = $status, ar.processedAt = timestamp()
+         RETURN ar`,
         { id, status }
       );
+      if (result.records.length === 0) {
+        throw new AppError('Access request not found', 404);
+      }
     } finally {
       await session.close();
     }
@@ -105,14 +121,18 @@ export class InvitationsRepository {
     const session = getSession();
     try {
       // Use MERGE for the relationship but update the role
-      await session.run(
+      const result = await session.run(
         `
         MATCH (u:User {id: $userId}), (t:FamilyTree {id: $treeId})
         MERGE (u)-[r:MEMBER_OF]->(t)
         SET r.role = $role, r.joinedAt = timestamp()
+        RETURN r
         `,
         { userId, treeId, role }
       );
+      if (result.records.length === 0) {
+        throw new AppError('Failed to link user to tree: User or Tree not found', 404);
+      }
     } finally {
       await session.close();
     }

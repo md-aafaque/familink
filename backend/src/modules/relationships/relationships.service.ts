@@ -49,11 +49,13 @@ export class RelationshipsService {
     if (proposal.status !== 'pending') throw new AppError('Proposal already processed', 400);
 
     // 1. Re-validate before making official (in case tree state changed)
+    // We exclude the current proposal from the "already pending" check
     await RelationshipValidation.validate(
       proposal.treeId,
       proposal.fromPersonId,
       proposal.toPersonId,
-      proposal.relationshipType
+      proposal.relationshipType,
+      proposalId
     );
 
     // 2. Update Status
