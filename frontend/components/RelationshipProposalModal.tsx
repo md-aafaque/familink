@@ -93,6 +93,12 @@ export default function RelationshipProposalModal({
             </div>
           )}
 
+          {fromId && toId && fromId === toId && (
+            <div className="p-4 bg-amber-50 border border-amber-100 text-amber-700 text-sm rounded-2xl">
+              Subject and target must be different people.
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-700">Subject Person</label>
             <select

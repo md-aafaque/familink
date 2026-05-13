@@ -3,22 +3,28 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import DataState from "@/components/shared/DataState";
-import { Check, X, User, Shield, Mail, Calendar, UserPlus, Fingerprint } from "lucide-react";
+import { Check, X, Shield, Mail, Calendar, Fingerprint, ChevronDown, Users } from "lucide-react";
+import { formatDate } from "@/lib/dateUtils";
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 export default function ManageClaimsPage() {
   const queryClient = useQueryClient();
+  const [selectedTreeId, setSelectedTreeId] = useState<string>("");
 
   // Fetch trees first to get a list
-  const { data: trees } = useQuery({
+  const { data: trees, isLoading: isLoadingTrees } = useQuery({
     queryKey: ["trees"],
     queryFn: async () => {
       const res = await api.get("/trees");
-      return (res as any).data;
+      const data = (res as any).data;
+      if (data?.length > 0 && !selectedTreeId) {
+        const adminTree = data.find((t: any) => t.role === 'admin');
+        setSelectedTreeId(adminTree?.id || data[0].id);
+      }
+      return data;
     },
   });
-
-  const selectedTreeId = trees?.find((t: any) => t.role === 'admin')?.id || trees?.[0]?.id;
 
   const { data: requests, isLoading, isError, error } = useQuery({
     queryKey: ["claim-requests", selectedTreeId],
@@ -58,6 +64,38 @@ export default function ManageClaimsPage() {
         </p>
       </header>
 
+      {/* Tree Selector */}
+      <section className="relative">
+        <div className="bg-linear-to-br from-slate-900 to-slate-800 p-8 rounded-[2.5rem] shadow-xl overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+             <Fingerprint className="w-32 h-32 text-white" />
+          </div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white">Select Tree</h3>
+              <p className="text-slate-300 font-medium">Review claims for the selected workspace</p>
+            </div>
+            <div className="relative min-w-[300px]">
+              <select
+                value={selectedTreeId}
+                onChange={(e) => setSelectedTreeId(e.target.value)}
+                className="w-full pl-6 pr-12 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl font-bold text-white focus:ring-4 focus:ring-blue-500/30 outline-none appearance-none transition-all cursor-pointer backdrop-blur-md"
+              >
+                {!trees && <option className="text-slate-900">Loading trees...</option>}
+                {trees?.map((tree: any) => (
+                  <option key={tree.id} value={tree.id} className="text-slate-900">
+                    {tree.name} ({tree.role})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
+                <ChevronDown className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <DataState isLoading={isLoading} isError={isError} error={error as Error}>
         <div className="grid grid-cols-1 gap-6">
           {requests?.length > 0 ? (
@@ -72,7 +110,7 @@ export default function ManageClaimsPage() {
                     <Fingerprint className="w-8 h-8 text-blue-600" />
                   </div>
                   <div className="space-y-1">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <h3 className="text-xl font-bold text-slate-900">{req.userName}</h3>
                       <span className="text-slate-400">wants to claim</span>
                       <h3 className="text-xl font-bold text-orange-600">{req.person.firstName} {req.person.lastName}</h3>
@@ -84,7 +122,7 @@ export default function ManageClaimsPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        Requested {new Date(req.createdAt).toLocaleDateString()}
+                        Requested {formatDate(req.createdAt)}
                       </div>
                     </div>
                   </div>

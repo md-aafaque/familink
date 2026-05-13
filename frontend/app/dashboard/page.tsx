@@ -21,6 +21,7 @@ import DataState from "../../components/shared/DataState";
 import { motion } from "framer-motion";
 import Skeleton from "../../components/shared/Skeleton";
 import { cn } from "@/lib/cn";
+import { formatDate } from "../../lib/dateUtils";
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -252,10 +253,7 @@ export default function DashboardPage() {
                       </h3>
 
                       <p className="text-slate-500 text-sm mt-1">
-                        Started on{" "}
-                        {new Date(
-                          tree.createdAt
-                        ).toLocaleDateString()}
+                        Started on {formatDate(tree.createdAt)}
                       </p>
                     </div>
 

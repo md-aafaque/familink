@@ -87,9 +87,13 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <label className="text-sm font-bold text-slate-700">Last Name</label>
           <input
             {...register("lastName")}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+            className={cn(
+              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
+              errors.lastName ? "border-red-500" : "border-slate-200"
+            )}
             placeholder="Doe"
           />
+          {errors.lastName && <p className="text-xs text-red-500">{errors.lastName.message as string}</p>}
         </div>
 
         {/* Basic Info */}
@@ -97,26 +101,34 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <label className="text-sm font-bold text-slate-700">Gender</label>
           <select
             {...register("gender")}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white"
+            className={cn(
+              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white",
+              errors.gender ? "border-red-500" : "border-slate-200"
+            )}
           >
             <option value="unknown">Prefer not to say</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
+          {errors.gender && <p className="text-xs text-red-500">{errors.gender.message as string}</p>}
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-bold text-slate-700">Profile Status</label>
           <select
             {...register("status")}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white"
+            className={cn(
+              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white",
+              errors.status ? "border-red-500" : "border-slate-200"
+            )}
           >
             <option value="ghost">Ghost Profile</option>
             <option value="active">Active Member</option>
             <option value="deceased">Deceased</option>
             <option value="archived">Archived</option>
           </select>
+          {errors.status && <p className="text-xs text-red-500">{errors.status.message as string}</p>}
         </div>
 
         <div className="space-y-2">
@@ -126,7 +138,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               <input
                 {...register("birthDate")}
                 type="date"
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                className={cn(
+                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
+                  errors.birthDate ? "border-red-500" : "border-slate-200"
+                )}
               />
             </div>
             <div className="space-y-2">
@@ -141,6 +156,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               </select>
             </div>
           </div>
+          {errors.birthDate && <p className="text-xs text-red-500">{errors.birthDate.message as string}</p>}
         </div>
 
         <div className="space-y-2">
@@ -148,8 +164,12 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <input
             {...register("deathDate")}
             type="date"
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+            className={cn(
+              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
+              errors.deathDate ? "border-red-500" : "border-slate-200"
+            )}
           />
+          {errors.deathDate && <p className="text-xs text-red-500">{errors.deathDate.message as string}</p>}
         </div>
       </div>
 
@@ -167,7 +187,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               <input
                 {...register("email")}
                 type="email"
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                className={cn(
+                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
+                  errors.email ? "border-red-500" : "border-slate-200"
+                )}
                 placeholder="email@example.com"
               />
             </div>
@@ -183,6 +206,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               </select>
             </div>
           </div>
+          {errors.email && <p className="text-xs text-red-500">{errors.email.message as string}</p>}
 
           {/* Phone */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -190,7 +214,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               <label className="text-sm font-bold text-slate-700">Phone Number</label>
               <input
                 {...register("phone")}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                className={cn(
+                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
+                  errors.phone ? "border-red-500" : "border-slate-200"
+                )}
                 placeholder="+1 (555) 000-0000"
               />
             </div>
@@ -206,6 +233,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               </select>
             </div>
           </div>
+          {errors.phone && <p className="text-xs text-red-500">{errors.phone.message as string}</p>}
 
           {/* Address */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -213,7 +241,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               <label className="text-sm font-bold text-slate-700">Address</label>
               <input
                 {...register("address")}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                className={cn(
+                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
+                  errors.address ? "border-red-500" : "border-slate-200"
+                )}
                 placeholder="123 Main St, City, State, ZIP"
               />
             </div>
@@ -229,6 +260,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               </select>
             </div>
           </div>
+          {errors.address && <p className="text-xs text-red-500">{errors.address.message as string}</p>}
         </div>
       </div>
       <button

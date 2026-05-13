@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/dateUtils";
 
 export default function PersonProfilePage() {
   const { id } = useParams();
@@ -139,7 +140,7 @@ export default function PersonProfilePage() {
                       {data.status}
                     </span>
                   </div>
-                  <p className="text-slate-500 font-medium">Tree Member • Added {new Date(data.createdAt).toLocaleDateString()}</p>
+                  <p className="text-slate-500 font-medium">Tree Member • Added {formatDate(data.createdAt)}</p>
                 </div>
               </div>
             </div>
@@ -179,7 +180,7 @@ export default function PersonProfilePage() {
                         <div className="space-y-1">
                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Birth Date</p>
                           <p className="text-slate-900 font-medium">
-                            {data.birthDate ? new Date(data.birthDate).toLocaleDateString() : 'Not provided'}
+                            {formatDate(data.birthDate)}
                           </p>
                         </div>
                       </div>

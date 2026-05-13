@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Trash2, Check, X } from 'lucide-react';
 import api from '../lib/api';
 import { useRouter } from 'next/navigation';
+import { formatDateTime } from '../lib/dateUtils';
 
 type Notification = {
   id: string;
@@ -210,7 +211,7 @@ export default function NotificationsMenu() {
                             {notif.message}
                           </p>
                           <p className="text-xs text-slate-500 mt-2">
-                            {new Date(notif.createdAt).toLocaleDateString()} {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            {formatDateTime(notif.createdAt)}
                           </p>
                         </div>
 

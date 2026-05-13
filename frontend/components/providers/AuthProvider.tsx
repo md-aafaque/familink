@@ -91,8 +91,6 @@ export function AuthProvider({
                 },
               }
             );
-
-            console.log("[Auth Sync] Success");
           }
         } else {
           localStorage.removeItem("token");

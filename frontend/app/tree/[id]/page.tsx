@@ -71,13 +71,13 @@ export default function TreePage() {
         }
       );
 
-      console.log("CREATE RESPONSE:", res.data);
+      // console.log("CREATE RESPONSE:", res.data);
 
       return (res as any).data;
     },
 
     onSuccess: () => {
-      console.log("CREATE SUCCESS");
+      // console.log("CREATE SUCCESS");
 
       queryClient.invalidateQueries({
         queryKey: ["tree-neighborhood", id],

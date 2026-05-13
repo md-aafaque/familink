@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Bell, Trash2, Check, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '../../lib/api';
+import { formatDateTime } from '../../lib/dateUtils';
 
 type Notification = {
   id: string;
@@ -46,6 +47,42 @@ export default function NotificationsPage() {
       console.error(err);
     }
   }
+
+  const handleNotificationClick = async (notif: Notification) => {
+    if (!notif.isRead) {
+      await markAsRead(notif.id);
+    }
+
+    if (!notif.data) return;
+
+    try {
+      const data = JSON.parse(notif.data);
+      
+      switch (notif.type) {
+        case 'access_request_pending':
+          router.push('/dashboard/manage/users');
+          break;
+        case 'access_request_approved':
+          if (data.treeId) router.push(`/tree/${data.treeId}`);
+          break;
+        case 'relationship_pending':
+          router.push('/dashboard/manage/proposals');
+          break;
+        case 'relationship_approved':
+        case 'relationship_rejected':
+          if (data.treeId) router.push(`/tree/${data.treeId}`);
+          break;
+        case 'claim_request_pending':
+          router.push('/dashboard/manage/claims');
+          break;
+        default:
+          // Stay on page
+          break;
+      }
+    } catch (err) {
+      console.error('Failed to parse notification data', err);
+    }
+  };
 
   async function deleteNotification(id: string) {
     try {
@@ -153,7 +190,8 @@ export default function NotificationsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className={`bg-white rounded-xl shadow-sm border transition-all p-6 flex items-start justify-between gap-4 hover:shadow-md ${
+                  onClick={() => handleNotificationClick(notif)}
+                  className={`bg-white rounded-xl shadow-sm border transition-all p-6 flex items-start justify-between gap-4 hover:shadow-md cursor-pointer ${
                     !notif.isRead
                       ? 'border-blue-300 bg-blue-50'
                       : 'border-slate-200'
@@ -173,11 +211,11 @@ export default function NotificationsPage() {
                     <p className="text-slate-700 mb-3">{notif.message}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-slate-500">
-                        {new Date(notif.createdAt).toLocaleDateString()} {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {formatDateTime(notif.createdAt)}
                       </span>
                       {notif.readAt && (
                         <span className="text-xs text-slate-400">
-                          Read {new Date(notif.readAt).toLocaleDateString()}
+                          Read {formatDateTime(notif.readAt)}
                         </span>
                       )}
                     </div>

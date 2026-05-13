@@ -41,7 +41,7 @@ function LoginFormContent() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      console.log("SESSION:", session);
+      // console.log("SESSION:", session);
 
       if (session) {
         router.replace(redirect);
