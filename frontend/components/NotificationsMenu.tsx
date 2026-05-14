@@ -142,12 +142,15 @@ export default function NotificationsMenu() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50"
+            className="fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[100]"
             onClick={(e) => e.stopPropagation()}
+            style={{ 
+              maxWidth: '400px',
+            }}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-50 to-blue-50 border-b border-slate-200 p-4 flex items-center justify-between">

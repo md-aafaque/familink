@@ -22,8 +22,6 @@ import { cn } from "@/lib/cn";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import NotificationsMenu from "./NotificationsMenu";
-
 export default function Sidebar() {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
@@ -104,7 +102,6 @@ export default function Sidebar() {
               <p className="text-xs text-slate-500 truncate">{user?.email}</p>
             </div>
           </div>
-          <NotificationsMenu />
         </div>
 
         {/* Main Nav */}

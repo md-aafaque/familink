@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "./Sidebar";
+import Header from "./Header";
 import { useAuth } from "./providers/AuthProvider";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -32,11 +33,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto scroll-smooth">
-        <div className="max-w-6xl mx-auto p-8 lg:p-12">
-          {children}
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-y-auto scroll-smooth p-8 lg:p-12">
+          <div className="max-w-6xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
