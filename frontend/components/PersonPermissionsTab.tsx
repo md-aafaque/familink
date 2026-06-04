@@ -60,8 +60,8 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
 
   const filteredMembers = treeMembers?.filter((m: any) => 
     !permissions?.some((p: any) => p.userId === m.id) &&
-    (m.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     m.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    ((m.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+     (m.email || "").toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
