@@ -537,6 +537,7 @@ function IconBtn({ onClick, title, children, className = "" }: {
 // ─────────────────────────────────────────────────────────────────────────────
 function TreeCanvas({ treeId }: FamilyTreeProps) {
   const router = useRouter();
+  const { hoveredPersonId } = useTreeInteraction();
   const containerRef   = useRef<HTMLDivElement>(null);
   const exportRef      = useRef<HTMLDivElement>(null);
   // Set via onInit callback — gives direct access to zoomIn/Out/centerView
@@ -666,7 +667,10 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
 
   // ── event handlers ─────────────────────────────────────────────────────────
   const handleCardClick  = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
-  const handleDrop       = useCallback((src: string, tgt: string) => { setProposalSrc(src); setProposalTgt(tgt); }, []);
+  const handleDrop       = useCallback((src: string, tgt: string) => { 
+    setProposalSrc(src); 
+    setProposalTgt(tgt); 
+  }, []);
   const toggleCollapse   = useCallback((id: string) =>
     setCollapsedSet(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
 
@@ -1003,7 +1007,9 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       <AnimatePresence>
         {proposalSrc && proposalTgt !== null && (
           <RelationshipProposalModal
-            sourceId={proposalSrc} treeId={treeId}
+            sourceId={proposalSrc}
+            targetId={proposalTgt}
+            treeId={treeId}
             onClose={() => { setProposalSrc(null); setProposalTgt(null); }}
           />
         )}

@@ -29,13 +29,14 @@ type RelType = (typeof RELATIONSHIP_TYPES)[number]["value"];
 export default function RelationshipProposalModal({
   treeId,
   sourceId,
+  targetId,
   onClose,
   initialFromId,
   initialToId,
 }: RelationshipProposalModalProps) {
   // sourceId takes priority over initialFromId for pre-population
   const [fromId, setFromId] = useState(sourceId ?? initialFromId ?? "");
-  const [toId,   setToId  ] = useState(initialToId ?? "");
+  const [toId,   setToId  ] = useState(targetId ?? initialToId ?? "");
   const [type,   setType  ] = useState<RelType>("parent");
 
   const queryClient = useQueryClient();
