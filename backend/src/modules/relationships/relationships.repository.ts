@@ -142,12 +142,20 @@ export class RelationshipRepository {
       const result = await session.run(
         `
         MATCH (rp:RelationshipProposal {status: 'pending'})
-        WHERE rp.treeId = $treeId
-        OPTIONAL MATCH (p1:Person {id: rp.fromPersonId})
-        OPTIONAL MATCH (p2:Person {id: rp.toPersonId})
-        OPTIONAL MATCH (u:User {id: rp.proposerId})
-        RETURN rp, p1, p2, u.email as proposerEmail, u.name as proposerName
-        ORDER BY rp.createdAt DESC
+WHERE rp.treeId = $treeId
+
+OPTIONAL MATCH (p1:Person {id: rp.fromPersonId})
+OPTIONAL MATCH (p2:Person {id: rp.toPersonId})
+OPTIONAL MATCH (u:User {id: rp.proposerId})
+
+RETURN
+  rp,
+  p1,
+  p2,
+  u.email AS proposerEmail,
+  COALESCE(u.name, u.email, 'Unknown User') AS proposerName
+
+ORDER BY rp.createdAt DESC
         `,
         { treeId }
       );

@@ -19,6 +19,10 @@ export default fp(async (fastify) => {
       throw new AppError('Invalid or expired token', 401);
     }
 
-    request.user = { id: user.id, email: user.email! };
+    request.user = { 
+      id: user.id, 
+      email: user.email!, 
+      name: user.user_metadata.full_name || user.user_metadata.name || '' 
+    } as any;
   });
 });

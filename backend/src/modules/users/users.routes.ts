@@ -10,11 +10,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const result = await UsersRepository.syncUser(user.id, user.email);
+      const result = await UsersRepository.syncUser(user.id, user.email, user.name);
 
-      return reply.status(200).send({ 
-        success: true, 
-        data: result 
+      return reply.status(200).send({
+        success: true,
+        data: result
       });
     } catch (err) {
       request.log.error({ err }, 'Sync Error');
