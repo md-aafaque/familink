@@ -97,4 +97,59 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
       await session.close();
     }
   });
+
+  // Delete notification
+  fastify.delete('/notifications/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const user = request.user!;
+    const { id } = request.params as { id: string };
+    
+    console.log(`Attempting to delete notification ${id} for user ${user.id}`);
+    
+    const session = getSession();
+    try {
+      const res = await session.run(
+        `MATCH (n:Notification {id: $id, userId: $userId})
+         DETACH DELETE n
+         RETURN count(n) as deletedCount`,
+        { userId: user.id, id }
+      );
+      
+      const deletedCount = res.records[0].get('deletedCount').toNumber();
+      console.log(`Deleted ${deletedCount} notification(s)`);
+      
+      return { success: true, deletedCount };
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      throw error;
+    } finally {
+      await session.close();
+    }
+  });
+
+  // Delete all notifications
+  fastify.delete('/notifications', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const user = request.user!;
+    
+    console.log(`Attempting to delete all notifications for user ${user.id}`);
+    
+    const session = getSession();
+    try {
+      const res = await session.run(
+        `MATCH (n:Notification {userId: $userId})
+         DETACH DELETE n
+         RETURN count(n) as deletedCount`,
+        { userId: user.id }
+      );
+      
+      const deletedCount = res.records[0].get('deletedCount').toNumber();
+      console.log(`Deleted ${deletedCount} notification(s)`);
+      
+      return { success: true, deletedCount };
+    } catch (error) {
+      console.error('Error deleting all notifications:', error);
+      throw error;
+    } finally {
+      await session.close();
+    }
+  });
 }

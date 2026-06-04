@@ -51,6 +51,19 @@ export class NotificationsRepository {
     }
   }
 
+  static async delete(notificationId: string, userId: string) {
+    const session = getSession();
+    try {
+      await session.run(
+        `MATCH (u:User {id: $userId})-[:HAS_NOTIFICATION]->(n:Notification {id: $notificationId})
+         DETACH DELETE n`,
+        { userId, notificationId }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
   static async markAsRead(notificationId: string, userId: string) {
     const session = getSession();
     try {
