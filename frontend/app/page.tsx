@@ -1,13 +1,10 @@
 "use client";
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Trees, Users, Share2, Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { Trees, Users, Share2, Shield, ArrowRight, Activity } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
-import AnimatedButton from '../components/AnimatedButton';
-import AnimatedCard from '../components/AnimatedCard';
-import { AnimatedBackground } from '../components/AnimatedBackground';
-import { FloatingIcon } from '../components/FloatingIcon';
 
 export default function Home() {
   const router = useRouter();
@@ -20,7 +17,6 @@ export default function Home() {
         const token = localStorage.getItem('token');
         
         if (data.session || token) {
-          // User is logged in, redirect to dashboard
           router.replace('/dashboard');
         }
       } catch (err) {
@@ -35,179 +31,137 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[600px]">
-        <motion.div
-          className="text-center"
-          animate={{ scale: [0.8, 1, 0.8] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <Trees className="w-16 h-16 text-orange-600 mx-auto mb-4" />
-          <p className="text-slate-600 text-lg">Loading...</p>
-        </motion.div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Activity className="w-8 h-8 text-primary animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="relative overflow-hidden">
-      <AnimatedBackground />
-      
-      <div className="relative z-10 space-y-20">
-        {/* Hero Section */}
-        <section className="text-center py-20 px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="inline-flex items-center gap-3 mb-6 px-4 py-2 bg-orange-50/80 backdrop-blur-sm rounded-full border border-orange-200/50"
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary">
+      {/* Navigation */}
+      <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between border-b border-border">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+            <Activity className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <span className="text-lg font-bold tracking-tight">
+            Family<span className="text-primary">Nexus</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-6">
+          <button onClick={() => router.push('/login')} className="text-sm font-semibold hover:text-primary transition-colors">
+            Sign In
+          </button>
+          <button 
+            onClick={() => router.push('/signup')} 
+            className="px-5 py-2 bg-primary text-primary-foreground rounded-md text-sm font-bold hover:opacity-90 transition-colors shadow-sm"
           >
-            <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity }}>
-              <Sparkles className="w-5 h-5 text-orange-600" />
-            </motion.div>
-            <span className="text-sm font-semibold text-orange-700">Welcome to Family Tree</span>
-          </motion.div>
+            Get Started
+          </button>
+        </div>
+      </nav>
 
+      {/* Hero Section */}
+      <main>
+        <section className="max-w-7xl mx-auto px-6 py-24 md:py-32 text-center border-b border-border/50">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-[11px] font-bold uppercase tracking-widest mb-6"
           >
-            <h1 className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-blue-500 bg-clip-text text-transparent mb-6 leading-tight">
-              Preserve Your Family Legacy
-            </h1>
+            Preserve Your Heritage
           </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl text-slate-600 max-w-2xl mx-auto mb-10"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold tracking-tight mb-8 max-w-4xl mx-auto leading-[1.1]"
           >
-            Connect, document, and share your family's story across generations. Build your family tree with an intuitive and secure platform.
+            Document your family's <span className="text-primary">legacy</span> for generations.
+          </motion.h1>
+
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed"
+          >
+            A minimalist, secure platform to build your family tree, share historical records, and stay connected with your roots.
           </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <AnimatedButton onClick={() => router.push('/signup')} variant="primary" size="lg">
-              Get Started
-              <ArrowRight className="w-5 h-5" />
-            </AnimatedButton>
-            <AnimatedButton onClick={() => router.push('/login')} variant="outline" size="lg">
-              Sign In
-            </AnimatedButton>
+            <button 
+              onClick={() => router.push('/signup')} 
+              className="px-8 py-4 bg-primary text-primary-foreground rounded-md text-base font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group"
+            >
+              Start Your Tree Free
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button 
+              onClick={() => router.push('/login')} 
+              className="px-8 py-4 bg-background border border-border text-foreground rounded-md text-base font-bold hover:bg-muted transition-colors shadow-sm"
+            >
+              Learn More
+            </button>
           </motion.div>
         </section>
 
         {/* Features Section */}
-        <section className="py-20 px-4">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-5xl md:text-6xl font-bold text-center mb-16"
-          >
-            Why Choose{' '}
-            <span className="bg-gradient-to-r from-orange-600 to-blue-500 bg-clip-text text-transparent">
-              Family Tree?
-            </span>
-          </motion.h2>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Feature 1 */}
-            <AnimatedCard delay={0} hover>
-              <FloatingIcon delay={0} className="mb-4">
-                <motion.div className="bg-blue-100 w-14 h-14 rounded-lg flex items-center justify-center">
-                  <Users className="w-7 h-7 text-blue-600" />
-                </motion.div>
-              </FloatingIcon>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Connect Family Members</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Easily add family members and create meaningful connections across your entire family tree.
+        <section className="max-w-7xl mx-auto px-6 py-24 md:py-32">
+          <div className="grid md:grid-cols-3 gap-16 md:gap-12">
+            <div className="space-y-4">
+              <div className="w-10 h-10 bg-primary/10 text-primary rounded-md flex items-center justify-center">
+                <Users className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold">Collaborative Building</h3>
+              <p className="text-muted-foreground leading-relaxed text-sm">
+                Invite family members to contribute stories, photos, and records to build a comprehensive history together.
               </p>
-            </AnimatedCard>
+            </div>
 
-            {/* Feature 2 */}
-            <AnimatedCard delay={0.1} hover>
-              <FloatingIcon delay={1} className="mb-4">
-                <motion.div className="bg-green-100 w-14 h-14 rounded-lg flex items-center justify-center">
-                  <Share2 className="w-7 h-7 text-green-600" />
-                </motion.div>
-              </FloatingIcon>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Share Your Story</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Share your family's history and stories with relatives across the globe securely.
+            <div className="space-y-4">
+              <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-md flex items-center justify-center">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold">Secure Sharing</h3>
+              <p className="text-muted-foreground leading-relaxed text-sm">
+                Granular permission controls ensure your family data is only visible to those you explicitly authorize.
               </p>
-            </AnimatedCard>
+            </div>
 
-            {/* Feature 3 */}
-            <AnimatedCard delay={0.2} hover>
-              <FloatingIcon delay={2} className="mb-4">
-                <motion.div className="bg-purple-100 w-14 h-14 rounded-lg flex items-center justify-center">
-                  <Lock className="w-7 h-7 text-purple-600" />
-                </motion.div>
-              </FloatingIcon>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Secure & Private</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Your family data is encrypted and protected with industry-leading security standards.
+            <div className="space-y-4">
+              <div className="w-10 h-10 bg-primary/10 text-primary rounded-md flex items-center justify-center">
+                <Shield className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold">Privacy First</h3>
+              <p className="text-muted-foreground leading-relaxed text-sm">
+                Industry-standard encryption protects your sensitive records. Your data belongs to you, always.
               </p>
-            </AnimatedCard>
+            </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 px-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="relative max-w-4xl mx-auto"
-          >
-            {/* Animated background glow */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-orange-600 to-blue-500 rounded-3xl blur-2xl opacity-50"
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            />
-
-            {/* Content */}
-            <div className="relative bg-gradient-to-r from-orange-600 to-blue-500 rounded-3xl px-8 py-16 sm:px-16 text-white text-center overflow-hidden">
-              {/* Animated shapes */}
-              <motion.div
-                className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"
-                animate={{ x: [0, 30, 0], y: [0, 30, 0] }}
-                transition={{ duration: 6, repeat: Infinity }}
-              />
-              <motion.div
-                className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"
-                animate={{ x: [0, -30, 0], y: [0, -30, 0] }}
-                transition={{ duration: 8, repeat: Infinity }}
-              />
-
-              {/* Text content */}
-              <div className="relative z-10">
-                <h2 className="text-4xl md:text-5xl font-bold mb-4">Ready to Build Your Family Tree?</h2>
-                <p className="text-lg opacity-95 mb-8 max-w-2xl mx-auto">
-                  Join thousands of families preserving their legacy. Start for free today.
-                </p>
-                <AnimatedButton
-                  onClick={() => router.push('/signup')}
-                  className="!bg-white !text-orange-600 hover:!bg-slate-50"
-                  size="lg"
-                >
-                  Create Your Account
-                  <ArrowRight className="w-5 h-5" />
-                </AnimatedButton>
-              </div>
+        {/* Footer */}
+        <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2.5 opacity-60 grayscale">
+            <div className="w-6 h-6 bg-foreground rounded flex items-center justify-center">
+              <Activity className="w-4 h-4 text-background" />
             </div>
-          </motion.div>
-        </section>
-      </div>
+            <span className="text-sm font-bold tracking-tight">FamilyNexus</span>
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">
+            © 2026 FamilyNexus. All rights reserved. Built for legacy.
+          </p>
+        </footer>
+      </main>
     </div>
   );
 }

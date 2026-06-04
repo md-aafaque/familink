@@ -1,43 +1,61 @@
 import { z } from 'zod';
 
-export const invitationTypeSchema = z.enum(['admin', 'member', 'viewer']);
+export const publicInvitationRoleSchema = z.enum(['member', 'viewer']);
+export const accessRoleSchema = z.enum(['admin', 'member', 'viewer']);
 
 export const generateInvitationSchema = z.object({
-  invitationType: invitationTypeSchema,
+  role: publicInvitationRoleSchema,
 });
 
-export const acceptInvitationSchema = z.object({
-  token: z.string().uuid(),
+export const createAdminInvitationSchema = z.object({
+  email: z.string().email().transform((value) => value.trim().toLowerCase()),
 });
 
-export const processRequestSchema = z.object({
-  status: z.enum(['approved', 'rejected']),
-  reason: z.string().optional(),
+export const rejectAccessRequestSchema = z.object({
+  reason: z.string().trim().min(1, 'Rejection reason is required'),
 });
 
 export const claimProfileSchema = z.object({
   personId: z.string().uuid(),
 });
 
-export type InvitationType = z.infer<typeof invitationTypeSchema>;
+export type PublicInvitationRole = z.infer<typeof publicInvitationRoleSchema>;
+export type AccessRole = z.infer<typeof accessRoleSchema>;
 
 export interface TreeInvitation {
+  id: string;
   token: string;
   treeId: string;
-  invitationType: InvitationType;
+  role: PublicInvitationRole;
   createdBy: string;
   createdAt: number;
   expiresAt: number;
-  status: 'active' | 'used' | 'expired';
+  status: 'active' | 'revoked';
+  revokedAt?: number;
+  revokedBy?: string;
+}
+
+export interface AdminInvitation {
+  id: string;
+  treeId: string;
+  email: string;
+  status: 'pending' | 'approved' | 'rejected' | 'revoked';
+  createdBy: string;
+  createdAt: number;
+  reviewedBy?: string;
+  reviewedAt?: number;
+  rejectionReason?: string;
 }
 
 export interface TreeAccessRequest {
   id: string;
   userId: string;
   treeId: string;
-  requestedRole: InvitationType;
+  requestedRole: AccessRole;
   status: 'pending' | 'approved' | 'rejected';
   upgradeFrom?: string;
   createdAt: number;
   processedAt?: number;
+  processedBy?: string;
+  rejectionReason?: string;
 }

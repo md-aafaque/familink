@@ -61,10 +61,10 @@ export default function JoinTreePage() {
   };
 
   const roleInfo = {
-    member: { icon: Users, color: 'bg-blue-100 text-blue-600', label: 'Member' },
+    member: { icon: Users, color: 'bg-violet-100 text-violet-600', label: 'Member' },
     viewer: { icon: Eye, color: 'bg-slate-100 text-slate-600', label: 'Viewer' },
-    admin: { icon: Shield, color: 'bg-orange-100 text-orange-600', label: 'Admin' },
-  }[invite?.invitationType as 'member' | 'viewer' | 'admin'] || { icon: TreeDeciduous, color: 'bg-orange-100 text-orange-600', label: 'Guest' };
+    admin: { icon: Shield, color: 'bg-indigo-100 text-indigo-600', label: 'Admin' },
+  }[invite?.invitationType as 'member' | 'viewer' | 'admin'] || { icon: TreeDeciduous, color: 'bg-slate-100 text-slate-600', label: 'Guest' };
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
@@ -74,9 +74,9 @@ export default function JoinTreePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-[3rem] shadow-2xl shadow-orange-500/10 border border-slate-100 overflow-hidden"
+              className="bg-white rounded-[3rem] shadow-2xl shadow-indigo-500/10 border border-slate-100 overflow-hidden"
             >
-              <div className="bg-linear-to-br from-orange-500 to-orange-600 p-12 text-white text-center relative overflow-hidden">
+              <div className="bg-linear-to-br from-indigo-500 to-indigo-600 p-12 text-white text-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-10">
                   <Sparkles className="w-32 h-32" />
                 </div>
@@ -85,7 +85,7 @@ export default function JoinTreePage() {
                     <TreeDeciduous className="w-10 h-10 text-white" />
                   </div>
                   <h1 className="text-3xl font-black tracking-tight">You're Invited!</h1>
-                  <p className="text-orange-100 font-medium">To join a private family tree</p>
+                  <p className="text-indigo-100 font-medium">To join a private family tree</p>
                 </div>
               </div>
 

@@ -2,6 +2,7 @@ import { getSession } from '../../core/database';
 import { CreateProposalInput, RelationshipProposal } from '@shared/schemas/relationships';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors';
+import { normalizeNeo4jProperties } from '../../core/database-utils';
 
 export class RelationshipRepository {
   static async createProposal(input: CreateProposalInput & { proposerId: string }): Promise<RelationshipProposal> {
@@ -114,7 +115,28 @@ export class RelationshipRepository {
     }
   }
 
-  static async getPendingProposals(treeId: string): Promise<any[]> {
+  static async softDeleteRelationship(
+    treeId: string,
+    fromId: string,
+    toId: string,
+    type: string,
+    deletedBy: string
+  ): Promise<void> {
+    const session = getSession();
+    try {
+      await session.run(
+        `
+        MATCH (a:Person {id: $fromId, treeId: $treeId})-[r:FAMILY_RELATIONSHIP {type: $type, treeId: $treeId}]-(b:Person {id: $toId, treeId: $treeId})
+        SET r.deletedAt = timestamp(), r.deletedBy = $deletedBy
+        `,
+        { fromId, toId, type, treeId, deletedBy }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getPendingProposals(treeId: string) {
     const session = getSession();
     try {
       const result = await session.run(
@@ -130,27 +152,57 @@ export class RelationshipRepository {
         { treeId }
       );
 
-      const normalizeNumber = (value: any) =>
-        typeof value === 'object' && value !== null && typeof value.toNumber === 'function'
-          ? value.toNumber()
-          : value;
-
       return result.records.map(r => {
-        const rpNode = r.get('rp');
+        const props = r.get('rp').properties;
         const p1Node = r.get('p1');
         const p2Node = r.get('p2');
         
-        const props = rpNode.properties;
-        
         return {
-          ...props,
-          createdAt: normalizeNumber(props.createdAt),
+          ...normalizeNeo4jProperties(props),
           fromPerson: p1Node ? p1Node.properties : { firstName: 'Unknown', lastName: 'Person', id: props.fromPersonId },
           toPerson: p2Node ? p2Node.properties : { firstName: 'Unknown', lastName: 'Person', id: props.toPersonId },
           proposerEmail: r.get('proposerEmail') || 'unknown@user.com',
           proposerName: r.get('proposerName') || 'Unknown User'
         };
       });
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getSuggestedRelationships(personId: string, treeId: string) {
+    const session = getSession();
+    try {
+      // 1. Sibling Suggestions (Shared Parents)
+      const siblingResult = await session.run(
+        `
+        MATCH (p:Person {id: $personId, treeId: $treeId})
+        MATCH (p)<-[:FAMILY_RELATIONSHIP {type: 'parent'}]-(parent:Person)
+        MATCH (parent)-[:FAMILY_RELATIONSHIP {type: 'parent'}]->(potentialSibling:Person)
+        WHERE potentialSibling.id <> $personId
+        AND NOT (p)-[:FAMILY_RELATIONSHIP {type: 'sibling'}]-(potentialSibling)
+        RETURN DISTINCT potentialSibling
+        `,
+        { personId, treeId }
+      );
+
+      // 2. Spouse Suggestions (Shared Children)
+      const spouseResult = await session.run(
+        `
+        MATCH (p:Person {id: $personId, treeId: $treeId})
+        MATCH (p)-[:FAMILY_RELATIONSHIP {type: 'parent'}]->(child:Person)
+        MATCH (potentialSpouse:Person)-[:FAMILY_RELATIONSHIP {type: 'parent'}]->(child)
+        WHERE potentialSpouse.id <> $personId
+        AND NOT (p)-[:FAMILY_RELATIONSHIP {type: 'spouse'}]-(potentialSpouse)
+        RETURN DISTINCT potentialSpouse
+        `,
+        { personId, treeId }
+      );
+
+      return {
+        siblings: siblingResult.records.map(r => r.get('potentialSibling').properties),
+        spouses: spouseResult.records.map(r => r.get('potentialSpouse').properties)
+      };
     } finally {
       await session.close();
     }

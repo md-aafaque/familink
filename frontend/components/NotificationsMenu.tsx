@@ -5,6 +5,8 @@ import { Bell, Trash2, Check, X } from 'lucide-react';
 import api from '../lib/api';
 import { useRouter } from 'next/navigation';
 import { formatDateTime } from '../lib/dateUtils';
+import { useAppTheme } from './providers/ThemeProvider';
+import { cn } from '@/lib/cn';
 
 type Notification = {
   id: string;
@@ -22,6 +24,7 @@ export default function NotificationsMenu() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { theme } = useAppTheme();
 
   useEffect(() => {
     loadNotifications();
@@ -89,21 +92,22 @@ export default function NotificationsMenu() {
     if (!notif.data) return;
 
     try {
-      const data = JSON.parse(notif.data);
+      // Data might be a string (JSON) or an object depending on how it's handled by the client
+      const data = typeof notif.data === 'string' ? JSON.parse(notif.data) : notif.data;
       
       switch (notif.type) {
         case 'access_request_pending':
           router.push('/dashboard/manage/users');
           break;
         case 'access_request_approved':
+        case 'relationship_approved':
+        case 'relationship_rejected':
+        case 'claim_request_approved':
+        case 'claim_request_rejected':
           if (data.treeId) router.push(`/tree/${data.treeId}`);
           break;
         case 'relationship_pending':
           router.push('/dashboard/manage/proposals');
-          break;
-        case 'relationship_approved':
-        case 'relationship_rejected':
-          if (data.treeId) router.push(`/tree/${data.treeId}`);
           break;
         case 'claim_request_pending':
           router.push('/dashboard/manage/claims');
@@ -153,7 +157,7 @@ export default function NotificationsMenu() {
             }}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-orange-50 to-blue-50 border-b border-slate-200 p-4 flex items-center justify-between">
+            <div className={cn("border-b border-slate-200 p-4 flex items-center justify-between", theme.colors.primaryMuted)}>
               <div>
                 <h3 className="font-semibold text-slate-900">Notifications</h3>
                 <p className="text-sm text-slate-600">{unreadCount} unread</p>
@@ -163,7 +167,7 @@ export default function NotificationsMenu() {
                   {unreadCount > 0 && (
                     <button
                       onClick={() => markAllAsRead()}
-                      className="p-1 hover:bg-white rounded text-slate-600 hover:text-orange-600 transition-colors text-sm"
+                      className={cn("p-1 hover:bg-white rounded text-slate-600 hover:text-primary transition-colors text-sm")}
                       title="Mark all as read"
                     >
                       <Check className="w-4 h-4" />
@@ -196,9 +200,10 @@ export default function NotificationsMenu() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       onClick={() => handleNotificationClick(notif)}
-                      className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer ${
-                        !notif.isRead ? 'bg-blue-50/50' : ''
-                      }`}
+                      className={cn(
+                        "p-4 hover:bg-slate-50 transition-colors cursor-pointer",
+                        !notif.isRead && theme.colors.primaryMuted
+                      )}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -207,7 +212,7 @@ export default function NotificationsMenu() {
                               {notif.title}
                             </h4>
                             {!notif.isRead && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                              <div className={cn("w-2 h-2 rounded-full", theme.colors.primary)} />
                             )}
                           </div>
                           <p className="text-sm text-slate-600 mt-1 line-clamp-2">
@@ -222,7 +227,7 @@ export default function NotificationsMenu() {
                           {!notif.isRead && (
                             <button
                               onClick={() => markAsRead(notif.id)}
-                              className="p-1 hover:bg-white rounded text-slate-400 hover:text-blue-600 transition-colors"
+                              className={cn("p-1 hover:bg-white rounded text-slate-400 hover:text-primary transition-colors")}
                               title="Mark as read"
                             >
                               <Check className="w-4 h-4" />
@@ -248,7 +253,7 @@ export default function NotificationsMenu() {
               <div className="bg-slate-50 border-t border-slate-200 p-3 text-center">
                 <a
                   href="/notifications"
-                  className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                  className={cn("text-sm font-medium hover:opacity-80 transition-colors", theme.colors.accent)}
                 >
                   View All Notifications
                 </a>

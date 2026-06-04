@@ -206,4 +206,202 @@ export class PeopleRepository {
       await session.close();
     }
   }
+
+  static async mergePeople(sourceId: string, targetId: string, treeId: string, userId: string): Promise<void> {
+    const session = getSession();
+    try {
+      await session.run(
+        `
+        MATCH (s:Person {id: $sourceId, treeId: $treeId})
+        MATCH (t:Person {id: $targetId, treeId: $treeId})
+        
+        // 1. Move outgoing relationships
+        WITH s, t
+        MATCH (s)-[r:FAMILY_RELATIONSHIP]->(other:Person)
+        WHERE other.id <> $targetId AND r.deletedAt IS NULL
+        MERGE (t)-[newR:FAMILY_RELATIONSHIP {type: r.type, treeId: $treeId}]->(other)
+        ON CREATE SET newR.createdBy = r.createdBy, 
+                      newR.createdAt = r.createdAt, 
+                      newR.approvedBy = r.approvedBy
+        SET r.deletedAt = timestamp(), r.deletedBy = $userId, r.mergeTargetId = $targetId
+
+        WITH s, t
+        // 2. Move incoming relationships
+        MATCH (other:Person)-[r:FAMILY_RELATIONSHIP]->(s)
+        WHERE other.id <> $targetId AND r.deletedAt IS NULL
+        MERGE (other)-[newR:FAMILY_RELATIONSHIP {type: r.type, treeId: $treeId}]->(t)
+        ON CREATE SET newR.createdBy = r.createdBy, 
+                      newR.createdAt = r.createdAt, 
+                      newR.approvedBy = r.approvedBy
+        SET r.deletedAt = timestamp(), r.deletedBy = $userId, r.mergeTargetId = $targetId
+
+        WITH s, t
+        // 3. Mark source as merged
+        SET s.status = 'merged', s.mergedIntoId = $targetId, s.deletedAt = timestamp(), s.deletedBy = $userId
+        `,
+        { sourceId, targetId, treeId, userId }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async grantPermission(personId: string, userId: string, permission: 'owner' | 'editor'): Promise<void> {
+    const session = getSession();
+    try {
+      await session.run(
+        `
+        MATCH (p:Person {id: $personId})
+        MATCH (u:User {id: $userId})
+        MERGE (u)-[r:HAS_PERMISSION]->(p)
+        SET r.permission = $permission, r.updatedAt = timestamp()
+        `,
+        { personId, userId, permission }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async revokePermission(personId: string, userId: string): Promise<void> {
+    const session = getSession();
+    try {
+      await session.run(
+        `
+        MATCH (u:User {id: $userId})-[r:HAS_PERMISSION]->(p:Person {id: $personId})
+        DELETE r
+        `,
+        { personId, userId }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getPermissions(personId: string): Promise<any[]> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `
+        MATCH (u:User)-[r:HAS_PERMISSION]->(p:Person {id: $personId})
+        RETURN u.id as userId, u.name as name, u.email as email, r.permission as permission
+        `,
+        { personId }
+      );
+      return result.records.map(r => ({
+        userId: r.get('userId'),
+        name: r.get('name'),
+        email: r.get('email'),
+        permission: r.get('permission')
+      }));
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async listPeople(treeId: string) {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (p:Person {treeId: $treeId})
+         WHERE p.deletedAt IS NULL
+         OPTIONAL MATCH (p)-[r:FAMILY_RELATIONSHIP]-()
+         RETURN p, count(r) as relCount
+         ORDER BY p.firstName ASC`,
+        { treeId }
+      );
+      return result.records.map(r => ({
+        ...r.get('p').properties,
+        relationshipCount: r.get('relCount').toNumber()
+      }));
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getNeighborhood(treeId: string, userId: string) {
+    const session = getSession();
+    try {
+      // 1. Find the person represented by this user in this tree
+      const meResult = await session.run(
+        `MATCH (u:User {id: $userId})-[:REPRESENTS]->(p:Person {treeId: $treeId}) RETURN p`,
+        { userId, treeId }
+      );
+
+      let rootPerson;
+      if (meResult.records.length === 0) {
+        // If not representing anyone, just pick the first person or a root
+        const anyResult = await session.run(
+          `MATCH (p:Person {treeId: $treeId}) RETURN p LIMIT 1`,
+          { treeId }
+        );
+        if (anyResult.records.length === 0) return null;
+        rootPerson = anyResult.records[0].get('p').properties;
+      } else {
+        rootPerson = meResult.records[0].get('p').properties;
+      }
+
+      // 2. Get direct relations (level 1)
+      const l1Result = await session.run(
+        `MATCH (p:Person {id: $id})-[r:FAMILY_RELATIONSHIP]-(n:Person)
+         RETURN DISTINCT n`,
+        { id: rootPerson.id }
+      );
+      const level1 = l1Result.records.map(r => r.get('n').properties);
+
+      // 3. Get extended relations (level 2)
+      const l1Ids = level1.map((p: any) => p.id).concat([rootPerson.id]);
+      const l2Result = await session.run(
+        `MATCH (p:Person {id: $id})-[:FAMILY_RELATIONSHIP]-(n:Person)-[:FAMILY_RELATIONSHIP]-(m:Person)
+         WHERE NOT m.id IN $l1Ids
+         RETURN DISTINCT m`,
+        { id: rootPerson.id, l1Ids }
+      );
+      const level2 = l2Result.records.map(r => r.get('m').properties);
+
+      return {
+        person: rootPerson,
+        level1,
+        level2
+      };
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async linkUserToPerson(userId: string, personId: string, treeId: string) {
+    const session = getSession();
+    try {
+      // 1. Check if user already represents someone in this tree
+      const existing = await session.run(
+        `MATCH (u:User {id: $userId})-[:REPRESENTS]->(p:Person {treeId: $treeId}) RETURN p`,
+        { userId, treeId }
+      );
+
+      if (existing.records.length > 0) {
+        const currentPerson = existing.records[0].get('p').properties;
+        await session.run(
+          `
+          MATCH (u:User {id: $userId})-[oldRel:REPRESENTS]->(pOld:Person {id: $oldId})
+          MATCH (pNew:Person {id: $newId})
+          DELETE oldRel
+          CREATE (u)-[:REPRESENTS]->(pNew)
+          SET pNew.status = 'active', pNew.accountId = $userId
+          `,
+          { userId, oldId: currentPerson.id, newId: personId }
+        );
+      } else {
+        await session.run(
+          `
+          MATCH (u:User {id: $userId}), (p:Person {id: $personId})
+          CREATE (u)-[:REPRESENTS]->(p)
+          SET p.status = 'active', p.accountId = $userId
+          `,
+          { userId, personId }
+        );
+      }
+    } finally {
+      await session.close();
+    }
+  }
 }

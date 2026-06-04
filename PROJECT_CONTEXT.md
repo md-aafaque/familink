@@ -1,4 +1,4 @@
-# Family Tree Project - Revised Production-Oriented Context
+# Family Tree Project - Production Context
 
 # Vision
 
@@ -12,6 +12,7 @@ The platform is designed to:
 * preserve historical integrity
 * prevent accidental data corruption
 * remain simple enough for rapid development
+* support a polished, emotionally warm family tree experience
 * scale gradually without overengineering
 
 This specification intentionally balances:
@@ -46,6 +47,7 @@ The system follows these principles:
 
    * UX must stay simple
    * family tree visualization must remain readable
+   * core actions must be obvious for elders, children, and first-time users
 
 5. **Avoid unnecessary enterprise complexity**
 
@@ -53,6 +55,12 @@ The system follows these principles:
    * no event buses initially
    * no CQRS
    * no premature abstractions
+
+6. **Traditional family model for V1**
+
+   * focus on two genders: male and female
+   * prioritize parent, child, spouse, sibling, and adopted child relationships
+   * support common remarriage/divorce cases without turning V1 into a full legal/genealogy edge-case engine
 
 ---
 
@@ -170,6 +178,8 @@ Users can:
 * create family trees
 * join existing trees
 * belong to multiple trees
+* start a tree from a guided setup wizard
+* download/export a visual tree
 
 Each tree contains:
 
@@ -364,13 +374,14 @@ type ProposalStatus =
 
 # Official Relationships
 
-Example types:
+Core relationship types:
 
 * parent
 * child
 * spouse
 * sibling
 * adopted_child
+* divorced_spouse
 
 Every relationship includes:
 
@@ -404,13 +415,31 @@ Before approval:
 
 * father younger than child
 * person becomes own ancestor
+* person assigned as both parent and child of the same person
+* duplicate spouse relationship for the same marriage pair
 
 ### Optional Warnings:
 
 * conflicting birth years
 * multiple biological parents
+* unusually large parent-child age gap
+* sibling birth order conflicts
 
 Warnings do NOT always block approval.
+
+## Relationship Inference Rules
+
+Approved relationships must update obvious connected family logic so users do not need to repeat tedious work.
+
+Examples:
+
+* If A is approved as parent of B, and B already has siblings C and D in the same sibling group, A should be proposed or applied as parent of C and D depending on admin policy.
+* If A and B are approved as spouses and B is already a verified parent of child C, the system should suggest A as the other parent of C unless a conflicting parent already exists.
+* If A and B are approved as siblings, verified parents of A should be suggested as parents of B, and verified parents of B should be suggested as parents of A.
+* If a child relationship is approved, the inverse parent relationship must be represented consistently.
+* If a spouse relationship is approved, the inverse spouse relationship must be represented consistently.
+
+Do not silently create high-impact inferred relationships when there is ambiguity. Use admin-reviewable suggestions for cases involving remarriage, adoption, divorce, or conflicting existing parents.
 
 ---
 
@@ -481,6 +510,9 @@ Admin invitations must be:
 
 * email-specific
 * manually approved
+* revocable
+
+Public admin invitation links are not allowed in V1.
 
 ---
 
@@ -529,7 +561,7 @@ If user already has:
 * same role
 * higher role
 
-→ directly open tree
+Result: directly open tree
 
 ---
 
@@ -539,7 +571,7 @@ Example:
 
 * Viewer clicks Member link
 
-→ creates upgrade request
+Result: creates upgrade request
 
 Requires admin approval.
 
@@ -555,6 +587,8 @@ Shows:
 * role in each tree
 * pending invitations
 * pending approvals (admin only)
+* recent activity
+* quick actions to open tree, add relative, invite family, or review proposals
 
 ---
 
@@ -787,7 +821,7 @@ permission: "owner" | "editor"
 
 ## LINKED_TO_ACCOUNT
 
-Connects Person ↔ UserAccount.
+Connects Person and UserAccount.
 
 ---
 
@@ -815,6 +849,9 @@ Preferred:
 
 * layered family tree
 * generation-based layout
+* orthogonal connection lines
+* full-screen tree mode
+* easy visual export/download
 
 ---
 
@@ -851,6 +888,34 @@ Large trees should support:
 * zoom
 * collapse branches
 * focus mode
+* fit-to-screen
+* search within tree
+* mini-map or orientation aid where useful
+
+---
+
+# Visual Product Direction
+
+The family tree should feel attractive, familiar, and welcoming across ages and cultures.
+
+Use:
+
+* a refined neutral canvas
+* user-selectable background styles, similar in spirit to how messaging apps let users personalize chat backgrounds
+* tasteful built-in background collections such as plain, paper, floral, geometric, heritage, celebration, and dark
+* optional custom background upload where privacy and readability rules allow it
+* clean cards with avatars, names, lifespan dates, and small status badges
+* crisp high-contrast relationship lines
+* tasteful color accents for status and relationship meaning
+
+Background customization must never reduce readability. Person cards, relationship lines, and text remain the priority.
+
+Avoid:
+
+* admin-dashboard visuals as the main experience
+* chaotic force-directed graphs
+* decorative clutter that competes with names and relationship lines
+* abstract visuals that make the family structure hard to understand
 
 ---
 
@@ -967,6 +1032,7 @@ Only after core system is stable.
 * photo uploads
 * family event timeline
 * CSV import
+* GEDCOM import/export
 * search & filtering
 * relationship suggestions
 * mobile optimization

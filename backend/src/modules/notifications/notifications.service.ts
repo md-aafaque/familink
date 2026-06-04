@@ -1,5 +1,4 @@
-import { getSession } from '../../core/database';
-import { v4 as uuidv4 } from 'uuid';
+import { NotificationsRepository } from './notifications.repository';
 
 export class NotificationsService {
   static async createNotification(
@@ -7,27 +6,16 @@ export class NotificationsService {
     type: string,
     title: string,
     message: string,
-    data: any = {}
+    metadata: any = {}
   ) {
-    const session = getSession();
-    try {
-      const id = uuidv4();
-      await session.run(
-        `CREATE (n:Notification {
-          id: $id,
-          userId: $userId,
-          type: $type,
-          title: $title,
-          message: $message,
-          isRead: false,
-          createdAt: timestamp(),
-          data: $data
-        })`,
-        { id, userId, type, title, message, data: JSON.stringify(data) }
-      );
-      return id;
-    } finally {
-      await session.close();
-    }
+    return NotificationsRepository.create(userId, type, title, message, metadata);
+  }
+
+  static async getUserNotifications(userId: string) {
+    return NotificationsRepository.findByUserId(userId);
+  }
+
+  static async markAsRead(notificationId: string, userId: string) {
+    return NotificationsRepository.markAsRead(notificationId, userId);
   }
 }

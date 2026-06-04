@@ -58,7 +58,24 @@ export class RelationshipValidation {
         return false;
       };
 
-      // 4a. Check Pending Proposals
+      // 4. Ancestry Cycle Detection
+      if (type === 'parent') {
+        // If A is parent of B, then B cannot already be an ancestor of A
+        const cycleResult = await session.run(
+          `MATCH (a:Person {id: $fromId, treeId: $treeId})
+           MATCH (b:Person {id: $toId, treeId: $treeId})
+           MATCH path = (b)-[:FAMILY_RELATIONSHIP* {type: 'parent', treeId: $treeId}]->(a)
+           WHERE all(r in relationships(path) WHERE r.deletedAt IS NULL)
+           RETURN path`,
+          { fromId, toId, treeId }
+        );
+
+        if (cycleResult.records.length > 0) {
+          throw new AppError('This relationship would create an ancestry cycle (person cannot be their own ancestor)', 400);
+        }
+      }
+
+      // 5a. Check Pending Proposals
       const pendingResult = await session.run(
         `MATCH (rp:RelationshipProposal {status: 'pending', treeId: $treeId})
          WHERE (rp.fromPersonId = $fromId AND rp.toPersonId = $toId)
@@ -79,6 +96,7 @@ export class RelationshipValidation {
       // 4b. Check Official Relationships
       const officialResult = await session.run(
         `MATCH (a:Person {id: $fromId, treeId: $treeId})-[r:FAMILY_RELATIONSHIP]-(b:Person {id: $toId, treeId: $treeId})
+         WHERE r.deletedAt IS NULL
          RETURN r, startNode(r).id as startId`,
         { fromId, toId, treeId }
       );

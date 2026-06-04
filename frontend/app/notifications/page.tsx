@@ -56,21 +56,22 @@ export default function NotificationsPage() {
     if (!notif.data) return;
 
     try {
-      const data = JSON.parse(notif.data);
+      // Data might be a string (JSON) or an object depending on how it's handled by the client
+      const data = typeof notif.data === 'string' ? JSON.parse(notif.data) : notif.data;
       
       switch (notif.type) {
         case 'access_request_pending':
           router.push('/dashboard/manage/users');
           break;
         case 'access_request_approved':
+        case 'relationship_approved':
+        case 'relationship_rejected':
+        case 'claim_request_approved':
+        case 'claim_request_rejected':
           if (data.treeId) router.push(`/tree/${data.treeId}`);
           break;
         case 'relationship_pending':
           router.push('/dashboard/manage/proposals');
-          break;
-        case 'relationship_approved':
-        case 'relationship_rejected':
-          if (data.treeId) router.push(`/tree/${data.treeId}`);
           break;
         case 'claim_request_pending':
           router.push('/dashboard/manage/claims');
@@ -120,7 +121,7 @@ export default function NotificationsPage() {
           {/* Back Button */}
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium mb-8"
+            className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium mb-8"
           >
             <ArrowLeft className="w-5 h-5" />
             Back
@@ -140,7 +141,7 @@ export default function NotificationsPage() {
                       onClick={markAllAsRead}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-medium"
                     >
                       <Check className="w-4 h-4" />
                       Mark All as Read
@@ -164,7 +165,7 @@ export default function NotificationsPage() {
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin">
-                <Bell className="w-8 h-8 text-orange-600" />
+                <Bell className="w-8 h-8 text-indigo-600" />
               </div>
               <p className="text-slate-600 mt-4 font-medium">Loading notifications...</p>
             </div>
@@ -193,7 +194,7 @@ export default function NotificationsPage() {
                   onClick={() => handleNotificationClick(notif)}
                   className={`bg-white rounded-xl shadow-sm border transition-all p-6 flex items-start justify-between gap-4 hover:shadow-md cursor-pointer ${
                     !notif.isRead
-                      ? 'border-blue-300 bg-blue-50'
+                      ? 'border-indigo-300 bg-indigo-50'
                       : 'border-slate-200'
                   }`}
                 >
@@ -203,7 +204,7 @@ export default function NotificationsPage() {
                         {notif.title}
                       </h3>
                       {!notif.isRead && (
-                        <div className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full font-medium">
+                        <div className="px-2 py-1 bg-indigo-500 text-white text-xs rounded-full font-medium">
                           New
                         </div>
                       )}
@@ -227,7 +228,7 @@ export default function NotificationsPage() {
                         onClick={() => markAsRead(notif.id)}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
-                        className="p-2 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors"
+                        className="p-2 hover:bg-indigo-100 rounded-lg text-indigo-600 transition-colors"
                         title="Mark as read"
                       >
                         <Check className="w-5 h-5" />

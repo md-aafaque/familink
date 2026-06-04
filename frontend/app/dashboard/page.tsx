@@ -12,9 +12,8 @@ import {
   Plus,
   ArrowRight,
   Users,
-  ShieldCheck,
   Clock,
-  Sparkles,
+  LayoutGrid,
 } from "lucide-react";
 
 import DataState from "../../components/shared/DataState";
@@ -23,9 +22,12 @@ import Skeleton from "../../components/shared/Skeleton";
 import { cn } from "@/lib/cn";
 import { formatDate } from "../../lib/dateUtils";
 
+import { useAppTheme } from "../../components/providers/ThemeProvider";
+
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const { theme } = useAppTheme();
 
   // Protect route
   useEffect(() => {
@@ -37,8 +39,8 @@ export default function DashboardPage() {
   // Wait for auth
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-slate-500 text-lg font-medium">
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className={cn("text-sm font-medium animate-pulse", theme.colors.textMuted)}>
           Loading dashboard...
         </div>
       </div>
@@ -59,14 +61,7 @@ export default function DashboardPage() {
     queryKey: ["trees"],
     enabled: !!user, // only fetch when authenticated
     queryFn: async () => {
-      const token = localStorage.getItem("token");
-
-      const res = await api.get("/trees", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const res = await api.get("/trees");
       return (res as any).data;
     },
   });
@@ -77,93 +72,75 @@ export default function DashboardPage() {
     "User";
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-10">
       {/* Welcome Header */}
-      <header className="space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100"
-        >
-          <ShieldCheck className="w-3 h-3" />
-          Secure Workspace
-        </motion.div>
-
-        <h1 className="text-5xl font-black text-slate-900 tracking-tight">
-          Welcome back,{" "}
-          <span className="text-orange-600">{userName}</span>
+      <header className="space-y-2">
+        <h1 className={cn("text-3xl font-bold tracking-tight", theme.colors.text)}>
+          Welcome, {userName}
         </h1>
-
-        <p className="text-lg text-slate-600 max-w-2xl">
-          Your family legacy is growing. Access your trees,
-          manage permissions, and preserve history together.
+        <p className={cn("text-base max-w-2xl", theme.colors.textMuted)}>
+          Manage your family trees, permissions, and historical records.
         </p>
       </header>
 
-      {/* Quick Actions / Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {isLoading ? (
-          Array(3)
-            .fill(0)
-            .map((_, i) => (
-              <div
-                key={i}
-                className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4"
-              >
-                <Skeleton className="w-12 h-12 rounded-2xl" />
-
-                <div className="space-y-2">
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
+          Array(3).fill(0).map((_, i) => (
+            <div key={i} className={cn("p-6 rounded-lg border shadow-sm space-y-3", theme.colors.surface, theme.colors.border)}>
+              <Skeleton className="w-10 h-10 rounded-md" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-4 w-20" />
               </div>
-            ))
+            </div>
+          ))
         ) : (
           <>
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
-                <TreeDeciduous className="w-6 h-6 text-orange-600" />
+            <div className={cn("p-6 rounded-lg border shadow-sm transition-all hover:shadow-md", theme.colors.surface, theme.colors.border)}>
+              <div className="flex items-center justify-between mb-4">
+                <div className={cn("w-10 h-10 rounded-md flex items-center justify-center", theme.colors.primaryMuted)}>
+                  <TreeDeciduous className={cn("w-5 h-5", theme.colors.accent)} />
+                </div>
               </div>
-
-              <div>
-                <p className="text-3xl font-black text-slate-900">
+              <div className="space-y-0.5">
+                <p className={cn("text-2xl font-bold", theme.colors.text)}>
                   {trees?.filter((t: any) => t.status === 'active').length || 0}
                 </p>
-
-                <p className="text-sm font-medium text-slate-500">
+                <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
                   Active Trees
                 </p>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+            <div className={cn("p-6 rounded-lg border shadow-sm transition-all hover:shadow-md", theme.colors.surface, theme.colors.border)}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-emerald-50 dark:bg-emerald-900/20">
+                  <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
               </div>
-
-              <div>
-                <p className="text-3xl font-black text-slate-900">
+              <div className="space-y-0.5">
+                <p className={cn("text-2xl font-bold", theme.colors.text)}>
                   --
                 </p>
-
-                <p className="text-sm font-medium text-slate-500">
-                  Family Members
+                <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
+                  Members
                 </p>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
-                <Clock className="w-6 h-6 text-purple-600" />
+            <div className={cn("p-6 rounded-lg border shadow-sm transition-all hover:shadow-md", theme.colors.surface, theme.colors.border)}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-amber-50 dark:bg-amber-900/20">
+                  <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
               </div>
-
-              <div>
-                <p className="text-3xl font-black text-slate-900">
+              <div className="space-y-0.5">
+                <p className={cn("text-2xl font-bold", theme.colors.text)}>
                   --
                 </p>
-
-                <p className="text-sm font-medium text-slate-500">
-                  Recent Updates
+                <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
+                  Last Update
                 </p>
               </div>
             </div>
@@ -171,39 +148,14 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Family Memory Section */}
-      <section className="bg-linear-to-r from-orange-500 to-orange-600 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl shadow-orange-200">
-        <div className="absolute top-0 right-0 p-12 opacity-10">
-          <Sparkles className="w-32 h-32" />
-        </div>
-
-        <div className="relative z-10 max-w-xl space-y-6">
-          <h2 className="text-3xl font-black leading-tight italic">
-            "A family is like a forest; when you are outside it
-            is dense, when you are inside you see that each tree
-            has its place."
-          </h2>
-
-          <p className="text-orange-100 font-medium">
-            Take a moment today to record a small memory about a
-            grandparent or parent.
-          </p>
-
-          <button className="px-6 py-3 bg-white text-orange-600 rounded-2xl font-bold hover:bg-orange-50 transition-all flex items-center gap-2 text-sm shadow-lg">
-            Add a Memory Note
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-      </section>
-
       {/* Trees Section */}
       <section className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-            Your Family Trees
-
+        <div className={cn("flex items-center justify-between border-b pb-4", theme.colors.border)}>
+          <h2 className={cn("text-xl font-bold flex items-center gap-2.5", theme.colors.text)}>
+            <LayoutGrid className="w-5 h-5 opacity-50" />
+            Family Trees
             {trees && trees.length > 0 && (
-              <span className="text-sm font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+              <span className={cn("ml-1 text-xs px-2 py-0.5 rounded-full font-bold", theme.colors.bg, theme.colors.textMuted)}>
                 {trees.length}
               </span>
             )}
@@ -211,10 +163,10 @@ export default function DashboardPage() {
 
           <Link
             href="/dashboard/new-tree"
-            className="flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors"
+            className={cn("flex items-center gap-1.5 text-sm font-semibold hover:underline", theme.colors.accent)}
           >
             <Plus className="w-4 h-4" />
-            Create New Tree
+            New Tree
           </Link>
         </div>
 
@@ -224,78 +176,65 @@ export default function DashboardPage() {
           error={error as Error}
         >
           {trees && trees.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {trees.map((tree: any) => (
                 <Link
                   key={tree.id}
                   href={tree.status === 'pending' ? '#' : `/tree/${tree.id}`}
                   className={cn(
-                    "group bg-white p-8 rounded-3xl border border-slate-100 shadow-sm transition-all relative overflow-hidden",
-                    tree.status === 'pending' ? "opacity-75 cursor-not-allowed" : "hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5"
+                    "group p-5 rounded-lg border shadow-sm transition-all relative overflow-hidden",
+                    theme.colors.surface,
+                    theme.colors.border,
+                    tree.status === 'pending' ? "opacity-60 cursor-not-allowed" : "hover:border-primary/50 hover:shadow-md"
                   )}
                 >
-                  <div className="relative z-10 space-y-6">
-                    <div className="flex items-center justify-between">
-                      <span className={cn(
-                        "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
-                        tree.status === 'pending' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"
-                      )}>
-                        {tree.status === 'pending' ? "Waiting Approval" : `Role: ${tree.role}`}
-                      </span>
-                    </div>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <h3 className={cn("text-lg font-bold group-hover:" + theme.colors.accent + " transition-colors", theme.colors.text)}>
+                          {tree.name}
+                        </h3>
+                        <p className={cn("text-xs font-medium", theme.colors.textMuted)}>
+                          Created {formatDate(tree.createdAt)}
+                        </p>
+                      </div>
 
-                    <div>
-                      <h3 className={cn(
-                        "text-2xl font-black transition-colors",
-                        tree.status === 'pending' ? "text-slate-400" : "text-slate-900 group-hover:text-orange-600"
-                      )}>
-                        {tree.name}
-                      </h3>
-
-                      <p className="text-slate-500 text-sm mt-1">
-                        Started on {formatDate(tree.createdAt)}
-                      </p>
-                    </div>
-
-                    <div className={cn(
-                      "flex items-center gap-2 font-bold text-sm",
-                      tree.status === 'pending' ? "text-slate-300" : "text-orange-600"
-                    )}>
-                      {tree.status === 'pending' ? "Access Restricted" : "Open Tree"}
-
-                      <ArrowRight className={cn(
-                        "w-4 h-4 transition-transform",
-                        tree.status !== 'pending' && "group-hover:translate-x-1"
-                      )} />
+                      <div className="flex items-center gap-3">
+                         <span className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                          tree.status === 'pending' ? "bg-amber-100 text-amber-700" : cn(theme.colors.bg, theme.colors.textMuted)
+                        )}>
+                          {tree.status === 'pending' ? "Pending" : tree.role}
+                        </span>
+                        
+                        {tree.status !== 'pending' && (
+                          <span className={cn("flex items-center gap-1 text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity", theme.colors.accent)}>
+                            Open Tree <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center space-y-6">
-              <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto">
-                <Sparkles className="w-10 h-10 text-orange-400" />
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">
-                  No trees found
+            <div className={cn("border border-dashed rounded-lg p-12 text-center space-y-4 bg-slate-50/50 dark:bg-slate-900/50", theme.colors.border)}>
+              <div className="space-y-1">
+                <h3 className={cn("text-lg font-bold", theme.colors.text)}>
+                  No family trees yet
                 </h3>
-
-                <p className="text-slate-500 max-w-sm mx-auto">
-                  You haven't created or joined any family trees
-                  yet.
+                <p className={cn("text-sm max-w-sm mx-auto", theme.colors.textMuted)}>
+                  Start documenting your family history by creating your first tree.
                 </p>
               </div>
 
               <Link
                 href="/dashboard/new-tree"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-orange-600 text-white rounded-2xl font-bold hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/20"
+                className={cn("inline-flex items-center gap-2 px-6 py-2.5 text-white rounded-md text-sm font-bold hover:opacity-90 transition-all shadow-sm", theme.colors.primary)}
               >
                 Create Your First Tree
-
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
               </Link>
             </div>
           )}

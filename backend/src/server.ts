@@ -3,13 +3,16 @@ import cors from '@fastify/cors';
 import authPlugin from './plugins/auth';
 import { config } from './core/config';
 import { handleError } from './core/errors';
-import peopleRoutes from './routes/people';
-import treeRoutes from './routes/tree';
-import authRoutes from './routes/auth';
-import invitationsRoutes from './routes/invitations';
-import notificationsRoutes from './routes/notifications';
-import claimRoutes from './routes/claim';
-import relationshipsRoutes from './routes/relationships';
+
+// Modular Route Imports
+import peopleRoutes from './modules/people/people.routes';
+import treeRoutes from './modules/trees/trees.routes';
+import authRoutes from './modules/users/users.routes';
+import invitationsRoutes from './modules/invitations/invitations.routes';
+import notificationsRoutes from './modules/notifications/notifications.routes';
+import claimRoutes from './modules/people/claim.routes';
+import relationshipsRoutes from './modules/relationships/relationships.routes';
+import auditRoutes from './modules/audit/audit.routes';
 
 const server = Fastify({
   logger: true,
@@ -36,7 +39,8 @@ async function start() {
     await api.register(invitationsRoutes);
     await api.register(claimRoutes);
     await api.register(relationshipsRoutes);
-  }, { prefix: '/api/v1' });
+    await api.register(auditRoutes);
+  }, { prefix: '/api' });
 
   // Health check
   server.get('/health', async () => ({ status: 'ok' }));
@@ -44,7 +48,7 @@ async function start() {
   try {
     const port = parseInt(config.PORT, 10);
     await server.listen({ port, host: '0.0.0.0' });
-    console.log(`🚀 Server ready at http://localhost:${port}`);
+    console.log(`Server ready at http://localhost:${port}`);
   } catch (err) {
     server.log.error(err);
     process.exit(1);

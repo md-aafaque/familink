@@ -5,7 +5,7 @@
 # Base URL
 
 ```text
-/api/v1
+/api
 ```
 
 ---
@@ -197,7 +197,7 @@ All protected routes require valid JWT.
 ### POST
 
 ```text
-/trees/:treeId/invitations
+/trees/:treeId/invitations/generate
 ```
 
 ### Body
@@ -208,6 +208,14 @@ All protected routes require valid JWT.
 }
 ```
 
+Allowed public invitation roles:
+
+```ts
+"member" | "viewer"
+```
+
+Admin invitations are not public links in V1.
+
 ---
 
 ## Accept Invitation
@@ -215,15 +223,53 @@ All protected routes require valid JWT.
 ### POST
 
 ```text
-/invitations/accept
+/invitations/:token/accept
 ```
 
 ### Body
 
 ```json
-{
-  "token": ""
-}
+{}
+```
+
+---
+
+## Get Invitation Details
+
+### GET
+
+```text
+/invitations/:token
+```
+
+---
+
+## Get Access Requests
+
+### GET
+
+```text
+/trees/:treeId/access-requests
+```
+
+---
+
+## Approve Access Request
+
+### POST
+
+```text
+/trees/:treeId/access-requests/:requestId/approve
+```
+
+---
+
+## Reject Access Request
+
+### POST
+
+```text
+/trees/:treeId/access-requests/:requestId/reject
 ```
 
 ---

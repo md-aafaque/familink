@@ -410,6 +410,25 @@ UX goals:
 * understandable
 * family-oriented
 
+## Required Layout Mechanics
+
+The frontend tree renderer must map graph data into a strict generation-based layout.
+
+Rules:
+
+* older generations render above younger generations
+* every generation uses a shared horizontal baseline
+* spouses render side by side on the same baseline
+* spouse pairs connect through a centered marriage anchor point
+* children descend from the marriage anchor point
+* siblings hang from one horizontal branching bar
+* all relationship lines are orthogonal: horizontal or vertical only
+* no diagonal lines, curved slash lines, or line overlap across cards/text
+* full-screen tree view is required
+* visual tree download/export is required
+
+The renderer may use SVG, canvas, or a hybrid approach, but the resulting visual structure must remain readable before decorative styling is added.
+
 ---
 
 # 12. Performance Philosophy

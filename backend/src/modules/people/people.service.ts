@@ -1,14 +1,24 @@
 import { PeopleRepository } from './people.repository';
 import { CreatePersonInput, UpdatePersonInput, Person } from '@shared/schemas/people';
 import { AppError } from '../../core/errors';
-import { getSession } from '../../core/database';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
+import { TreesRepository } from '../trees/trees.repository';
 
 export class PeopleService {
   static async createPerson(input: CreatePersonInput, userId: string) {
-    // Check if user has permission to add people to this tree
-    // (Simplification: any tree member can add people)
-    return PeopleRepository.create({ ...input, createdBy: userId });
+    const person = await PeopleRepository.create({ ...input, createdBy: userId });
+    
+    await AuditService.log(
+      person.treeId,
+      userId,
+      'person_created',
+      'Person',
+      person.id,
+      { firstName: person.firstName, lastName: person.lastName }
+    );
+
+    return person;
   }
 
   static async getPerson(id: string, userId: string): Promise<Partial<Person>> {
@@ -40,7 +50,18 @@ export class PeopleService {
       throw new AppError('You do not have permission to edit this profile', 403);
     }
 
-    return PeopleRepository.update(id, input);
+    const person = await PeopleRepository.update(id, input);
+
+    await AuditService.log(
+      person.treeId,
+      userId,
+      'person_updated',
+      'Person',
+      id,
+      { fields: Object.keys(input) }
+    );
+
+    return person;
   }
 
   static async deletePerson(id: string, userId: string) {
@@ -49,7 +70,18 @@ export class PeopleService {
       throw new AppError('Only owners or admins can delete profiles', 403);
     }
 
-    return PeopleRepository.softDelete(id, userId);
+    const person = await PeopleRepository.findById(id);
+    if (!person) throw new AppError('Person not found', 404);
+
+    await PeopleRepository.softDelete(id, userId);
+
+    await AuditService.log(
+      person.treeId,
+      userId,
+      'person_deleted',
+      'Person',
+      id
+    );
   }
 
   static async claimProfile(personId: string, userId: string) {
@@ -62,23 +94,15 @@ export class PeopleService {
     await PeopleRepository.createClaimRequest(personId, userId, person.treeId);
 
     // 3. Notify Admins
-    const session = getSession();
-    try {
-      const admins = await session.run(
-        `MATCH (u:User)-[:MEMBER_OF {role: 'admin'}]->(t:FamilyTree {id: $treeId}) RETURN u.id as id`,
-        { treeId: person.treeId }
+    const adminIds = await TreesRepository.getAdmins(person.treeId);
+    for (const adminId of adminIds) {
+      await NotificationsService.createNotification(
+        adminId,
+        'claim_request_pending',
+        'Profile Claim Request',
+        `A user is requesting to claim the profile of ${person.firstName} ${person.lastName || ''}`,
+        { personId, treeId: person.treeId }
       );
-      for (const rec of admins.records) {
-        await NotificationsService.createNotification(
-          rec.get('id'),
-          'claim_request_pending',
-          'Profile Claim Request',
-          `A user is requesting to claim the profile of ${person.firstName} ${person.lastName || ''}`,
-          { personId, treeId: person.treeId }
-        );
-      }
-    } finally {
-      await session.close();
     }
 
     return { success: true, message: 'Claim request submitted for admin review' };
@@ -90,52 +114,30 @@ export class PeopleService {
     if (request.status !== 'pending') throw new AppError('Request already processed', 400);
 
     const { personId, userId, treeId } = request;
-    const session = getSession();
     
-    try {
-      // Perform the actual link (using the logic previously in claimProfile)
-      const existing = await session.run(
-        `MATCH (u:User {id: $userId})-[:REPRESENTS]->(p:Person {treeId: $treeId}) RETURN p`,
-        { userId, treeId }
-      );
+    // Perform the actual link
+    await PeopleRepository.linkUserToPerson(userId, personId, treeId);
 
-      if (existing.records.length > 0) {
-        const currentPerson = existing.records[0].get('p').properties;
-        await session.run(
-          `
-          MATCH (u:User {id: $userId})-[oldRel:REPRESENTS]->(pOld:Person {id: $oldId})
-          MATCH (pNew:Person {id: $newId})
-          DELETE oldRel
-          CREATE (u)-[:REPRESENTS]->(pNew)
-          SET pNew.status = 'active', pNew.accountId = $userId
-          `,
-          { userId, oldId: currentPerson.id, newId: personId }
-        );
-      } else {
-        await session.run(
-          `
-          MATCH (u:User {id: $userId}), (p:Person {id: $personId})
-          CREATE (u)-[:REPRESENTS]->(p)
-          SET p.status = 'active', p.accountId = $userId
-          `,
-          { userId, personId }
-        );
-      }
+    await PeopleRepository.updateClaimRequestStatus(requestId, 'approved');
 
-      await PeopleRepository.updateClaimRequestStatus(requestId, 'approved');
+    await AuditService.log(
+      treeId,
+      adminId,
+      'claim_approved',
+      'Person',
+      personId,
+      { userId, requestId }
+    );
 
-      await NotificationsService.createNotification(
-        userId,
-        'claim_approved',
-        'Profile Claim Approved',
-        `Your request to claim a profile has been approved.`,
-        { treeId }
-      );
+    await NotificationsService.createNotification(
+      userId,
+      'claim_approved',
+      'Profile Claim Approved',
+      `Your request to claim a profile has been approved.`,
+      { treeId }
+    );
 
-      return { success: true };
-    } finally {
-      await session.close();
-    }
+    return { success: true };
   }
 
   static async rejectClaimRequest(requestId: string, adminId: string) {
@@ -144,6 +146,14 @@ export class PeopleService {
     
     await PeopleRepository.updateClaimRequestStatus(requestId, 'rejected');
     
+    await AuditService.log(
+      request.treeId,
+      adminId,
+      'claim_rejected',
+      'ClaimRequest',
+      requestId
+    );
+
     await NotificationsService.createNotification(
       request.userId,
       'claim_rejected',
@@ -159,53 +169,109 @@ export class PeopleService {
     return PeopleRepository.getPendingClaimRequests(treeId);
   }
 
-  static async getNeighborhood(treeId: string, userId: string) {
-    const session = getSession();
-    try {
-      // 1. Find the person represented by this user in this tree
-      const meResult = await session.run(
-        `MATCH (u:User {id: $userId})-[:REPRESENTS]->(p:Person {treeId: $treeId}) RETURN p`,
-        { userId, treeId }
-      );
-
-      let rootPerson;
-      if (meResult.records.length === 0) {
-        // If not representing anyone, just pick the first person or a root
-        const anyResult = await session.run(
-          `MATCH (p:Person {treeId: $treeId}) RETURN p LIMIT 1`,
-          { treeId }
-        );
-        if (anyResult.records.length === 0) return null;
-        rootPerson = anyResult.records[0].get('p').properties;
-      } else {
-        rootPerson = meResult.records[0].get('p').properties;
-      }
-
-      // 2. Get direct relations (level 1)
-      const l1Result = await session.run(
-        `MATCH (p:Person {id: $id})-[r:FAMILY_RELATIONSHIP]-(n:Person)
-         RETURN DISTINCT n`,
-        { id: rootPerson.id }
-      );
-      const level1 = l1Result.records.map(r => r.get('n').properties);
-
-      // 3. Get extended relations (level 2)
-      const l1Ids = level1.map(p => p.id).concat([rootPerson.id]);
-      const l2Result = await session.run(
-        `MATCH (p:Person {id: $id})-[:FAMILY_RELATIONSHIP]-(n:Person)-[:FAMILY_RELATIONSHIP]-(m:Person)
-         WHERE NOT m.id IN $l1Ids
-         RETURN DISTINCT m`,
-        { id: rootPerson.id, l1Ids }
-      );
-      const level2 = l2Result.records.map(r => r.get('m').properties);
-
-      return {
-        person: rootPerson,
-        level1,
-        level2
-      };
-    } finally {
-      await session.close();
+  static async mergePeople(sourceId: string, targetId: string, userId: string, treeId: string) {
+    // 1. Authorization: Only admins can merge
+    const isAdmin = await TreesRepository.isAdmin(treeId, userId);
+    if (!isAdmin) {
+      throw new AppError('Only tree admins can merge profiles', 403);
     }
+
+    // 2. Existence & Same Tree Check
+    const source = await PeopleRepository.findById(sourceId);
+    const target = await PeopleRepository.findById(targetId);
+
+    if (!source || !target) throw new AppError('One or both profiles not found', 404);
+    if (source.treeId !== treeId || target.treeId !== treeId) {
+      throw new AppError('Profiles must belong to the same tree', 400);
+    }
+    if (sourceId === targetId) throw new AppError('Cannot merge a profile into itself', 400);
+
+    // 3. Perform Merge
+    await PeopleRepository.mergePeople(sourceId, targetId, treeId, userId);
+
+    // 4. Audit Log
+    await AuditService.log(
+      treeId,
+      userId,
+      'person_merged',
+      'Person',
+      targetId,
+      { sourceId, action: 'merge' }
+    );
+
+    return { success: true };
+  }
+
+  static async getPermissions(personId: string, userId: string) {
+    const permission = await PeopleRepository.checkPermission(personId, userId);
+    if (permission !== 'owner') {
+      throw new AppError('Only owners and tree admins can view detailed permissions', 403);
+    }
+    return PeopleRepository.getPermissions(personId);
+  }
+
+  static async grantPermission(personId: string, targetUserId: string, permissionType: 'owner' | 'editor', adminId: string) {
+    const permission = await PeopleRepository.checkPermission(personId, adminId);
+    if (permission !== 'owner') {
+      throw new AppError('Only owners and tree admins can grant permissions', 403);
+    }
+
+    await PeopleRepository.grantPermission(personId, targetUserId, permissionType);
+    
+    // Log Audit
+    const person = await PeopleRepository.findById(personId);
+    if (person) {
+      await AuditService.log(
+        person.treeId,
+        adminId,
+        'permission_granted',
+        'Person',
+        personId,
+        { targetUserId, permissionType }
+      );
+    }
+
+    // Notify the user
+    await NotificationsService.createNotification(
+      targetUserId,
+      'permission_granted',
+      'Permissions Granted',
+      `You have been granted ${permissionType} rights on a profile.`,
+      { personId }
+    );
+
+    return { success: true };
+  }
+
+  static async revokePermission(personId: string, targetUserId: string, adminId: string) {
+    const permission = await PeopleRepository.checkPermission(personId, adminId);
+    if (permission !== 'owner') {
+      throw new AppError('Only owners and tree admins can revoke permissions', 403);
+    }
+
+    await PeopleRepository.revokePermission(personId, targetUserId);
+
+    // Log Audit
+    const person = await PeopleRepository.findById(personId);
+    if (person) {
+      await AuditService.log(
+        person.treeId,
+        adminId,
+        'permission_revoked',
+        'Person',
+        personId,
+        { targetUserId }
+      );
+    }
+
+    return { success: true };
+  }
+
+  static async listPeople(treeId: string) {
+    return PeopleRepository.listPeople(treeId);
+  }
+
+  static async getNeighborhood(treeId: string, userId: string) {
+    return PeopleRepository.getNeighborhood(treeId, userId);
   }
 }

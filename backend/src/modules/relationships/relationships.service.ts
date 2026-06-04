@@ -2,12 +2,24 @@ import { RelationshipRepository } from './relationships.repository';
 import { RelationshipValidation } from './relationships.validation';
 import { CreateProposalInput } from '@shared/schemas/relationships';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 import { AppError } from '../../core/errors';
-import { getSession } from '../../core/database';
+import { PeopleRepository } from '../people/people.repository';
+import { TreesRepository } from '../trees/trees.repository';
 
 export class RelationshipsService {
   static async proposeRelationship(input: CreateProposalInput, proposerId: string) {
-    // 1. Validate
+    // 1. Authorization: User must have editor/owner permission on at least one person
+    // or be a tree admin (tree admin check is handled by middleware verifyTreeAccess usually,
+    // but here we check granular permission too)
+    const permFrom = await PeopleRepository.checkPermission(input.fromPersonId, proposerId);
+    const permTo = await PeopleRepository.checkPermission(input.toPersonId, proposerId);
+
+    if (permFrom !== 'owner' && permFrom !== 'editor' && permTo !== 'owner' && permTo !== 'editor') {
+      throw new AppError('You must have edit permission on at least one person to propose a relationship', 403);
+    }
+
+    // 2. Validate
     await RelationshipValidation.validate(
       input.treeId,
       input.fromPersonId,
@@ -18,26 +30,26 @@ export class RelationshipsService {
     // 2. Create Proposal
     const proposal = await RelationshipRepository.createProposal({ ...input, proposerId });
 
-    // 3. Notify Admins
-    const session = getSession();
-    try {
-      const adminsResult = await session.run(
-        `MATCH (u:User)-[:MEMBER_OF {role: 'admin'}]->(t:FamilyTree {id: $treeId}) RETURN u.id as id`,
-        { treeId: input.treeId }
+    // 3. Log Audit
+    await AuditService.log(
+      input.treeId,
+      proposerId,
+      'relationship_proposed',
+      'RelationshipProposal',
+      proposal.id,
+      { type: input.relationshipType, from: input.fromPersonId, to: input.toPersonId }
+    );
+
+    // 4. Notify Admins
+    const adminIds = await TreesRepository.getAdmins(input.treeId);
+    for (const adminId of adminIds) {
+      await NotificationsService.createNotification(
+        adminId,
+        'relationship_pending',
+        'New Relationship Proposal',
+        `A new ${input.relationshipType} relationship has been proposed in your tree.`,
+        { proposalId: proposal.id, treeId: input.treeId }
       );
-      
-      const adminIds = adminsResult.records.map(r => r.get('id'));
-      for (const adminId of adminIds) {
-        await NotificationsService.createNotification(
-          adminId,
-          'relationship_pending',
-          'New Relationship Proposal',
-          `A new ${input.relationshipType} relationship has been proposed in your tree.`,
-          { proposalId: proposal.id, treeId: input.treeId }
-        );
-      }
-    } finally {
-      await session.close();
     }
 
     return proposal;
@@ -49,7 +61,6 @@ export class RelationshipsService {
     if (proposal.status !== 'pending') throw new AppError('Proposal already processed', 400);
 
     // 1. Re-validate before making official (in case tree state changed)
-    // We exclude the current proposal from the "already pending" check
     await RelationshipValidation.validate(
       proposal.treeId,
       proposal.fromPersonId,
@@ -71,7 +82,17 @@ export class RelationshipsService {
       adminId
     );
 
-    // 4. Notify Proposer
+    // 4. Log Audit
+    await AuditService.log(
+      proposal.treeId,
+      adminId,
+      'relationship_approved',
+      'RelationshipProposal',
+      proposalId,
+      { proposerId: proposal.proposerId, type: proposal.relationshipType }
+    );
+
+    // 5. Notify Proposer
     await NotificationsService.createNotification(
       proposal.proposerId,
       'relationship_approved',
@@ -91,7 +112,17 @@ export class RelationshipsService {
     // 1. Update Status
     await RelationshipRepository.updateProposalStatus(proposalId, 'rejected', reason);
 
-    // 2. Notify Proposer
+    // 2. Log Audit
+    await AuditService.log(
+      proposal.treeId,
+      adminId,
+      'relationship_rejected',
+      'RelationshipProposal',
+      proposalId,
+      { reason }
+    );
+
+    // 3. Notify Proposer
     await NotificationsService.createNotification(
       proposal.proposerId,
       'relationship_rejected',
@@ -105,5 +136,9 @@ export class RelationshipsService {
 
   static async getPendingProposals(treeId: string) {
     return RelationshipRepository.getPendingProposals(treeId);
+  }
+
+  static async getSuggestedRelationships(personId: string, treeId: string) {
+    return RelationshipRepository.getSuggestedRelationships(personId, treeId);
   }
 }

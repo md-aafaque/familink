@@ -3,24 +3,30 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import DataState from "@/components/shared/DataState";
-import { Check, X, User, Shield, Mail, Calendar, UserPlus, ArrowUpRight } from "lucide-react";
+import { Check, X, User, Shield, Mail, Calendar, UserPlus, ArrowUpRight, Users, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
+import { useAppTheme } from "@/components/providers/ThemeProvider";
 
 export default function ManageUsersPage() {
   const queryClient = useQueryClient();
+  const [selectedTreeId, setSelectedTreeId] = useState<string>("");
+  const { theme } = useAppTheme();
 
   // Fetch trees first to get a list
-  const { data: trees } = useQuery({
+  const { data: trees, isLoading: isLoadingTrees } = useQuery({
     queryKey: ["trees"],
     queryFn: async () => {
       const res = await api.get("/trees");
-      return (res as any).data;
+      const data = (res as any).data;
+      if (data?.length > 0 && !selectedTreeId) {
+        const adminTree = data.find((t: any) => t.role === 'admin');
+        setSelectedTreeId(adminTree?.id || data[0].id);
+      }
+      return data;
     },
   });
-
-  const selectedTreeId = trees?.find((t: any) => t.role === 'admin')?.id || trees?.[0]?.id;
 
   const { data: requests, isLoading, isError, error } = useQuery({
     queryKey: ["access-requests", selectedTreeId],
@@ -43,14 +49,46 @@ export default function ManageUsersPage() {
   return (
     <div className="space-y-12">
       <header className="space-y-4">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-          Access <span className="text-orange-600">Requests</span>
+        <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
+          Access <span className={theme.colors.accent}>Requests</span>
         </h1>
-        <p className="text-lg text-slate-600 max-w-2xl">
+        <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
           Manage who can join your family tree and their permission levels. 
           New members and role upgrades appear here.
         </p>
       </header>
+
+      {/* Tree Selector */}
+      <section className="relative">
+        <div className={cn("p-8 rounded-[2rem] shadow-xl overflow-hidden transition-colors duration-500", theme.isDark ? "bg-slate-900" : "bg-slate-900")}>
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+             <Shield className="w-32 h-32 text-white" />
+          </div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white">Select Tree</h3>
+              <p className="text-slate-300 font-medium">Manage members for the selected workspace</p>
+            </div>
+            <div className="relative min-w-[300px]">
+              <select
+                value={selectedTreeId}
+                onChange={(e) => setSelectedTreeId(e.target.value)}
+                className="w-full pl-6 pr-12 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl font-bold text-white focus:ring-4 focus:ring-primary/30 outline-none appearance-none transition-all cursor-pointer backdrop-blur-md"
+              >
+                {!trees && <option className="text-slate-900">Loading trees...</option>}
+                {trees?.map((tree: any) => (
+                  <option key={tree.id} value={tree.id} className="text-slate-900">
+                    {tree.name} ({tree.role})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
+                <Users className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <DataState isLoading={isLoading} isError={isError} error={error as Error}>
         <div className="grid grid-cols-1 gap-6">
@@ -59,29 +97,29 @@ export default function ManageUsersPage() {
               <motion.div 
                 layout
                 key={req.id}
-                className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row items-center justify-between gap-8"
+                className={cn("p-8 rounded-[2rem] border shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row items-center justify-between gap-8", theme.colors.surface, theme.colors.border)}
               >
                 <div className="flex items-center gap-6 flex-1">
-                  <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center">
-                    <User className="w-8 h-8 text-orange-600" />
+                  <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center", theme.colors.primaryMuted)}>
+                    <User className={cn("w-8 h-8", theme.colors.accent)} />
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-xl font-bold text-slate-900">{req.userName || 'New User'}</h3>
+                      <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName || 'New User'}</h3>
                       {req.upgradeFrom && (
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold uppercase tracking-widest border border-blue-100">
+                        <span className="px-2 py-0.5 bg-violet-500/10 text-violet-600 rounded-md text-[10px] font-bold uppercase tracking-widest border border-violet-500/20">
                           Upgrade
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-slate-500 font-medium">
+                    <div className={cn("flex flex-wrap gap-4 text-sm font-medium", theme.colors.textMuted)}>
                       <div className="flex items-center gap-1">
                         <Mail className="w-4 h-4" />
                         {req.userEmail}
                       </div>
                       <div className="flex items-center gap-1">
                         <Shield className="w-4 h-4" />
-                        Requested: <span className="text-slate-900 font-bold capitalize">{req.requestedRole}</span>
+                        Requested: <span className={cn("font-bold capitalize", theme.colors.text)}>{req.requestedRole}</span>
                       </div>
                       {req.upgradeFrom && (
                         <div className="flex items-center gap-1">
@@ -97,13 +135,22 @@ export default function ManageUsersPage() {
                   <button
                     onClick={() => approveMutation.mutate(req.id)}
                     disabled={approveMutation.isPending}
-                    className="flex-1 md:flex-none px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className={cn(
+                      "flex-1 md:flex-none px-8 py-3 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 shadow-lg shadow-black/5",
+                      theme.colors.primary
+                    )}
                   >
                     <Check className="w-5 h-5" />
                     Approve
                   </button>
                   <button
-                    className="flex-1 md:flex-none px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all flex items-center justify-center gap-2"
+                    className={cn(
+                      "flex-1 md:flex-none px-8 py-3 border rounded-2xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95",
+                      theme.colors.bg,
+                      theme.colors.border,
+                      theme.colors.textMuted,
+                      "hover:text-red-600 hover:border-red-100 hover:bg-red-50"
+                    )}
                   >
                     <X className="w-5 h-5" />
                     Reject
@@ -112,13 +159,13 @@ export default function ManageUsersPage() {
               </motion.div>
             ))
           ) : (
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] p-20 text-center space-y-6">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                <UserPlus className="w-10 h-10 text-slate-300" />
+            <div className={cn("border-2 border-dashed rounded-[2rem] p-20 text-center space-y-6 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
+              <div className={cn("w-20 h-20 rounded-full flex items-center justify-center mx-auto", theme.colors.bg)}>
+                <UserPlus className={cn("w-10 h-10", theme.colors.textMuted)} />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">No pending requests</h3>
-                <p className="text-slate-500 max-w-sm mx-auto">
+                <h3 className={cn("text-xl font-bold", theme.colors.text)}>No pending requests</h3>
+                <p className={cn("max-w-sm mx-auto font-medium", theme.colors.textMuted)}>
                   When new family members ask to join your tree, they will show up here for approval.
                 </p>
               </div>

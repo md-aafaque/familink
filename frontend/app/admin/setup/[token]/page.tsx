@@ -98,7 +98,7 @@ export default function AdminSetupPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Shield className="w-8 h-8 text-blue-600" />
+              <Shield className="w-8 h-8 text-indigo-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Set Up Admin Account</h2>
             <p className="text-slate-600">Complete your admin account setup</p>
@@ -197,8 +197,8 @@ export default function AdminSetupPage() {
           </form>
 
           {/* Note */}
-          <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-xs text-blue-700">
+          <div className="mt-6 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+            <p className="text-xs text-indigo-700">
               💡 After setup, you'll be able to sign in at the admin login page.
             </p>
           </div>

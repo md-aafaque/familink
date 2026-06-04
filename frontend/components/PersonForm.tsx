@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createPersonSchema, updatePersonSchema, CreatePersonInput, UpdatePersonInput } from "@shared/schemas/people";
 import { Loader2, Save, User as UserIcon, Shield, Globe, Lock } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAppTheme } from "./providers/ThemeProvider";
 
 interface PersonFormProps {
   initialData?: any;
@@ -15,6 +16,7 @@ interface PersonFormProps {
 
 export default function PersonForm({ initialData, onSubmit, isLoading, treeId }: PersonFormProps) {
   const isEditing = !!initialData;
+  const { theme } = useAppTheme();
   const {
     register,
     handleSubmit,
@@ -31,7 +33,6 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       ...(treeId && { treeId }), // Include treeId in defaults for create operations
     },
   });
-  console.log("FORM ERRORS:", errors);
 
   const visibilityOptions = [
     { value: 'tree', label: 'Family Tree', icon: Globe },
@@ -62,34 +63,39 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       processed.treeId = treeId;
     }
 
-    console.log("PROCESSED DATA:", processed);
     onSubmit(processed);
   };
 
   return (
-    <form onSubmit={handleSubmit(processSubmit)} className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit(processSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Name Fields */}
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700">First Name</label>
+        <div className="space-y-1.5">
+          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>First Name</label>
           <input
             {...register("firstName")}
             className={cn(
-              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
-              errors.firstName ? "border-red-500" : "border-slate-200"
+              "w-full px-3 py-2 border rounded-md outline-none transition-all text-sm",
+              theme.colors.bg,
+              theme.colors.text,
+              errors.firstName ? "border-red-500" : theme.colors.border,
+              "focus:ring-2 focus:ring-primary/20 focus:border-primary"
             )}
             placeholder="John"
           />
           {errors.firstName && <p className="text-xs text-red-500">{errors.firstName.message as string}</p>}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700">Last Name</label>
+        <div className="space-y-1.5">
+          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Last Name</label>
           <input
             {...register("lastName")}
             className={cn(
-              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
-              errors.lastName ? "border-red-500" : "border-slate-200"
+              "w-full px-3 py-2 border rounded-md outline-none transition-all text-sm",
+              theme.colors.bg,
+              theme.colors.text,
+              errors.lastName ? "border-red-500" : theme.colors.border,
+              "focus:ring-2 focus:ring-primary/20 focus:border-primary"
             )}
             placeholder="Doe"
           />
@@ -97,13 +103,16 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
         </div>
 
         {/* Basic Info */}
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700">Gender</label>
+        <div className="space-y-1.5">
+          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Gender</label>
           <select
             {...register("gender")}
             className={cn(
-              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white",
-              errors.gender ? "border-red-500" : "border-slate-200"
+              "w-full px-3 py-2 border rounded-md outline-none transition-all appearance-none text-sm",
+              theme.colors.bg,
+              theme.colors.text,
+              errors.gender ? "border-red-500" : theme.colors.border,
+              "focus:ring-2 focus:ring-primary/20 focus:border-primary"
             )}
           >
             <option value="unknown">Prefer not to say</option>
@@ -114,13 +123,16 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           {errors.gender && <p className="text-xs text-red-500">{errors.gender.message as string}</p>}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700">Profile Status</label>
+        <div className="space-y-1.5">
+          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Profile Status</label>
           <select
             {...register("status")}
             className={cn(
-              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white",
-              errors.status ? "border-red-500" : "border-slate-200"
+              "w-full px-3 py-2 border rounded-md outline-none transition-all appearance-none text-sm",
+              theme.colors.bg,
+              theme.colors.text,
+              errors.status ? "border-red-500" : theme.colors.border,
+              "focus:ring-2 focus:ring-primary/20 focus:border-primary"
             )}
           >
             <option value="ghost">Ghost Profile</option>
@@ -131,24 +143,33 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           {errors.status && <p className="text-xs text-red-500">{errors.status.message as string}</p>}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700">Birth Date</label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="space-y-1.5">
+          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Birth Date</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
             <div className="md:col-span-2">
               <input
                 {...register("birthDate")}
                 type="date"
                 className={cn(
-                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
-                  errors.birthDate ? "border-red-500" : "border-slate-200"
+                  "w-full px-3 py-2 border rounded-md outline-none transition-all text-sm",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  errors.birthDate ? "border-red-500" : theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Who can see this?</label>
+            <div className="space-y-1">
+              <label className={cn("text-[10px] font-bold uppercase tracking-wider opacity-60")}>Visibility</label>
               <select
                 {...register("birthDateVisibility")}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white"
+                className={cn(
+                  "w-full px-2 py-2 border rounded-md outline-none transition-all appearance-none text-xs",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                )}
               >
                 {visibilityOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -159,46 +180,58 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           {errors.birthDate && <p className="text-xs text-red-500">{errors.birthDate.message as string}</p>}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700">Death Date (Optional)</label>
+        <div className="space-y-1.5">
+          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Death Date (Optional)</label>
           <input
             {...register("deathDate")}
             type="date"
             className={cn(
-              "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
-              errors.deathDate ? "border-red-500" : "border-slate-200"
+              "w-full px-3 py-2 border rounded-md outline-none transition-all text-sm",
+              theme.colors.bg,
+              theme.colors.text,
+              errors.deathDate ? "border-red-500" : theme.colors.border,
+              "focus:ring-2 focus:ring-primary/20 focus:border-primary"
             )}
           />
           {errors.deathDate && <p className="text-xs text-red-500">{errors.deathDate.message as string}</p>}
         </div>
       </div>
 
-      <div className="border-t border-slate-100 pt-8 space-y-6">
-        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-orange-600" />
-          Contact & Privacy
+      <div className={cn("border-t pt-6 space-y-4", theme.colors.border)}>
+        <h3 className={cn("text-base font-bold flex items-center gap-2", theme.colors.text)}>
+          <Shield className={cn("w-4 h-4", theme.colors.accent)} />
+          Privacy & Contact
         </h3>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Email */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-bold text-slate-700">Email Address</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div className="md:col-span-2 space-y-1.5">
+              <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Email Address</label>
               <input
                 {...register("email")}
                 type="email"
                 className={cn(
-                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
-                  errors.email ? "border-red-500" : "border-slate-200"
+                  "w-full px-3 py-2 border rounded-md outline-none transition-all text-sm",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  errors.email ? "border-red-500" : theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
                 placeholder="email@example.com"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Who can see this?</label>
+            <div className="space-y-1">
+              <label className={cn("text-[10px] font-bold uppercase tracking-wider opacity-60")}>Visibility</label>
               <select
                 {...register("emailVisibility")}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white"
+                className={cn(
+                  "w-full px-2 py-2 border rounded-md outline-none transition-all appearance-none text-xs",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                )}
               >
                 {visibilityOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -209,23 +242,32 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           {errors.email && <p className="text-xs text-red-500">{errors.email.message as string}</p>}
 
           {/* Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-bold text-slate-700">Phone Number</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div className="md:col-span-2 space-y-1.5">
+              <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Phone Number</label>
               <input
                 {...register("phone")}
                 className={cn(
-                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
-                  errors.phone ? "border-red-500" : "border-slate-200"
+                  "w-full px-3 py-2 border rounded-md outline-none transition-all text-sm",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  errors.phone ? "border-red-500" : theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
                 placeholder="+1 (555) 000-0000"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Who can see this?</label>
+            <div className="space-y-1">
+              <label className={cn("text-[10px] font-bold uppercase tracking-wider opacity-60")}>Visibility</label>
               <select
                 {...register("phoneVisibility")}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white"
+                className={cn(
+                  "w-full px-2 py-2 border rounded-md outline-none transition-all appearance-none text-xs",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                )}
               >
                 {visibilityOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -236,23 +278,32 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           {errors.phone && <p className="text-xs text-red-500">{errors.phone.message as string}</p>}
 
           {/* Address */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-bold text-slate-700">Address</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div className="md:col-span-2 space-y-1.5">
+              <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>Address</label>
               <input
                 {...register("address")}
                 className={cn(
-                  "w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all",
-                  errors.address ? "border-red-500" : "border-slate-200"
+                  "w-full px-3 py-2 border rounded-md outline-none transition-all text-sm",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  errors.address ? "border-red-500" : theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
                 placeholder="123 Main St, City, State, ZIP"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Who can see this?</label>
+            <div className="space-y-1">
+              <label className={cn("text-[10px] font-bold uppercase tracking-wider opacity-60")}>Visibility</label>
               <select
                 {...register("addressVisibility")}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none bg-white"
+                className={cn(
+                  "w-full px-2 py-2 border rounded-md outline-none transition-all appearance-none text-xs",
+                  theme.colors.bg,
+                  theme.colors.text,
+                  theme.colors.border,
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                )}
               >
                 {visibilityOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -266,10 +317,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50"
+        className={cn("w-full py-3 text-white rounded-md font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50 active:scale-[0.98] shadow-sm mt-4", theme.colors.primary)}
       >
-        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-        {isEditing ? "Save Profile Changes" : "Create Person Profile"}
+        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        {isEditing ? "Update Profile" : "Create Profile"}
       </button>
     </form>
   );

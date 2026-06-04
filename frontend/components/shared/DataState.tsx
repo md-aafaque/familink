@@ -2,6 +2,8 @@
 
 import { ReactNode } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { useAppTheme } from "../providers/ThemeProvider";
 
 interface DataStateProps {
   isLoading: boolean;
@@ -18,10 +20,12 @@ export default function DataState({
   children,
   loadingMessage = "Loading data...",
 }: DataStateProps) {
+  const { theme } = useAppTheme();
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <Loader2 className="w-10 h-10 text-orange-600 animate-spin" />
+        <Loader2 className={cn("w-10 h-10 animate-spin", theme.colors.accent)} />
         <p className="text-slate-600 font-medium">{loadingMessage}</p>
       </div>
     );

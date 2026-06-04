@@ -1,21 +1,23 @@
 import { getSession } from '../../core/database';
-import { TreeInvitation, TreeAccessRequest, InvitationType } from '@shared/schemas/invitations';
+import { AccessRole, AdminInvitation, PublicInvitationRole, TreeAccessRequest, TreeInvitation } from '@shared/schemas/invitations';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors';
 
 export class InvitationsRepository {
-  static async createInvitation(treeId: string, type: InvitationType, createdBy: string): Promise<TreeInvitation> {
+  static async createInvitation(treeId: string, role: PublicInvitationRole, createdBy: string): Promise<TreeInvitation> {
     const session = getSession();
     try {
+      const id = uuidv4();
       const token = uuidv4();
       const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
       const result = await session.run(
         `
         MATCH (t:FamilyTree {id: $treeId})
         CREATE (i:TreeInvitation {
+          id: $id,
           token: $token,
           treeId: $treeId,
-          invitationType: $type,
+          role: $role,
           createdBy: $createdBy,
           createdAt: timestamp(),
           expiresAt: $expiresAt,
@@ -23,7 +25,7 @@ export class InvitationsRepository {
         })-[:FOR_TREE]->(t)
         RETURN i
         `,
-        { treeId, type, createdBy, token, expiresAt }
+        { id, treeId, role, createdBy, token, expiresAt }
       );
 
       if (result.records.length === 0) {
@@ -36,11 +38,41 @@ export class InvitationsRepository {
     }
   }
 
+  static async createAdminInvitation(treeId: string, email: string, createdBy: string): Promise<AdminInvitation> {
+    const session = getSession();
+    try {
+      const id = uuidv4();
+      const result = await session.run(
+        `
+        MATCH (t:FamilyTree {id: $treeId})
+        CREATE (i:AdminInvitation {
+          id: $id,
+          treeId: $treeId,
+          email: $email,
+          status: 'pending',
+          createdBy: $createdBy,
+          createdAt: timestamp()
+        })-[:FOR_TREE]->(t)
+        RETURN i
+        `,
+        { id, treeId, email, createdBy }
+      );
+
+      if (result.records.length === 0) {
+        throw new AppError('Failed to create admin invitation: Tree not found', 404);
+      }
+
+      return result.records[0].get('i').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
   static async findInvitationByToken(token: string): Promise<TreeInvitation | null> {
     const session = getSession();
     try {
       const result = await session.run(
-        `MATCH (i:TreeInvitation {token: $token}) RETURN i`,
+        `MATCH (i:TreeInvitation {token: $token, status: 'active'}) RETURN i`,
         { token }
       );
       if (result.records.length === 0) return null;
@@ -53,7 +85,7 @@ export class InvitationsRepository {
   static async createAccessRequest(
     userId: string, 
     treeId: string, 
-    requestedRole: InvitationType,
+    requestedRole: AccessRole,
     upgradeFrom?: string
   ): Promise<TreeAccessRequest> {
     const session = getSession();
@@ -111,6 +143,26 @@ export class InvitationsRepository {
       );
       if (result.records.length === 0) {
         throw new AppError('Access request not found', 404);
+      }
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async rejectRequest(id: string, adminId: string, reason: string): Promise<void> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (ar:TreeAccessRequest {id: $id, status: 'pending'})
+         SET ar.status = 'rejected',
+             ar.processedAt = timestamp(),
+             ar.processedBy = $adminId,
+             ar.rejectionReason = $reason
+         RETURN ar`,
+        { id, adminId, reason }
+      );
+      if (result.records.length === 0) {
+        throw new AppError('Access request not found or already processed', 404);
       }
     } finally {
       await session.close();
@@ -183,6 +235,25 @@ export class InvitationsRepository {
         { treeId }
       );
       return result.records.map(r => r.get('i').properties);
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async revokeInvitation(treeId: string, invitationId: string, revokedBy: string): Promise<void> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (i:TreeInvitation {id: $invitationId, treeId: $treeId, status: 'active'})
+         SET i.status = 'revoked',
+             i.revokedAt = timestamp(),
+             i.revokedBy = $revokedBy
+         RETURN i`,
+        { treeId, invitationId, revokedBy }
+      );
+      if (result.records.length === 0) {
+        throw new AppError('Invitation not found or already inactive', 404);
+      }
     } finally {
       await session.close();
     }
