@@ -1,6 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { getSession } from '../../core/database';
 import { AppError } from '../../core/errors';
+import { z } from 'zod';
+
+const idParamSchema = z.object({
+  id: z.string().uuid()
+});
 
 export default async function notificationsRoutes(fastify: FastifyInstance) {
   // Get all notifications for current user
@@ -15,11 +20,11 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
       );
 
       const notifications = result.records.map(r => {
-        const props = r.get('n').properties as Record<string, any>;
+        const props = r.get('n').properties;
 
-        const normalizeNumber = (value: any) =>
-          typeof value === 'object' && value !== null && typeof value.toNumber === 'function'
-            ? value.toNumber()
+        const normalizeNumber = (value: unknown) =>
+          (typeof value === 'object' && value !== null && 'toNumber' in value && typeof (value as { toNumber: Function }).toNumber === 'function')
+            ? (value as { toNumber: Function }).toNumber()
             : value;
 
         return {
@@ -50,7 +55,7 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
       return { 
         success: true, 
         data: {
-          unreadCount: typeof count === 'object' ? count.toNumber() : count 
+          unreadCount: typeof count === 'object' && count !== null && 'toNumber' in count ? (count as any).toNumber() : count 
         }
       };
     } finally {
@@ -61,7 +66,7 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
   // Mark notification as read
   fastify.post('/notifications/:id/read', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const user = request.user!;
-    const { id } = request.params as { id: string };
+    const { id } = idParamSchema.parse(request.params);
 
     const session = getSession();
     try {
@@ -101,9 +106,7 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
   // Delete notification
   fastify.delete('/notifications/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const user = request.user!;
-    const { id } = request.params as { id: string };
-    
-    console.log(`Attempting to delete notification ${id} for user ${user.id}`);
+    const { id } = idParamSchema.parse(request.params);
     
     const session = getSession();
     try {
@@ -115,12 +118,8 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
       );
       
       const deletedCount = res.records[0].get('deletedCount').toNumber();
-      console.log(`Deleted ${deletedCount} notification(s)`);
       
       return { success: true, deletedCount };
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-      throw error;
     } finally {
       await session.close();
     }
@@ -129,8 +128,6 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
   // Delete all notifications
   fastify.delete('/notifications', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const user = request.user!;
-    
-    console.log(`Attempting to delete all notifications for user ${user.id}`);
     
     const session = getSession();
     try {
@@ -142,12 +139,8 @@ export default async function notificationsRoutes(fastify: FastifyInstance) {
       );
       
       const deletedCount = res.records[0].get('deletedCount').toNumber();
-      console.log(`Deleted ${deletedCount} notification(s)`);
       
       return { success: true, deletedCount };
-    } catch (error) {
-      console.error('Error deleting all notifications:', error);
-      throw error;
     } finally {
       await session.close();
     }

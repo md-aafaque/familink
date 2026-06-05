@@ -3,6 +3,11 @@ import { verifyTreeAccess } from '../../middleware/tree-auth';
 import { createTreeSchema } from '../../shared/schemas/trees';
 import { TreesService } from './trees.service';
 import { AuditService } from '../../modules/audit/audit.service';
+import { z } from 'zod';
+
+const treeIdParamSchema = z.object({
+  treeId: z.string().uuid()
+});
 
 export default async function treeRoutes(fastify: FastifyInstance) {
   
@@ -41,7 +46,7 @@ export default async function treeRoutes(fastify: FastifyInstance) {
   fastify.get('/trees/:treeId', { 
     preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member', 'viewer'])] 
   }, async (request, reply) => {
-    const { treeId } = request.params as { treeId: string };
+    const { treeId } = treeIdParamSchema.parse(request.params);
     const tree = await TreesService.getTreeDetails(treeId);
 
     return { 
@@ -59,7 +64,7 @@ export default async function treeRoutes(fastify: FastifyInstance) {
   fastify.get('/trees/:treeId/visual', { 
     preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member', 'viewer'])] 
   }, async (request, reply) => {
-    const { treeId } = request.params as { treeId: string };
+    const { treeId } = treeIdParamSchema.parse(request.params);
     const people = await TreesService.getVisualData(treeId);
     return { success: true, data: people };
   });
@@ -70,21 +75,35 @@ export default async function treeRoutes(fastify: FastifyInstance) {
   fastify.get('/trees/:treeId/members', { 
     preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member', 'viewer'])] 
   }, async (request, reply) => {
-    const { treeId } = request.params as { treeId: string };
+    const { treeId } = treeIdParamSchema.parse(request.params);
     const members = await TreesService.getMembers(treeId);
     return { success: true, data: members };
   });
 
   /**
-   * Get tree activity logs
+   * Rename tree
    */
-  fastify.get('/trees/:treeId/activity', { 
-    preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member', 'viewer'])] 
+  fastify.patch('/trees/:treeId', { 
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])] 
   }, async (request, reply) => {
-    const { treeId } = request.params as { treeId: string };
-    const { limit } = request.query as { limit?: string };
+    const { treeId } = treeIdParamSchema.parse(request.params);
+    const { name } = createTreeSchema.parse(request.body);
+    const user = request.user!;
     
-    const logs = await AuditService.getTreeLogs(treeId, limit ? parseInt(limit, 10) : 50);
-    return { success: true, data: logs };
+    await TreesService.renameTree(treeId, user.id, name);
+    return { success: true };
+  });
+
+  /**
+   * Delete tree
+   */
+  fastify.delete('/trees/:treeId', { 
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])] 
+  }, async (request, reply) => {
+    const { treeId } = treeIdParamSchema.parse(request.params);
+    const user = request.user!;
+    
+    await TreesService.deleteTree(treeId, user.id);
+    return { success: true };
   });
 }

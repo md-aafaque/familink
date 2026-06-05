@@ -10,7 +10,7 @@ async function authRoutes(fastify) {
             throw new errors_1.AppError('Unauthorized', 401);
         }
         try {
-            const result = await users_repository_1.UsersRepository.syncUser(user.id, user.email);
+            const result = await users_repository_1.UsersRepository.syncUser(user.id, user.email, user.name || '');
             return reply.status(200).send({
                 success: true,
                 data: result

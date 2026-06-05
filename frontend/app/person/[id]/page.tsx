@@ -44,24 +44,28 @@ export default function PersonProfilePage() {
   const { data, isLoading, isError, error } = useQuery<Person>({
     queryKey: ["person", id],
     queryFn: async () => {
-      const res = await api.get<any, ApiResponse<Person>>(`/people/${id}`);
+      // Temporary solution: We need treeId to call the new API.
+      // If we don't have it, we'll need a global lookup or the frontend navigation needs to be updated.
+      // For now, I'll call a hypothetical 'global' endpoint to get the person (and their treeId).
+      const res = await api.get<any, ApiResponse<Person>>(`/people/${id}/global`);
       return res.data;
     },
     enabled: !!id,
   });
 
   const { data: suggestions } = useQuery<any>({
-    queryKey: ["person-suggestions", id],
+    queryKey: ["person-suggestions", id, data?.treeId],
     queryFn: async () => {
-      const res = await api.get<any, ApiResponse<any>>(`/people/${id}/suggestions`);
+      // Suggestion API also needs treeId now because of tree isolation
+      const res = await api.get<any, ApiResponse<any>>(`/trees/${data?.treeId}/people/${id}/suggestions`);
       return res.data;
     },
-    enabled: !!id,
+    enabled: !!id && !!data?.treeId,
   });
 
   const updateMutation = useMutation({
     mutationFn: async (input: any) => {
-      const res = await api.patch(`/people/${id}`, input);
+      const res = await api.patch(`/trees/${data?.treeId}/people/${id}`, input);
       return (res as any).data;
     },
     onSuccess: () => {
@@ -72,7 +76,7 @@ export default function PersonProfilePage() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await api.delete(`/people/${id}`);
+      await api.delete(`/trees/${data?.treeId}/people/${id}`);
     },
     onSuccess: () => {
       router.back();

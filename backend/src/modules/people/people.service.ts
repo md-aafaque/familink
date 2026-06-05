@@ -21,8 +21,8 @@ export class PeopleService {
     return person;
   }
 
-  static async getPerson(id: string, userId: string): Promise<Partial<Person>> {
-    const person = await PeopleRepository.findById(id);
+  static async getPerson(id: string, treeId: string, userId: string): Promise<Partial<Person>> {
+    const person = await PeopleRepository.findById(id, treeId);
     if (!person) throw new AppError('Person not found', 404);
 
     const permission = await PeopleRepository.checkPermission(id, userId);
@@ -44,13 +44,13 @@ export class PeopleService {
     return filtered;
   }
 
-  static async updatePerson(id: string, input: UpdatePersonInput, userId: string) {
+  static async updatePerson(id: string, treeId: string, input: UpdatePersonInput, userId: string) {
     const permission = await PeopleRepository.checkPermission(id, userId);
     if (permission !== 'owner' && permission !== 'editor') {
       throw new AppError('You do not have permission to edit this profile', 403);
     }
 
-    const person = await PeopleRepository.update(id, input);
+    const person = await PeopleRepository.update(id, treeId, input);
 
     await AuditService.log(
       person.treeId,
@@ -64,16 +64,16 @@ export class PeopleService {
     return person;
   }
 
-  static async deletePerson(id: string, userId: string) {
+  static async deletePerson(id: string, treeId: string, userId: string) {
     const permission = await PeopleRepository.checkPermission(id, userId);
     if (permission !== 'owner') {
       throw new AppError('Only owners or admins can delete profiles', 403);
     }
 
-    const person = await PeopleRepository.findById(id);
+    const person = await PeopleRepository.findById(id, treeId);
     if (!person) throw new AppError('Person not found', 404);
 
-    await PeopleRepository.softDelete(id, userId);
+    await PeopleRepository.softDelete(id, treeId, userId);
 
     await AuditService.log(
       person.treeId,
@@ -86,7 +86,8 @@ export class PeopleService {
 
   static async claimProfile(personId: string, userId: string) {
     // 1. Check if person is a ghost
-    const person = await PeopleRepository.findById(personId);
+    // Discovery use case: find by ID globally to get treeId
+    const person = await PeopleRepository.findByIdGlobal(personId);
     if (!person) throw new AppError('Profile not found', 404);
     if (person.status !== 'ghost') throw new AppError('This profile is already claimed or active', 400);
 
@@ -177,8 +178,8 @@ export class PeopleService {
     }
 
     // 2. Existence & Same Tree Check
-    const source = await PeopleRepository.findById(sourceId);
-    const target = await PeopleRepository.findById(targetId);
+    const source = await PeopleRepository.findById(sourceId, treeId);
+    const target = await PeopleRepository.findById(targetId, treeId);
 
     if (!source || !target) throw new AppError('One or both profiles not found', 404);
     if (source.treeId !== treeId || target.treeId !== treeId) {
@@ -202,7 +203,7 @@ export class PeopleService {
     return { success: true };
   }
 
-  static async getPermissions(personId: string, userId: string) {
+  static async getPermissions(personId: string, treeId: string, userId: string) {
     const permission = await PeopleRepository.checkPermission(personId, userId);
     if (permission !== 'owner') {
       throw new AppError('Only owners and tree admins can view detailed permissions', 403);
@@ -210,7 +211,7 @@ export class PeopleService {
     return PeopleRepository.getPermissions(personId);
   }
 
-  static async grantPermission(personId: string, targetUserId: string, permissionType: 'owner' | 'editor', adminId: string) {
+  static async grantPermission(personId: string, treeId: string, targetUserId: string, permissionType: 'owner' | 'editor', adminId: string) {
     const permission = await PeopleRepository.checkPermission(personId, adminId);
     if (permission !== 'owner') {
       throw new AppError('Only owners and tree admins can grant permissions', 403);
@@ -219,7 +220,7 @@ export class PeopleService {
     await PeopleRepository.grantPermission(personId, targetUserId, permissionType);
     
     // Log Audit
-    const person = await PeopleRepository.findById(personId);
+    const person = await PeopleRepository.findById(personId, treeId);
     if (person) {
       await AuditService.log(
         person.treeId,
@@ -243,7 +244,7 @@ export class PeopleService {
     return { success: true };
   }
 
-  static async revokePermission(personId: string, targetUserId: string, adminId: string) {
+  static async revokePermission(personId: string, treeId: string, targetUserId: string, adminId: string) {
     const permission = await PeopleRepository.checkPermission(personId, adminId);
     if (permission !== 'owner') {
       throw new AppError('Only owners and tree admins can revoke permissions', 403);
@@ -252,7 +253,7 @@ export class PeopleService {
     await PeopleRepository.revokePermission(personId, targetUserId);
 
     // Log Audit
-    const person = await PeopleRepository.findById(personId);
+    const person = await PeopleRepository.findById(personId, treeId);
     if (person) {
       await AuditService.log(
         person.treeId,

@@ -23,6 +23,6 @@ export default fp(async (fastify) => {
       id: user.id, 
       email: user.email!, 
       name: user.user_metadata.full_name || user.user_metadata.name || '' 
-    } as any;
+    };
   });
 });

@@ -41,7 +41,25 @@ export class PeopleRepository {
     }
   }
 
-  static async findById(id: string): Promise<Person | null> {
+  static async findById(id: string, treeId: string): Promise<Person | null> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (p:Person {id: $id, treeId: $treeId}) WHERE p.deletedAt IS NULL RETURN p`,
+        { id, treeId }
+      );
+      if (result.records.length === 0) return null;
+      return result.records[0].get('p').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  /**
+   * Internal use only for discovery when treeId is unknown.
+   * e.g. during initial claim request.
+   */
+  static async findByIdGlobal(id: string): Promise<Person | null> {
     const session = getSession();
     try {
       const result = await session.run(
@@ -55,10 +73,10 @@ export class PeopleRepository {
     }
   }
 
-  static async update(id: string, input: UpdatePersonInput): Promise<Person> {
+  static async update(id: string, treeId: string, input: UpdatePersonInput): Promise<Person> {
     const keys = Object.keys(input);
     if (keys.length === 0) {
-      const existing = await this.findById(id);
+      const existing = await this.findById(id, treeId);
       if (!existing) throw new AppError('Person not found', 404);
       return existing;
     }
@@ -71,11 +89,11 @@ export class PeopleRepository {
         .join(', ');
       
       const result = await session.run(
-        `MATCH (p:Person {id: $id}) 
+        `MATCH (p:Person {id: $id, treeId: $treeId}) 
          WHERE p.deletedAt IS NULL
          SET ${setters} 
          RETURN p`,
-        { ...input, id }
+        { ...input, id, treeId }
       );
 
       if (result.records.length === 0) {
@@ -88,12 +106,12 @@ export class PeopleRepository {
     }
   }
 
-  static async softDelete(id: string, deletedBy: string): Promise<void> {
+  static async softDelete(id: string, treeId: string, deletedBy: string): Promise<void> {
     const session = getSession();
     try {
       await session.run(
-        `MATCH (p:Person {id: $id}) SET p.deletedAt = timestamp(), p.deletedBy = $deletedBy`,
-        { id, deletedBy }
+        `MATCH (p:Person {id: $id, treeId: $treeId}) SET p.deletedAt = timestamp(), p.deletedBy = $deletedBy`,
+        { id, treeId, deletedBy }
       );
     } finally {
       await session.close();

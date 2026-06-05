@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import api from "../../lib/api";
-import { Search, UserPlus, Info, GripVertical, Loader2 } from "lucide-react";
+import { Search, UserPlus, Info, GripVertical, Loader2, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { useAppTheme } from "../providers/ThemeProvider";
@@ -158,6 +158,12 @@ function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClic
             {person.status} • Unlinked
           </p>
         </div>
+        <button 
+          onClick={(e) => { e.stopPropagation(); /* Add logic to move to canvas */ }}
+          className={cn("p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity", theme.colors.bg, theme.colors.accentText)}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </motion.div>
   );

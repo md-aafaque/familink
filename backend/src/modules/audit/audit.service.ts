@@ -2,6 +2,8 @@ import { AuditRepository } from './audit.repository';
 
 export type AuditAction = 
   | 'tree_created'
+  | 'tree_renamed'
+  | 'tree_deleted'
   | 'person_created'
   | 'person_updated'
   | 'person_deleted'

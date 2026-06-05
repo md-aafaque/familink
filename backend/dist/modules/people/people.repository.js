@@ -39,7 +39,23 @@ class PeopleRepository {
             await session.close();
         }
     }
-    static async findById(id) {
+    static async findById(id, treeId) {
+        const session = (0, database_1.getSession)();
+        try {
+            const result = await session.run(`MATCH (p:Person {id: $id, treeId: $treeId}) WHERE p.deletedAt IS NULL RETURN p`, { id, treeId });
+            if (result.records.length === 0)
+                return null;
+            return result.records[0].get('p').properties;
+        }
+        finally {
+            await session.close();
+        }
+    }
+    /**
+     * Internal use only for discovery when treeId is unknown.
+     * e.g. during initial claim request.
+     */
+    static async findByIdGlobal(id) {
         const session = (0, database_1.getSession)();
         try {
             const result = await session.run(`MATCH (p:Person {id: $id}) WHERE p.deletedAt IS NULL RETURN p`, { id });
@@ -51,10 +67,10 @@ class PeopleRepository {
             await session.close();
         }
     }
-    static async update(id, input) {
+    static async update(id, treeId, input) {
         const keys = Object.keys(input);
         if (keys.length === 0) {
-            const existing = await this.findById(id);
+            const existing = await this.findById(id, treeId);
             if (!existing)
                 throw new errors_1.AppError('Person not found', 404);
             return existing;
@@ -65,10 +81,10 @@ class PeopleRepository {
             const setters = keys
                 .map(key => `p.${key} = $${key}`)
                 .join(', ');
-            const result = await session.run(`MATCH (p:Person {id: $id}) 
+            const result = await session.run(`MATCH (p:Person {id: $id, treeId: $treeId}) 
          WHERE p.deletedAt IS NULL
          SET ${setters} 
-         RETURN p`, { ...input, id });
+         RETURN p`, { ...input, id, treeId });
             if (result.records.length === 0) {
                 throw new errors_1.AppError('Person not found or already deleted', 404);
             }
@@ -78,10 +94,10 @@ class PeopleRepository {
             await session.close();
         }
     }
-    static async softDelete(id, deletedBy) {
+    static async softDelete(id, treeId, deletedBy) {
         const session = (0, database_1.getSession)();
         try {
-            await session.run(`MATCH (p:Person {id: $id}) SET p.deletedAt = timestamp(), p.deletedBy = $deletedBy`, { id, deletedBy });
+            await session.run(`MATCH (p:Person {id: $id, treeId: $treeId}) SET p.deletedAt = timestamp(), p.deletedBy = $deletedBy`, { id, treeId, deletedBy });
         }
         finally {
             await session.close();

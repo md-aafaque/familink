@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createTreeSchema = z.object({
-  name: z.string().min(1, "Tree name is required").max(100, "Tree name too long"),
+  name: z.string().min(4, "Tree name must be at least 4 characters long").max(100, "Tree name too long"),
 });
 
 export type CreateTreeInput = z.infer<typeof createTreeSchema>;

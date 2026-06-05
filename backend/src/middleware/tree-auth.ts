@@ -1,17 +1,7 @@
+/// <reference path="../types/fastify.d.ts" />
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { AppError } from '../core/errors';
 import { TreesRepository } from '../modules/trees/trees.repository';
-
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: {
-      id: string;
-      email: string;
-      role?: string;
-    };
-    treeRole?: string;
-  }
-}
 
 export const verifyTreeAccess = (roles: string[] = ['admin', 'member', 'viewer']) => {
   return async (request: FastifyRequest, reply: FastifyReply) => {

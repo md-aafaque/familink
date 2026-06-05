@@ -27,18 +27,19 @@ class UsersRepository {
             await session.close();
         }
     }
-    static async syncUser(id, email) {
+    static async syncUser(id, email, name) {
         const session = (0, database_1.getSession)();
         try {
             const result = await session.executeWrite(async (tx) => {
                 const query = `
           MERGE (u:User {id: $id})
-          SET u.email = $email, 
+          SET u.email = $email,
+              u.name = $name,
               u.lastSynced = timestamp(),
               u.createdAt = COALESCE(u.createdAt, timestamp())
           RETURN u
         `;
-                const res = await tx.run(query, { id, email });
+                const res = await tx.run(query, { id, email, name });
                 return res.records[0].get('u').properties;
             });
             return result;

@@ -41,6 +41,16 @@ class NotificationsRepository {
             await session.close();
         }
     }
+    static async delete(notificationId, userId) {
+        const session = (0, database_1.getSession)();
+        try {
+            await session.run(`MATCH (u:User {id: $userId})-[:HAS_NOTIFICATION]->(n:Notification {id: $notificationId})
+         DETACH DELETE n`, { userId, notificationId });
+        }
+        finally {
+            await session.close();
+        }
+    }
     static async markAsRead(notificationId, userId) {
         const session = (0, database_1.getSession)();
         try {

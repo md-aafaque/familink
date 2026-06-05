@@ -35,4 +35,35 @@ export class TreesService {
   static async getMembers(treeId: string) {
     return TreesRepository.getMembers(treeId);
   }
+
+  static async renameTree(treeId: string, userId: string, name: string) {
+    const isAdmin = await TreesRepository.isAdmin(treeId, userId);
+    if (!isAdmin) throw new AppError('Only admins can rename the tree', 403);
+    
+    await TreesRepository.renameTree(treeId, name);
+    
+    await AuditService.log(
+      treeId,
+      userId,
+      'tree_renamed',
+      'FamilyTree',
+      treeId,
+      { name }
+    );
+  }
+
+  static async deleteTree(treeId: string, userId: string) {
+    const isAdmin = await TreesRepository.isAdmin(treeId, userId);
+    if (!isAdmin) throw new AppError('Only admins can delete the tree', 403);
+    
+    await TreesRepository.deleteTree(treeId);
+    
+    await AuditService.log(
+      treeId,
+      userId,
+      'tree_deleted',
+      'FamilyTree',
+      treeId
+    );
+  }
 }

@@ -213,21 +213,23 @@ export default function ProfileDrawer({
               )}
 
               {activeTab === 'family' && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {person.relationships && person.relationships.length > 0 ? (
                     <>
                       {/* Parents Section */}
-                      {person.relationships.filter((r: any) => r.type === 'parent').length > 0 && (
+                      {person.relationships.some((r: any) => r.type === 'parent') && (
                         <div>
-                          <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
+                          <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
                             <User className="w-3 h-3" />
                             Parents
                           </h3>
-                          <div className="space-y-2">
+                          <div className="grid gap-2">
                             {person.relationships
                               .filter((r: any) => r.type === 'parent')
                               .map((rel: any, idx: number) => (
-                                <div key={idx} className={cn("p-2 rounded border text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700", theme.colors.border)}>
+                                <div key={idx} 
+                                     onClick={() => {}} // TODO: Navigate to this person
+                                     className={cn("p-3 rounded-xl border text-sm font-bold transition-all hover:border-primary/50 hover:bg-primary/5 cursor-pointer", theme.colors.border, theme.colors.text)}>
                                   {getPersonName(rel.targetId)}
                                 </div>
                               ))}
@@ -236,50 +238,38 @@ export default function ProfileDrawer({
                       )}
 
                       {/* Siblings Section */}
-                      {person.relationships.filter((r: any) => r.type === 'parent').length > 0 && (
+                      {person.relationships.some((r: any) => r.type === 'sibling') && (
                         <div>
-                          <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
+                          <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
                             <User className="w-3 h-3" />
                             Siblings
                           </h3>
-                          <div className="space-y-2">
-                            {(() => {
-                              const parentIds = person.relationships
-                                .filter((r: any) => r.type === 'parent')
-                                .map((r: any) => r.targetId);
-                              
-                              const siblings = Array.from(peopleMap?.values() ?? []).filter(p => 
-                                p.id !== person.id &&
-                                p.relationships.some((rel: any) => rel.type === 'parent' && parentIds.includes(rel.targetId))
-                              );
-
-                              return siblings.length > 0 ? (
-                                siblings.map((sibling: any) => (
-                                  <div key={sibling.id} className={cn("p-2 rounded border text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700", theme.colors.border)}>
-                                    {sibling.firstName} {sibling.lastName}
-                                  </div>
-                                ))
-                              ) : (
-                                <p className={cn("text-xs", theme.colors.textMuted)}>No siblings found</p>
-                              );
-                            })()}
+                          <div className="grid gap-2">
+                            {person.relationships
+                              .filter((r: any) => r.type === 'sibling')
+                              .map((rel: any, idx: number) => (
+                                <div key={idx} 
+                                     className={cn("p-3 rounded-xl border text-sm font-bold transition-all hover:border-primary/50 hover:bg-primary/5 cursor-pointer", theme.colors.border, theme.colors.text)}>
+                                  {getPersonName(rel.targetId)}
+                                </div>
+                              ))}
                           </div>
                         </div>
                       )}
 
                       {/* Spouse Section */}
-                      {person.relationships.filter((r: any) => r.type === 'spouse').length > 0 && (
+                      {person.relationships.some((r: any) => r.type === 'spouse') && (
                         <div>
-                          <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
+                          <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
                             <Heart className="w-3 h-3 text-rose-500" />
-                            Spouse
+                            Partners
                           </h3>
-                          <div className="space-y-2">
+                          <div className="grid gap-2">
                             {person.relationships
                               .filter((r: any) => r.type === 'spouse')
                               .map((rel: any, idx: number) => (
-                                <div key={idx} className={cn("p-2 rounded border text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700", theme.colors.border)}>
-                                  Married to {getPersonName(rel.targetId)}
+                                <div key={idx} className={cn("p-3 rounded-xl border text-sm font-bold transition-all hover:border-rose-400/50 hover:bg-rose-400/5 cursor-pointer", theme.colors.border, theme.colors.text)}>
+                                  {getPersonName(rel.targetId)}
                                 </div>
                               ))}
                           </div>
@@ -287,33 +277,29 @@ export default function ProfileDrawer({
                       )}
                       
                       {/* Children Section */}
-                      <div>
-                        <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
-                          <User className="w-3 h-3" />
-                          Children
-                        </h3>
-                        <div className="space-y-2">
-                          {(() => {
-                            const children = Array.from(peopleMap?.values() ?? []).filter(p => 
-                              p.relationships.some((rel: any) => rel.type === 'parent' && rel.targetId === person.id)
-                            );
-
-                            return children.length > 0 ? (
-                              children.map((child: any) => (
-                                <div key={child.id} className={cn("p-2 rounded border text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700", theme.colors.border)}>
-                                  {child.firstName} {child.lastName}
+                      {person.relationships.some((r: any) => r.type === 'child') && (
+                        <div>
+                          <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
+                            <User className="w-3 h-3" />
+                            Children
+                          </h3>
+                          <div className="grid gap-2">
+                            {person.relationships
+                              .filter((r: any) => r.type === 'child')
+                              .map((rel: any, idx: number) => (
+                                <div key={idx} className={cn("p-3 rounded-xl border text-sm font-bold transition-all hover:border-primary/50 hover:bg-primary/5 cursor-pointer", theme.colors.border, theme.colors.text)}>
+                                  {getPersonName(rel.targetId)}
                                 </div>
-                              ))
-                            ) : (
-                              <p className={cn("text-xs", theme.colors.textMuted)}>No children found</p>
-                            );
-                          })()}
+                              ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </>
                   ) : (
-                    <div className={cn("p-4 rounded-lg border text-center text-sm", theme.colors.border)}>
-                      <p className={cn("text-xs", theme.colors.textMuted)}>No family relationships recorded</p>
+                    <div className={cn("p-8 rounded-[2rem] border border-dashed text-center", theme.colors.border)}>
+                      <p className={cn("text-xs font-bold uppercase tracking-widest opacity-40", theme.colors.textMuted)}>
+                        No relatives found
+                      </p>
                     </div>
                   )}
                 </div>

@@ -12,8 +12,8 @@ class PeopleService {
         await audit_service_1.AuditService.log(person.treeId, userId, 'person_created', 'Person', person.id, { firstName: person.firstName, lastName: person.lastName });
         return person;
     }
-    static async getPerson(id, userId) {
-        const person = await people_repository_1.PeopleRepository.findById(id);
+    static async getPerson(id, treeId, userId) {
+        const person = await people_repository_1.PeopleRepository.findById(id, treeId);
         if (!person)
             throw new errors_1.AppError('Person not found', 404);
         const permission = await people_repository_1.PeopleRepository.checkPermission(id, userId);
@@ -35,29 +35,30 @@ class PeopleService {
             delete filtered.birthDate;
         return filtered;
     }
-    static async updatePerson(id, input, userId) {
+    static async updatePerson(id, treeId, input, userId) {
         const permission = await people_repository_1.PeopleRepository.checkPermission(id, userId);
         if (permission !== 'owner' && permission !== 'editor') {
             throw new errors_1.AppError('You do not have permission to edit this profile', 403);
         }
-        const person = await people_repository_1.PeopleRepository.update(id, input);
+        const person = await people_repository_1.PeopleRepository.update(id, treeId, input);
         await audit_service_1.AuditService.log(person.treeId, userId, 'person_updated', 'Person', id, { fields: Object.keys(input) });
         return person;
     }
-    static async deletePerson(id, userId) {
+    static async deletePerson(id, treeId, userId) {
         const permission = await people_repository_1.PeopleRepository.checkPermission(id, userId);
         if (permission !== 'owner') {
             throw new errors_1.AppError('Only owners or admins can delete profiles', 403);
         }
-        const person = await people_repository_1.PeopleRepository.findById(id);
+        const person = await people_repository_1.PeopleRepository.findById(id, treeId);
         if (!person)
             throw new errors_1.AppError('Person not found', 404);
-        await people_repository_1.PeopleRepository.softDelete(id, userId);
+        await people_repository_1.PeopleRepository.softDelete(id, treeId, userId);
         await audit_service_1.AuditService.log(person.treeId, userId, 'person_deleted', 'Person', id);
     }
     static async claimProfile(personId, userId) {
         // 1. Check if person is a ghost
-        const person = await people_repository_1.PeopleRepository.findById(personId);
+        // Discovery use case: find by ID globally to get treeId
+        const person = await people_repository_1.PeopleRepository.findByIdGlobal(personId);
         if (!person)
             throw new errors_1.AppError('Profile not found', 404);
         if (person.status !== 'ghost')
@@ -104,8 +105,8 @@ class PeopleService {
             throw new errors_1.AppError('Only tree admins can merge profiles', 403);
         }
         // 2. Existence & Same Tree Check
-        const source = await people_repository_1.PeopleRepository.findById(sourceId);
-        const target = await people_repository_1.PeopleRepository.findById(targetId);
+        const source = await people_repository_1.PeopleRepository.findById(sourceId, treeId);
+        const target = await people_repository_1.PeopleRepository.findById(targetId, treeId);
         if (!source || !target)
             throw new errors_1.AppError('One or both profiles not found', 404);
         if (source.treeId !== treeId || target.treeId !== treeId) {
@@ -119,21 +120,21 @@ class PeopleService {
         await audit_service_1.AuditService.log(treeId, userId, 'person_merged', 'Person', targetId, { sourceId, action: 'merge' });
         return { success: true };
     }
-    static async getPermissions(personId, userId) {
+    static async getPermissions(personId, treeId, userId) {
         const permission = await people_repository_1.PeopleRepository.checkPermission(personId, userId);
         if (permission !== 'owner') {
             throw new errors_1.AppError('Only owners and tree admins can view detailed permissions', 403);
         }
         return people_repository_1.PeopleRepository.getPermissions(personId);
     }
-    static async grantPermission(personId, targetUserId, permissionType, adminId) {
+    static async grantPermission(personId, treeId, targetUserId, permissionType, adminId) {
         const permission = await people_repository_1.PeopleRepository.checkPermission(personId, adminId);
         if (permission !== 'owner') {
             throw new errors_1.AppError('Only owners and tree admins can grant permissions', 403);
         }
         await people_repository_1.PeopleRepository.grantPermission(personId, targetUserId, permissionType);
         // Log Audit
-        const person = await people_repository_1.PeopleRepository.findById(personId);
+        const person = await people_repository_1.PeopleRepository.findById(personId, treeId);
         if (person) {
             await audit_service_1.AuditService.log(person.treeId, adminId, 'permission_granted', 'Person', personId, { targetUserId, permissionType });
         }
@@ -141,14 +142,14 @@ class PeopleService {
         await notifications_service_1.NotificationsService.createNotification(targetUserId, 'permission_granted', 'Permissions Granted', `You have been granted ${permissionType} rights on a profile.`, { personId });
         return { success: true };
     }
-    static async revokePermission(personId, targetUserId, adminId) {
+    static async revokePermission(personId, treeId, targetUserId, adminId) {
         const permission = await people_repository_1.PeopleRepository.checkPermission(personId, adminId);
         if (permission !== 'owner') {
             throw new errors_1.AppError('Only owners and tree admins can revoke permissions', 403);
         }
         await people_repository_1.PeopleRepository.revokePermission(personId, targetUserId);
         // Log Audit
-        const person = await people_repository_1.PeopleRepository.findById(personId);
+        const person = await people_repository_1.PeopleRepository.findById(personId, treeId);
         if (person) {
             await audit_service_1.AuditService.log(person.treeId, adminId, 'permission_revoked', 'Person', personId, { targetUserId });
         }

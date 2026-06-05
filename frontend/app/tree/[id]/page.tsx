@@ -1,27 +1,29 @@
 "use client";
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../../lib/api';
-import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { Loader2, Heart } from 'lucide-react';
 import { cn } from '../../../lib/cn';
 import dynamic from 'next/dynamic';
 import { useAppTheme } from '../../../components/providers/ThemeProvider';
 
 const FamilyTreeContainer = dynamic(() => import('../../../components/tree/FamilyTreeContainer'), {
   ssr: false,
-  loading: () => {
-    const { theme } = useAppTheme();
-    return (
-      <div className={cn("flex flex-col items-center justify-center h-full w-full space-y-4 transition-colors duration-500", theme.colors.bg)}>
-        <Loader2 className={cn("w-12 h-12 animate-spin", theme.colors.accent)} />
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Loading Family Artifact</p>
-      </div>
-    );
-  },
 });
+
+function UnifiedLoader({ text }: { text: string }) {
+  const { theme } = useAppTheme();
+  return (
+    <div className={cn("flex flex-col items-center justify-center h-full w-full gap-5", theme.colors.bg)}>
+      <div className="relative w-14 h-14">
+        <div className={cn("absolute inset-0 rounded-full border-[2.5px] border-t-2 animate-spin", theme.colors.border, theme.colors.accent)} />
+        <Heart className={cn("absolute inset-0 m-auto w-4 h-4 opacity-50", theme.colors.accent)} />
+      </div>
+      <p className={cn("text-[11px] font-semibold uppercase tracking-[0.35em]", theme.colors.textMuted)}>{text}</p>
+    </div>
+  );
+}
 
 export default function TreePage() {
   const params = useParams();
@@ -38,16 +40,11 @@ export default function TreePage() {
   });
 
   if (treeLoading) {
-    return (
-      <div className={cn("flex flex-col items-center justify-center h-full w-full space-y-4", theme.colors.bg)}>
-        <Loader2 className={cn("w-12 h-12 animate-spin", theme.colors.accent)} />
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Fetching Tree Metadata</p>
-      </div>
-    );
+    return <UnifiedLoader text="Fetching Tree Metadata…" />;
   }
 
   return (
-    <div className="absolute inset-0 top-16 flex flex-col overflow-hidden">
+    <div className={cn("absolute inset-0 top-16 flex flex-col overflow-hidden", theme.colors.bg)}>
       {/* Immersive Workspace Container */}
       <div className="flex-1 relative w-full overflow-hidden">
         <FamilyTreeContainer treeId={id} />

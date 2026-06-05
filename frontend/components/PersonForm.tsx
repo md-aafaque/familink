@@ -8,8 +8,8 @@ import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
 
 interface PersonFormProps {
-  initialData?: any;
-  onSubmit: (data: any) => void;
+  initialData?: Partial<Person>;
+  onSubmit: (data: CreatePersonInput | UpdatePersonInput) => void;
   isLoading?: boolean;
   treeId?: string; // Add treeId prop for create operations
 }
@@ -21,9 +21,9 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<CreatePersonInput | UpdatePersonInput>({
     resolver: zodResolver(isEditing ? updatePersonSchema : createPersonSchema),
-    defaultValues: initialData || {
+    defaultValues: (initialData as any) || {
       status: 'ghost',
       gender: 'unknown',
       phoneVisibility: 'tree',
@@ -40,23 +40,23 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
     { value: 'private', label: 'Private', icon: Lock },
   ];
 
-  const processSubmit = (data: any) => {
+  const processSubmit = (data: CreatePersonInput | UpdatePersonInput) => {
     // Convert empty strings to null for optional/nullable fields
-    const processed = Object.entries(data).reduce((acc: any, [key, value]) => {
+    const processed = Object.entries(data).reduce((acc, [key, value]) => {
       // Don't convert treeId, and handle specific fields appropriately
       if (key === 'treeId') {
-        acc[key] = value;
+        (acc as any)[key] = value;
       } else if (key === 'lastName' && value === '') {
         // lastName can be undefined (not null) when empty
-        acc[key] = undefined;
+        (acc as any)[key] = undefined;
       } else if (['birthDate', 'deathDate', 'phone', 'email', 'address'].includes(key) && value === '') {
         // These fields should be null when empty
-        acc[key] = null;
+        (acc as any)[key] = null;
       } else {
-        acc[key] = value;
+        (acc as any)[key] = value;
       }
       return acc;
-    }, {});
+    }, {} as any);
     
     // Ensure treeId is included for create operations
     if (!isEditing && treeId && !processed.treeId) {

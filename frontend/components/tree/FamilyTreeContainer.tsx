@@ -1,5 +1,10 @@
 "use client";
 
+// ─── layout math via d3-hierarchy; all UI stays in React/Tailwind ────────────
+// Install:  npm install d3-hierarchy
+// Types:    npm install -D @types/d3-hierarchy
+import { hierarchy as d3Hierarchy, tree as d3Tree, HierarchyNode } from "d3-hierarchy";
+
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { useQuery } from "@tanstack/react-query";
@@ -46,32 +51,35 @@ interface Union {
 
 interface LayoutConnector {
   id: string;
-  p1x: number;
-  p2x: number;
+  p1x: number;        // centre-x of primary person card
+  p2x: number;        // centre-x of spouse card (= p1x when solo)
   parentBottomY: number;
-  childXs: number[];
+  childXs: number[];  // centre-x of each child unit (couple-midpoint or solo-centre)
   childTopY: number;
 }
 
 interface LayoutResult {
-  nodes: Map<string, { x: number; y: number }>;
-  connectors: LayoutConnector[];
-  totalWidth: number;
+  nodes:       Map<string, { x: number; y: number }>;
+  connectors:  LayoutConnector[];
+  totalWidth:  number;
   totalHeight: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Layout Constants
 // ─────────────────────────────────────────────────────────────────────────────
-const CARD_W      = 176;
-const CARD_H      = 68;
-const H_GAP       = 72;
-const V_GAP       = 112;
-const SPOUSE_GAP  = 48;
-const COUPLE_W    = CARD_W + SPOUSE_GAP + CARD_W;
-const PADDING     = 240;
-const SIDEBAR_W   = 280;
-const INITIAL_SCALE = 0.65;
+const CARD_W       = 220; // Increased for better readability
+const CARD_H       = 80;  // Increased for a more premium feel
+const H_GAP        = 96;  // More breathing room
+const V_GAP        = 140; // More vertical space for connectors
+const SPOUSE_GAP   = 56;  
+const COUPLE_W     = CARD_W + SPOUSE_GAP + CARD_W;
+const PADDING      = 300; 
+const SIDEBAR_W    = 320;
+const INITIAL_SCALE = 0.6;
+
+// Unit width used as the d3 nodeSize base and the separation denominator.
+const UNIT_W = CARD_W + H_GAP;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Themes
@@ -79,63 +87,51 @@ const INITIAL_SCALE = 0.65;
 const THEMES = {
   light: {
     name: "Light", Icon: Grid3X3,
-    canvas: "#f1f5f9",
-    gridDot: "#c8d5e3",
-    dotR: 0.85,
-    line: "#94a3b8", spouseLine: "#818cf8",
-    accent: "#6366f1",
+    canvas: "#f1f5f9", gridDot: "#c8d5e3", dotR: 0.85,
+    line: "#94a3b8", spouseLine: "#f59e0b", accent: "#f59e0b",
     panel:   "bg-white/80 backdrop-blur-xl border border-slate-200/80 shadow-sm",
     toolbar: "bg-white/85 backdrop-blur-xl border border-slate-200/70 shadow-lg shadow-slate-200/50",
     text: "text-slate-800", muted: "text-slate-400",
-    chipOn:  "bg-indigo-600 text-white",
+    chipOn:  "bg-amber-600 text-white",
     chipOff: "text-slate-500 hover:bg-slate-100 hover:text-slate-700",
     iconBtn: "bg-white/80 backdrop-blur-xl border border-slate-200/70 shadow-sm text-slate-500 hover:text-slate-800",
-    cardBg:  "bg-white", cardBorder: "border-slate-200/90",
+    cardBg: "bg-white", cardBorder: "border-slate-200/90",
   },
   dark: {
     name: "Dark", Icon: Moon,
-    canvas: "#0d1117",
-    gridDot: "#1a2233",
-    dotR: 0.75,
-    line: "#263045", spouseLine: "#f59e0b",
-    accent: "#f59e0b",
+    canvas: "#0d1117", gridDot: "#1a2233", dotR: 0.75,
+    line: "#263045", spouseLine: "#3b82f6", accent: "#3b82f6",
     panel:   "bg-[#161d2e]/90 backdrop-blur-xl border border-slate-700/50 shadow-md shadow-black/30",
     toolbar: "bg-[#161d2e]/95 backdrop-blur-xl border border-slate-700/40 shadow-xl shadow-black/50",
     text: "text-slate-100", muted: "text-slate-500",
-    chipOn:  "bg-amber-500 text-slate-900",
+    chipOn:  "bg-blue-600 text-slate-100",
     chipOff: "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
     iconBtn: "bg-[#161d2e]/90 backdrop-blur-xl border border-slate-700/50 shadow-sm text-slate-400 hover:text-slate-100",
-    cardBg:  "bg-[#161d2e]", cardBorder: "border-slate-700/60",
+    cardBg: "bg-[#161d2e]", cardBorder: "border-slate-700/60",
   },
   sepia: {
     name: "Sepia", Icon: ScrollText,
-    canvas: "#f8f2e3",
-    gridDot: "#d9c9a3",
-    dotR: 0.9,
-    line: "#b09070", spouseLine: "#c17a3a",
-    accent: "#9a6b2e",
+    canvas: "#f8f2e3", gridDot: "#d9c9a3", dotR: 0.9,
+    line: "#b09070", spouseLine: "#c17a3a", accent: "#9a6b2e",
     panel:   "bg-[#fdfaf0]/90 backdrop-blur-xl border border-amber-200/60 shadow-sm shadow-amber-100/30",
     toolbar: "bg-[#fdfaf0]/95 backdrop-blur-xl border border-amber-300/50 shadow-lg shadow-amber-100/40",
     text: "text-stone-800", muted: "text-stone-400",
     chipOn:  "bg-amber-700 text-white",
     chipOff: "text-amber-700 hover:bg-amber-100 hover:text-amber-900",
     iconBtn: "bg-[#fdfaf0]/90 backdrop-blur-xl border border-amber-200/60 shadow-sm text-stone-400 hover:text-stone-800",
-    cardBg:  "bg-[#fdfaf0]", cardBorder: "border-amber-200/70",
+    cardBg: "bg-[#fdfaf0]", cardBorder: "border-amber-200/70",
   },
   forest: {
     name: "Forest", Icon: Leaf,
-    canvas: "#ecf5ec",
-    gridDot: "#b0ccb0",
-    dotR: 0.85,
-    line: "#68966a", spouseLine: "#34d399",
-    accent: "#16a34a",
+    canvas: "#ecf5ec", gridDot: "#b0ccb0", dotR: 0.85,
+    line: "#68966a", spouseLine: "#34d399", accent: "#16a34a",
     panel:   "bg-white/85 backdrop-blur-xl border border-emerald-200/60 shadow-sm shadow-emerald-100/30",
     toolbar: "bg-white/90 backdrop-blur-xl border border-emerald-200/60 shadow-lg shadow-emerald-100/40",
     text: "text-emerald-950", muted: "text-emerald-600",
     chipOn:  "bg-emerald-600 text-white",
     chipOff: "text-emerald-600 hover:bg-emerald-100 hover:text-emerald-800",
     iconBtn: "bg-white/85 backdrop-blur-xl border border-emerald-200/60 shadow-sm text-emerald-400 hover:text-emerald-800",
-    cardBg:  "bg-white", cardBorder: "border-emerald-200/70",
+    cardBg: "bg-white", cardBorder: "border-emerald-200/70",
   },
 } as const;
 
@@ -143,92 +139,77 @@ type ThemeKey = keyof typeof THEMES;
 type Theme    = (typeof THEMES)[ThemeKey];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Theme background SVG decorations
-// These render inside the export div so they appear in downloads.
+// Theme Background SVG
 // ─────────────────────────────────────────────────────────────────────────────
 function ThemeBackground({ themeKey, t, w, h }: { themeKey: ThemeKey; t: Theme; w: number; h: number }) {
-  const cx = w / 2, cy = h / 2;
-
   const decorations: Record<ThemeKey, React.ReactNode> = {
-    // Light: Clean radial highlight from top-centre — feels like natural daylight
     light: (
       <>
         <defs>
           <radialGradient id="bg-light-top" cx="50%" cy="0%" r="60%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="0"    />
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="bg-light-centre" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#e0e7ff" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#e0e7ff" stopOpacity="0"    />
+            <stop offset="0%" stopColor="#e0e7ff" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#e0e7ff" stopOpacity="0" />
           </radialGradient>
         </defs>
-        <rect width={w} height={h} fill="url(#bg-light-top)"    />
+        <rect width={w} height={h} fill="url(#bg-light-top)" />
         <rect width={w} height={h} fill="url(#bg-light-centre)" />
       </>
     ),
-
-    // Dark: Two atmospheric glow clouds — warm amber top-right, cold indigo bottom-left
     dark: (
       <>
         <defs>
           <radialGradient id="bg-dark-amber" cx="75%" cy="20%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#f59e0b" stopOpacity="0.07" />
-            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0"    />
+            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.07" />
+            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="bg-dark-indigo" cx="20%" cy="80%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#6366f1" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0"    />
-          </radialGradient>
-          <radialGradient id="bg-dark-mid" cx="50%" cy="50%" r="40%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#1e2d40" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#1e2d40" stopOpacity="0"   />
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
           </radialGradient>
         </defs>
-        <rect width={w} height={h} fill="url(#bg-dark-amber)"  />
+        <rect width={w} height={h} fill="url(#bg-dark-amber)" />
         <rect width={w} height={h} fill="url(#bg-dark-indigo)" />
-        <rect width={w} height={h} fill="url(#bg-dark-mid)"    />
       </>
     ),
-
-    // Sepia: Old-paper vignette — edges darken, centre glows warm
     sepia: (
       <>
         <defs>
           <radialGradient id="bg-sepia-glow" cx="48%" cy="40%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#fffbea" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#fffbea" stopOpacity="0"   />
+            <stop offset="0%" stopColor="#fffbea" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#fffbea" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="bg-sepia-vig" cx="50%" cy="50%" r="70.7%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#92400e" stopOpacity="0"    />
-            <stop offset="75%"  stopColor="#92400e" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#92400e" stopOpacity="0" />
+            <stop offset="75%" stopColor="#92400e" stopOpacity="0.02" />
             <stop offset="100%" stopColor="#92400e" stopOpacity="0.09" />
           </radialGradient>
         </defs>
         <rect width={w} height={h} fill="url(#bg-sepia-glow)" />
-        <rect width={w} height={h} fill="url(#bg-sepia-vig)"  />
+        <rect width={w} height={h} fill="url(#bg-sepia-vig)" />
       </>
     ),
-
-    // Forest: Four corner blooms + bright canopy-light centre
     forest: (
       <>
         <defs>
           <radialGradient id="bg-forest-centre" cx="50%" cy="35%" r="50%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#ffffff"  stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#ffffff"  stopOpacity="0"    />
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="bg-forest-tl" cx="0%" cy="0%" r="60%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#86efac" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#86efac" stopOpacity="0"    />
+            <stop offset="0%" stopColor="#86efac" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#86efac" stopOpacity="0" />
           </radialGradient>
           <radialGradient id="bg-forest-br" cx="100%" cy="100%" r="60%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#4ade80" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#4ade80" stopOpacity="0"    />
+            <stop offset="0%" stopColor="#4ade80" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#4ade80" stopOpacity="0" />
           </radialGradient>
         </defs>
-        <rect width={w} height={h} fill="url(#bg-forest-tl)"     />
-        <rect width={w} height={h} fill="url(#bg-forest-br)"     />
+        <rect width={w} height={h} fill="url(#bg-forest-tl)" />
+        <rect width={w} height={h} fill="url(#bg-forest-br)" />
         <rect width={w} height={h} fill="url(#bg-forest-centre)" />
       </>
     ),
@@ -236,113 +217,238 @@ function ThemeBackground({ themeKey, t, w, h }: { themeKey: ThemeKey; t: Theme; 
 
   return (
     <svg className="absolute inset-0 pointer-events-none" width={w} height={h}>
-      {/* Base fill */}
       <rect width={w} height={h} fill={t.canvas} />
-
-      {/* Dot grid */}
       <defs>
         <pattern id={`dots-${themeKey}`} x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
           <circle cx="0.5" cy="0.5" r={t.dotR} fill={t.gridDot} />
         </pattern>
       </defs>
       <rect width={w} height={h} fill={`url(#dots-${themeKey})`} />
-
-      {/* Theme-specific decorations (include their own <defs>) */}
       {decorations[themeKey]}
     </svg>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Layout Engine
+// D3 Layout Engine
 // ─────────────────────────────────────────────────────────────────────────────
-function layoutTree(rootIds: string[], unions: Union[]): LayoutResult {
-  const positions  = new Map<string, { x: number; y: number }>();
-  const connectors: LayoutConnector[] = [];
+
+/**
+ * A "generation unit" — the atom of the d3 tree.
+ * Each unit is either a solo person OR a couple (primary + spouse).
+ * Virtual root unifies multiple family trees under one d3 root node.
+ *
+ *   virtualRoot
+ *   ├── GenUnit(mum, papa)            ← depth 1
+ *   │   ├── GenUnit(aafaque, genius)  ← depth 2
+ *   │   │   └── GenUnit(sonat, wifi)  ← depth 3
+ *   │   │       └── GenUnit(granson)  ← depth 4
+ *   │   └── GenUnit(krish, agarwal)   ← depth 2
+ *   │       ├── GenUnit(krishjr)      ← depth 3
+ *   │       └── GenUnit(dotka)        ← depth 3
+ *   └── GenUnit(BA)                   ← depth 1  (isolated root)
+ */
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+interface GenUnit {
+  uid:           string;        // Person ID
+  personId:      string;
+  spouseIds:     string[];      // All spouses of this person
+  children:      GenUnit[];
+  isVirtual?:    boolean;       // For the root wrapper
+}
+
+// ── Step 1: build the virtual GenUnit tree from flat data ─────────────────────
+function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<string>): GenUnit {
+  const pMap = new Map<string, Person>();
+  people.forEach(p => pMap.set(p.id, p));
 
   const personUnions = new Map<string, Union[]>();
-  unions.forEach(u =>
+  unions.forEach(u => {
     [u.partner1Id, u.partner2Id].filter(Boolean).forEach(pid => {
       if (!personUnions.has(pid!)) personUnions.set(pid!, []);
       personUnions.get(pid!)!.push(u);
-    })
-  );
-
-  const spouseOf = (pid: string, visited: Set<string>): string | null => {
-    for (const u of personUnions.get(pid) ?? []) {
-      const sid = u.partner1Id === pid ? u.partner2Id : u.partner1Id;
-      if (sid && !visited.has(sid)) return sid;
-    }
-    return null;
-  };
-
-  const childrenOf = (pid: string, spouseId: string | null, visited: Set<string>): string[] => {
-    const seen = new Set<string>(); const out: string[] = [];
-    for (const u of personUnions.get(pid) ?? []) {
-      const partner = u.partner1Id === pid ? u.partner2Id : u.partner1Id;
-      if (spouseId !== null && partner !== null && partner !== spouseId) continue;
-      for (const cid of u.childrenIds)
-        if (!seen.has(cid) && !visited.has(cid)) { seen.add(cid); out.push(cid); }
-    }
-    return out;
-  };
+    });
+  });
 
   const visited = new Set<string>();
 
-  function place(pid: string, xLeft: number, depth: number): number {
-    if (visited.has(pid)) return 0;
+  function buildUnit(pid: string): GenUnit {
     visited.add(pid);
-
-    const rowY    = depth * (CARD_H + V_GAP);
-    const spouseId = spouseOf(pid, visited);
-    if (spouseId) visited.add(spouseId);
-
-    const children    = childrenOf(pid, spouseId, visited);
-    const childWidths: number[] = [];
-    let   childCursor = xLeft;
-    for (const cid of children) {
-      const w = place(cid, childCursor, depth + 1);
-      childWidths.push(w);
-      childCursor += w + H_GAP;
+    const person = pMap.get(pid);
+    if (!person || collapsedSet.has(pid)) {
+      return { uid: pid, personId: pid, spouseIds: [], children: [] };
     }
 
-    const childSpan = children.length === 0
-      ? 0
-      : childWidths.reduce((a, b) => a + b, 0) + (children.length - 1) * H_GAP;
+    // Find all spouses
+    const spouses: string[] = [];
+    const myUnions = personUnions.get(pid) ?? [];
+    myUnions.forEach(u => {
+      const sid = u.partner1Id === pid ? u.partner2Id : u.partner1Id;
+      if (sid && !visited.has(sid)) {
+        visited.add(sid);
+        spouses.push(sid);
+      }
+    });
 
-    const footprint   = spouseId ? COUPLE_W : CARD_W;
-    const subtreeW    = Math.max(footprint, childSpan);
-    const slotCX      = xLeft + subtreeW / 2;
-
-    if (spouseId) {
-      positions.set(pid,      { x: slotCX - COUPLE_W / 2 + CARD_W / 2, y: rowY });
-      positions.set(spouseId, { x: slotCX + COUPLE_W / 2 - CARD_W / 2, y: rowY });
-    } else {
-      positions.set(pid, { x: slotCX, y: rowY });
-    }
-
-    if (children.length > 0) {
-      connectors.push({
-        id:            `${pid}-${spouseId ?? "solo"}-${depth}`,
-        p1x:           positions.get(pid)!.x,
-        p2x:           spouseId ? positions.get(spouseId)!.x : positions.get(pid)!.x,
-        parentBottomY: rowY + CARD_H,
-        childXs:       children.map(c => positions.get(c)!.x),
-        childTopY:     (depth + 1) * (CARD_H + V_GAP),
+    // Find all children from ALL unions of this person
+    const childrenIds = new Set<string>();
+    myUnions.forEach(u => {
+      u.childrenIds.forEach(cid => {
+        if (!visited.has(cid)) childrenIds.add(cid);
       });
-    }
-    return subtreeW;
+    });
+
+    return {
+      uid: pid,
+      personId: pid,
+      spouseIds: spouses,
+      children: Array.from(childrenIds).map(cid => buildUnit(cid)),
+    };
   }
 
-  let cursor = 0;
-  for (const rid of rootIds) cursor += place(rid, cursor, 0) + H_GAP * 4;
+  // Identify roots: people with no parents IN THE TREE
+  const hasParent = new Set<string>();
+  unions.forEach(u => u.childrenIds.forEach(cid => hasParent.add(cid)));
+  const roots = people.filter(p => !hasParent.has(p.id) && !visited.has(p.id));
 
-  const maxY = Math.max(0, ...Array.from(positions.values()).map(p => p.y));
+  // If multiple roots, we might have siblings. Try to group them.
+  const rootUnits: GenUnit[] = [];
+  
+  // Advanced: group siblings who are roots
+  const processedRoots = new Set<string>();
+  roots.forEach(r => {
+    if (processedRoots.has(r.id)) return;
+    
+    // Find all siblings of this root that are also roots
+    const siblings = [r.id];
+    r.relationships
+      .filter(rel => rel.type === 'sibling' && !hasParent.has(rel.targetId))
+      .forEach(rel => {
+        if (!processedRoots.has(rel.targetId)) siblings.push(rel.targetId);
+      });
+    
+    if (siblings.length > 1) {
+      // Create a virtual unit to hold these siblings
+      const clusterId = `cluster-${r.id}`;
+      rootUnits.push({
+        uid: clusterId,
+        personId: clusterId,
+        spouseIds: [],
+        children: siblings.filter(id => !visited.has(id)).map(id => buildUnit(id)),
+        isVirtual: true
+      });
+      siblings.forEach(s => processedRoots.add(s));
+    } else {
+      if (!visited.has(r.id)) {
+        rootUnits.push(buildUnit(r.id));
+        processedRoots.add(r.id);
+      }
+    }
+  });
+
   return {
-    nodes: positions, connectors,
-    totalWidth:  cursor,
-    totalHeight: maxY + CARD_H + 60,
+    uid: "__root__",
+    personId: "__root__",
+    spouseIds: [],
+    children: rootUnits,
+    isVirtual: true
   };
+}
+
+// ── Step 2: apply d3.tree() and emit LayoutResult ─────────────────────────────
+function applyD3Layout(genTree: GenUnit): LayoutResult {
+  const root = d3Hierarchy<GenUnit>(
+    genTree,
+    (d: GenUnit) => (d.children.length > 0 ? d.children : null),
+  );
+
+  // Layout sizing logic
+  const getUnitWidth = (node: HierarchyNode<GenUnit>) => {
+    if (node.data.isVirtual) return 40;
+    const count = 1 + node.data.spouseIds.length;
+    return count * CARD_W + (count - 1) * SPOUSE_GAP;
+  };
+
+  d3Tree<GenUnit>()
+    .nodeSize([UNIT_W, CARD_H + V_GAP])
+    .separation((a, b) => {
+      const wA = getUnitWidth(a);
+      const wB = getUnitWidth(b);
+      const gap = a.parent === b.parent ? H_GAP : H_GAP * 2.5;
+      return (wA / 2 + wB / 2 + gap) / UNIT_W;
+    })(root);
+
+  const positions = new Map<string, { x: number; y: number }>();
+  const connectors: LayoutConnector[] = [];
+
+  // Find minX for normalization
+  let minX = Infinity;
+  root.each(node => {
+    if (node.data.isVirtual) return;
+    const w = getUnitWidth(node);
+    const lx = node.x! - w / 2;
+    if (lx < minX) minX = lx;
+  });
+  const xShift = isFinite(minX) ? -minX : 0;
+
+  root.each((node: HierarchyNode<GenUnit>) => {
+    if (node.data.uid === "__root__") return;
+    
+    // Normal generation mapping:
+    // depth 1 = root cluster/unit
+    // depth 2 = first descendants
+    const visualY = (node.depth - 1) * (CARD_H + V_GAP);
+    const shiftedX = node.x! + xShift;
+
+    if (node.data.isVirtual) {
+      // Draw a line from the virtual center to children
+      if (node.children) {
+        connectors.push({
+          id: node.data.uid,
+          p1x: shiftedX, p2x: shiftedX,
+          parentBottomY: visualY,
+          childXs: node.children.map(c => c.x! + xShift),
+          childTopY: visualY + V_GAP / 2 // drop halfway to next generation
+        });
+      }
+      return;
+    }
+
+    const { personId, spouseIds } = node.data;
+    const unitW = getUnitWidth(node);
+    let curX = shiftedX - unitW / 2 + CARD_W / 2;
+
+    positions.set(personId, { x: curX, y: visualY });
+    const pX = curX;
+
+    spouseIds.forEach(sid => {
+      curX += CARD_W + SPOUSE_GAP;
+      positions.set(sid, { x: curX, y: visualY });
+    });
+
+    // Connectors: draw from the MIDPOINT of all spouses if children exist
+    if (node.children) {
+      const lastSpouseX = curX;
+      const unionX = (pX + lastSpouseX) / 2;
+      
+      connectors.push({
+        id: `rel-${personId}`,
+        p1x: pX,
+        p2x: lastSpouseX,
+        parentBottomY: visualY + CARD_H,
+        childXs: node.children.map(c => c.x! + xShift),
+        childTopY: (node.depth) * (CARD_H + V_GAP)
+      });
+    }
+  });
+
+  const allPos = Array.from(positions.values());
+  const totalWidth  = allPos.length ? Math.max(...allPos.map(p => p.x)) + CARD_W / 2 : 0;
+  const totalHeight = allPos.length ? Math.max(...allPos.map(p => p.y)) + CARD_H + 100 : 0;
+
+  return { nodes: positions, connectors, totalWidth, totalHeight };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -360,28 +466,34 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
         const p1RX   = c.p1x + CARD_W / 2;
         const p2LX   = c.p2x - CARD_W / 2;
         const unionX = hasSpouse ? (p1RX + p2LX) / 2 : c.p1x;
-        const elbowY = c.parentBottomY + (c.childTopY - c.parentBottomY) / 2;
+        const elbowY = c.parentBottomY + (c.childTopY - c.parentBottomY) * 0.5;
+
         return (
           <g key={c.id}>
+            {/* Horizontal spouse connection */}
             {hasSpouse && (
-              <line x1={p1RX} y1={c.parentBottomY} x2={p2LX} y2={c.parentBottomY}
-                stroke={spouseColor} strokeWidth={1.5} strokeDasharray="5 3"
-                strokeLinecap="round" opacity={0.75} />
+              <line x1={p1RX} y1={c.parentBottomY - CARD_H/2} x2={p2LX} y2={c.parentBottomY - CARD_H/2}
+                stroke={spouseColor} strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" opacity={0.6} />
             )}
-            {hasSpouse && (
-              <circle cx={unionX} cy={c.parentBottomY} r={4}
-                fill={spouseColor} stroke="white" strokeWidth={1.5} />
-            )}
-            <line x1={unionX} y1={c.parentBottomY} x2={unionX} y2={elbowY}
-              stroke={lineColor} strokeWidth={1.5} strokeLinecap="round" />
+            
+            {/* Junction dot */}
+            <circle cx={unionX} cy={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} r={4.5} 
+              fill={hasSpouse ? spouseColor : lineColor} stroke="white" strokeWidth={2} />
+
+            {/* Vertical stem */}
+            <line x1={unionX} y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} x2={unionX} y2={elbowY}
+              stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+
+            {/* Horizontal bus */}
             {c.childXs.length > 1 && (
-              <line x1={Math.min(...c.childXs)} y1={elbowY}
-                    x2={Math.max(...c.childXs)} y2={elbowY}
-                stroke={lineColor} strokeWidth={1.5} strokeLinecap="round" />
+              <line x1={Math.min(...c.childXs)} y1={elbowY} x2={Math.max(...c.childXs)} y2={elbowY}
+                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
             )}
+
+            {/* Vertical drops */}
             {c.childXs.map((cx, i) => (
               <line key={i} x1={cx} y1={elbowY} x2={cx} y2={c.childTopY}
-                stroke={lineColor} strokeWidth={1.5} strokeLinecap="round" />
+                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
             ))}
           </g>
         );
@@ -391,19 +503,19 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Person Node Card — replaces external TreeCard for full design control.
+// Person Node Card
 // ─────────────────────────────────────────────────────────────────────────────
 interface PersonNodeProps {
-  person:       Person;
-  t:            Theme;
-  accentHex:    string;
-  isFocus:      boolean;
-  isHit:        boolean;
-  hasKids:      boolean;
-  isCollapsed:  boolean;
-  onFocus:      (id: string) => void;
-  onDrop:       (srcId: string, tgtId: string) => void;
-  onCollapse:   (id: string) => void;
+  person:      Person;
+  t:           Theme;
+  accentHex:   string;
+  isFocus:     boolean;
+  isHit:       boolean;
+  hasKids:     boolean;
+  isCollapsed: boolean;
+  onFocus:     (id: string) => void;
+  onDrop:      (srcId: string, tgtId: string) => void;
+  onCollapse:  (id: string) => void;
 }
 
 function PersonNode({
@@ -415,103 +527,105 @@ function PersonNode({
   const isDead    = !!person.deathDate || person.status?.toLowerCase().includes("deceas");
   const birthYr   = person.birthDate?.match(/\d{4}/)?.[0];
   const deathYr   = person.deathDate?.match(/\d{4}/)?.[0];
-  const dateLabel = [birthYr && `b. ${birthYr}`, deathYr && `d. ${deathYr}`].filter(Boolean).join("  ·  ");
+  const dateLabel = [birthYr && birthYr, deathYr && deathYr].filter(Boolean).join(" — ");
 
-  const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData("text/personId", person.id);
-    e.dataTransfer.effectAllowed = "link";
-  };
-  const handleDragOver  = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "link"; };
-  const handleDrop      = (e: React.DragEvent) => {
-    e.preventDefault();
-    const src = e.dataTransfer.getData("text/personId");
-    if (src && src !== person.id) onDrop(src, person.id);
-  };
+  const onDragStart  = (e: React.DragEvent) => { e.dataTransfer.setData("text/personId", person.id); e.dataTransfer.effectAllowed = "link"; };
+  const onDragOver   = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "link"; };
+  const onDropHandle = (e: React.DragEvent) => { e.preventDefault(); const src = e.dataTransfer.getData("text/personId"); if (src && src !== person.id) onDrop(src, person.id); };
 
   const shadow = isFocus
-    ? `0 0 0 3px ${accentHex}40, 0 8px 20px ${accentHex}25`
+    ? `0 0 0 4px ${accentHex}30, 0 12px 30px ${accentHex}20`
     : isHit
-      ? `0 0 0 2.5px ${accentHex}70`
-      : "0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)";
-
-  const avatarBg = isDead ? "#94a3b8" : accentHex;
+      ? `0 0 0 3px ${accentHex}60`
+      : "0 4px 12px rgba(0,0,0,0.03), 0 1px 4px rgba(0,0,0,0.02)";
 
   return (
-    <div className="relative" style={{ width: CARD_W }}>
-      {/* ── Card ─────────────────────────────────────────────────── */}
+    <div className="relative group" style={{ width: CARD_W }}>
       <button
         draggable
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
+        onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDropHandle}
         onMouseEnter={() => setHoveredPersonId(person.id)}
         onMouseLeave={() => setHoveredPersonId(null)}
         onClick={() => onFocus(person.id)}
         style={{ width: CARD_W, height: CARD_H, boxShadow: shadow }}
         className={cn(
           "relative flex items-center overflow-hidden text-left cursor-pointer",
-          "rounded-2xl border transition-all duration-150",
-          "hover:shadow-lg hover:-translate-y-[2px] active:translate-y-0 active:shadow-sm",
+          "rounded-[1.5rem] border transition-all duration-300",
+          "hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-md",
           t.cardBg, t.cardBorder,
+          isFocus && "ring-2 ring-primary/20",
         )}
       >
-        {/* Left accent bar */}
-        <div
-          className="absolute left-0 inset-y-0 w-[3px]"
-          style={{ backgroundColor: accentHex, opacity: isDead ? 0.35 : 0.9 }}
-        />
+        {/* Decorative Background Pattern */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+             style={{ backgroundImage: `radial-gradient(${accentHex} 1px, transparent 1px)`, backgroundSize: "12px 12px" }} />
 
-        {/* Content row */}
-        <div className="flex items-center w-full pl-3.5 pr-3 gap-2.5">
-          {/* Avatar circle */}
-          <div
-            className="flex-shrink-0 rounded-full flex items-center justify-center text-[11px] font-black text-white select-none"
-            style={{ width: 36, height: 36, backgroundColor: avatarBg, opacity: isDead ? 0.65 : 1 }}
-          >
-            {initials}
+        {/* Left accent bar */}
+        <div className="absolute left-0 inset-y-0 w-1.5"
+          style={{ backgroundColor: accentHex, opacity: isDead ? 0.3 : 1 }} />
+
+        {/* Card Content */}
+        <div className="flex items-center w-full pl-5 pr-4 gap-4 z-10">
+          {/* Avatar Container */}
+          <div className="relative flex-shrink-0">
+            <div className={cn(
+              "rounded-2xl flex items-center justify-center text-[13px] font-black text-white shadow-sm transition-transform duration-500 group-hover:scale-105",
+              isDead ? "bg-slate-400/80" : ""
+            )}
+            style={{ 
+              width: 48, height: 48, 
+              backgroundColor: isDead ? undefined : accentHex,
+              boxShadow: isDead ? "none" : `0 4px 10px ${accentHex}40`
+            }}>
+              {initials}
+            </div>
+            
+            {/* Live/Status Indicator */}
+            {!isDead && person.status === 'active' && (
+              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" />
+            )}
           </div>
 
-          {/* Name + dates */}
-          <div className="flex-1 min-w-0">
-            <p
-              className={cn("text-[12.5px] font-semibold leading-snug truncate", t.text)}
-              style={{ opacity: isDead ? 0.5 : 1 }}
-            >
-              {person.firstName}{person.lastName ? " " + person.lastName : ""}
+          <div className="flex-1 min-w-0 py-1">
+            <h4 className={cn("text-[14px] font-black tracking-tight leading-none truncate mb-1.5", t.text)}
+              style={{ opacity: isDead ? 0.6 : 1 }}>
+              {person.firstName}
+            </h4>
+            <p className={cn("text-[12px] font-bold tracking-tight truncate mb-1", t.text)}
+              style={{ opacity: isDead ? 0.4 : 0.7 }}>
+              {person.lastName || ""}
             </p>
             {dateLabel && (
-              <p className={cn("text-[10px] mt-[2px] leading-none tabular-nums font-medium", t.muted)}>
+              <p className={cn("text-[10px] tabular-nums font-black tracking-widest uppercase opacity-40", t.muted)}>
                 {dateLabel}
               </p>
             )}
           </div>
-
-          {/* Living / deceased dot */}
-          <div
-            className="flex-shrink-0 rounded-full"
-            style={{
-              width: 6, height: 6,
-              backgroundColor: isDead ? "#94a3b8" : "#22c55e",
-              boxShadow: isDead ? "none" : "0 0 0 2.5px rgba(34,197,94,0.2)",
-            }}
-          />
+          
+          {/* Deceased Marker */}
+          {isDead && (
+            <div className="flex-shrink-0 opacity-20">
+              <div className="w-1.5 h-6 bg-slate-400 rounded-full" />
+            </div>
+          )}
         </div>
       </button>
 
-      {/* ── Collapse / expand toggle ──────────────────────────────── */}
+      {/* Collapse / expand button - Styled to be more integrated */}
       {hasKids && (
         <button
-          onClick={(e) => { e.stopPropagation(); onCollapse(person.id); }}
-          title={isCollapsed ? "Expand descendants" : "Collapse descendants"}
-          style={isCollapsed ? { transform: "translateX(-50%) rotate(180deg)" } : {}}
+          onClick={e => { e.stopPropagation(); onCollapse(person.id); }}
+          title={isCollapsed ? "Expand Branch" : "Collapse Branch"}
           className={cn(
-            "absolute -bottom-[11px] left-1/2 -translate-x-1/2 z-10",
-            "w-[22px] h-[22px] rounded-full flex items-center justify-center",
-            "border shadow-md transition-all duration-150 hover:scale-110 active:scale-90",
-            isCollapsed ? t.chipOn : t.chipOff,
+            "absolute -bottom-[14px] left-1/2 -translate-x-1/2 z-20",
+            "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300",
+            "border-2 shadow-lg hover:scale-110 active:scale-90",
+            isCollapsed 
+              ? "bg-primary text-white border-primary rotate-180" 
+              : cn(t.cardBg, t.cardBorder, "text-slate-400 hover:text-primary")
           )}
         >
-          <ChevronDown className="w-2.5 h-2.5" />
+          <ChevronDown className="w-3.5 h-3.5" />
         </button>
       )}
     </div>
@@ -519,7 +633,7 @@ function PersonNode({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Small icon button
+// Icon Button
 // ─────────────────────────────────────────────────────────────────────────────
 function IconBtn({ onClick, title, children, className = "" }: {
   onClick: () => void; title?: string; children: React.ReactNode; className?: string;
@@ -533,40 +647,41 @@ function IconBtn({ onClick, title, children, className = "" }: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main tree canvas
+// Tree Canvas
 // ─────────────────────────────────────────────────────────────────────────────
 function TreeCanvas({ treeId }: FamilyTreeProps) {
-  const router = useRouter();
-  const { hoveredPersonId } = useTreeInteraction();
+  const router         = useRouter();
   const containerRef   = useRef<HTMLDivElement>(null);
+  const canvasDivRef   = useRef<HTMLDivElement>(null); // flex-1 canvas area
   const exportRef      = useRef<HTMLDivElement>(null);
-  // Set via onInit callback — gives direct access to zoomIn/Out/centerView
   const transformRef   = useRef<ReactZoomPanPinchRef | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // Tracks whether the initial centering has fired (for delay logic)
+  const centeredRef    = useRef(false);
 
-  const [themeKey, setThemeKey]               = useState<ThemeKey>("light");
-  const [showSandbox, setShowSandbox]         = useState(true);
-  const [isFullScreen, setIsFullScreen]       = useState(false);
-  const [focusId, setFocusId]                 = useState<string | null>(null);
-  const [collapsedSet, setCollapsedSet]       = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery]         = useState("");
-  const [searchOpen, setSearchOpen]           = useState(false);
-  const [drawerPersonId, setDrawerPersonId]   = useState<string | null>(null);
-  const [exportMenuOpen, setExportMenuOpen]   = useState(false);
-  const [isExporting, setIsExporting]         = useState(false);
-  const [proposalSrc, setProposalSrc]         = useState<string | null>(null);
-  const [proposalTgt, setProposalTgt]         = useState<string | null>(null);
+  const [themeKey, setThemeKey]             = useState<ThemeKey>("light");
+  const [showSandbox, setShowSandbox]       = useState(true);
+  const [isFullScreen, setIsFullScreen]     = useState(false);
+  const [focusId, setFocusId]               = useState<string | null>(null);
+  const [collapsedSet, setCollapsedSet]     = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery]       = useState("");
+  const [searchOpen, setSearchOpen]         = useState(false);
+  const [drawerPersonId, setDrawerPersonId] = useState<string | null>(null);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [isExporting, setIsExporting]       = useState(false);
+  const [proposalSrc, setProposalSrc]       = useState<string | null>(null);
+  const [proposalTgt, setProposalTgt]       = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const t = THEMES[themeKey];
 
-  // ── data ──────────────────────────────────────────────────────────────────
+  // ── Data ───────────────────────────────────────────────────────────────────
   const { data: rawPeople, isLoading } = useQuery({
     queryKey: ["tree-visual", treeId],
     queryFn:  async () => (await api.get(`/trees/${treeId}/visual`)).data as Person[],
   });
 
-  // ── fullscreen ─────────────────────────────────────────────────────────────
+  // ── Fullscreen ─────────────────────────────────────────────────────────────
   const toggleFS = useCallback(() =>
     document.fullscreenElement
       ? document.exitFullscreen()
@@ -578,41 +693,37 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     return () => document.removeEventListener("fullscreenchange", h);
   }, []);
 
-  // ── centering fix ──────────────────────────────────────────────────────────
-  // centerOnInit fires before the sidebar spring animation (~350 ms) completes,
-  // causing the tree to center within the wrong viewport width.
-  // Instead we call centerView() after a delay whenever sidebar or layout changes.
-  const centerTree = useCallback(() => {
-    transformRef.current?.centerView(INITIAL_SCALE, 0);
-  }, []);
+    // ── Graph processing ───────────────────────────────────────────────────────
+  const { peopleMap, unions, rootClusters, peopleInTree } = useMemo(() => {
+    if (!rawPeople) return {
+      peopleMap: new Map<string, Person>(), unions: [] as Union[],
+      rootClusters: [] as string[][], peopleInTree: [] as Person[],
+    };
 
-  useEffect(() => {
-    // Re-center after sidebar animation settles (spring stiffness 340, damping 34 ≈ 350 ms)
-    const t = setTimeout(centerTree, 380);
-    return () => clearTimeout(t);
-  }, [showSandbox, centerTree]);
-
-  // ── graph processing ───────────────────────────────────────────────────────
-  const { peopleMap, unions, rootIds, peopleInTree } = useMemo(() => {
-    if (!rawPeople) return { peopleMap: new Map<string, Person>(), unions: [] as Union[], rootIds: [] as string[], peopleInTree: [] as Person[] };
-    
-    const hasAnyConnection = new Set<string>();
+    // Include people who have at least one relationship, 
+    // OR if there is only 1 person in the tree (the creator).
+    const connected = new Set<string>();
     rawPeople.forEach(p => {
       if (p.relationships.length > 0) {
-        hasAnyConnection.add(p.id);
-        p.relationships.forEach(r => hasAnyConnection.add(r.targetId));
+        connected.add(p.id);
+        p.relationships.forEach(r => connected.add(r.targetId));
       }
     });
+    const inTree = rawPeople.filter(p => connected.has(p.id));
 
-    const inTree = rawPeople.filter(p => hasAnyConnection.has(p.id));
-    const pMap = new Map<string, Person>();
-    inTree.forEach(p => pMap.set(p.id, p));
+    // const inTree = (rawPeople.length === 1 || connected.size > 0) 
+    //   ? rawPeople.filter(p => connected.has(p.id) || rawPeople.length === 1)
+    //   : rawPeople.filter(p => connected.has(p.id));
 
-    const unionMap  = new Map<string, Union>();
+    const pMap     = new Map<string, Person>();
+    const unionMap = new Map<string, Union>();
     const hasParent = new Set<string>();
 
+    inTree.forEach(p => pMap.set(p.id, p));
+
     inTree.forEach(person => {
-      const parents = person.relationships.filter(r => r.type === "parent").map(r => r.targetId).sort();
+      const parents = person.relationships
+        .filter(r => r.type === "parent").map(r => r.targetId).sort();
       if (parents.length) {
         hasParent.add(person.id);
         const key = parents.join("–");
@@ -630,34 +741,60 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       })
     );
 
+    const rootIds = inTree.filter(p => !hasParent.has(p.id)).map(p => p.id);
+
+    // ── Sibling Root Grouping ──
+    const rootClusters: string[][] = [];
+    const usedInCluster = new Set<string>();
+
+    rootIds.forEach(rid => {
+      if (usedInCluster.has(rid)) return;
+      const cluster = [rid];
+      usedInCluster.add(rid);
+
+      const queue = [rid];
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        const person = pMap.get(currentId);
+        person?.relationships
+          .filter(r => r.type === "sibling" && rootIds.includes(r.targetId) && !usedInCluster.has(r.targetId))
+          .forEach(r => {
+            cluster.push(r.targetId);
+            usedInCluster.add(r.targetId);
+            queue.push(r.targetId);
+          });
+      }
+      rootClusters.push(cluster);
+    });
+
     return {
-      peopleMap: pMap,
-      unions:    Array.from(unionMap.values()),
-      rootIds:   inTree
-        .filter(p => !hasParent.has(p.id))
-        .map(p => p.id),
-      peopleInTree: inTree
+      peopleMap:    pMap,
+      unions:       Array.from(unionMap.values()),
+      rootClusters,
+      peopleInTree: inTree,
     };
   }, [rawPeople]);
 
   const allPeopleMap = useMemo(() => {
-    const map = new Map<string, Person>();
-    rawPeople?.forEach(p => map.set(p.id, p));
-    return map;
+    const m = new Map<string, Person>();
+    rawPeople?.forEach(p => m.set(p.id, p));
+    return m;
   }, [rawPeople]);
 
-  const layout = useMemo(
-    () => (peopleInTree.length > 0 ? layoutTree(rootIds, unions) : null),
-    [rootIds, unions, peopleInTree],
-  );
+  // ── Layout (D3) ────────────────────────────────────────────────────────────
+  const layout = useMemo(() => {
+    if (peopleInTree.length === 0) return null;
+    const genTree = buildGenTree(peopleInTree, unions, collapsedSet);
+    return applyD3Layout(genTree);
+  }, [unions, peopleInTree, collapsedSet]);
 
-  // ── search ─────────────────────────────────────────────────────────────────
+  // ── Search ─────────────────────────────────────────────────────────────────
   const searchResults = useMemo(() => {
-    if (!peopleInTree || !searchQuery.trim()) return [];
+    if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
-    return peopleInTree
-      .filter(p => `${p.firstName} ${p.lastName ?? ""}`.toLowerCase().includes(q))
-      .slice(0, 6);
+    return peopleInTree.filter(p =>
+      `${p.firstName} ${p.lastName ?? ""}`.toLowerCase().includes(q)
+    ).slice(0, 6);
   }, [peopleInTree, searchQuery]);
 
   const searchHitIds = useMemo(() => new Set(searchResults.map(p => p.id)), [searchResults]);
@@ -665,16 +802,73 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const openSearch  = useCallback(() => { setSearchOpen(true);  setTimeout(() => searchInputRef.current?.focus(), 80); }, []);
   const closeSearch = useCallback(() => { setSearchOpen(false); setSearchQuery(""); }, []);
 
-  // ── event handlers ─────────────────────────────────────────────────────────
-  const handleCardClick  = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
-  const handleDrop       = useCallback((src: string, tgt: string) => { 
-    setProposalSrc(src); 
-    setProposalTgt(tgt); 
-  }, []);
-  const toggleCollapse   = useCallback((id: string) =>
+  // ── Centering ──────────────────────────────────────────────────────────────
+  /**
+   * Uses the ACTUAL content bounding box (not full canvas dimensions) so that
+   * isolated outlier nodes (like a solo "BA" root far to the right) don't push
+   * the center into empty space.
+   *
+   * setTransform is used instead of centerView because centerView aims at the
+   * exact centre of the canvas element, which includes the large PADDING zone
+   * and the empty space to the right of outlier roots.
+   */
+  const centerTree = useCallback(() => {
+    if (!transformRef.current || !layout) return;
+
+    const nodePositions = Array.from(layout.nodes.values());
+    if (nodePositions.length === 0) return;
+
+    // Content bounding box in canvas coordinates (layout coords + PADDING offset)
+    const xs = nodePositions.map(p => p.x);
+    const ys = nodePositions.map(p => p.y);
+    const cMinX = Math.min(...xs) - CARD_W / 2 + PADDING;
+    const cMaxX = Math.max(...xs) + CARD_W / 2 + PADDING;
+    const cMinY = PADDING;
+    const cMaxY = Math.max(...ys) + CARD_H + PADDING;
+
+    const contentW  = cMaxX - cMinX;
+    const contentH  = cMaxY - cMinY;
+    const contentCX = (cMinX + cMaxX) / 2;
+    const contentCY = (cMinY + cMaxY) / 2;
+
+    // Viewport = the flex-1 canvas div (not full window width)
+    const vpW = canvasDivRef.current?.clientWidth  ?? window.innerWidth - (showSandbox ? SIDEBAR_W : 0);
+    const vpH = canvasDivRef.current?.clientHeight ?? window.innerHeight;
+
+    // Scale to fill ~88% of the viewport, capped at INITIAL_SCALE (don't zoom in)
+    const fitScale = Math.min(
+      vpW * 0.88 / contentW,
+      vpH * 0.85 / contentH,
+      INITIAL_SCALE,
+    );
+
+    // Translate so contentCX maps to vpW/2 and contentCY maps to vpH/2
+    transformRef.current.setTransform(
+      vpW / 2 - contentCX * fitScale,
+      vpH / 2 - contentCY * fitScale,
+      fitScale,
+      centeredRef.current ? 300 : 0, // animate re-centers; snap on first load
+    );
+  }, [layout, showSandbox]);
+
+  useEffect(() => {
+    if (!layout) return; // ← KEY FIX: don't attempt to center before data loads
+
+    // First center: short delay lets the DOM paint before we measure
+    // Subsequent centers (sidebar toggle): longer delay for spring animation
+    const delay = centeredRef.current ? 380 : 150;
+    centeredRef.current = true;
+    const timer = setTimeout(centerTree, delay);
+    return () => clearTimeout(timer);
+  }, [layout, showSandbox, centerTree]); // ← layout in deps fixes the "always top-left" bug
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  const handleCardClick = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
+  const handleDrop      = useCallback((src: string, tgt: string) => { setProposalSrc(src); setProposalTgt(tgt); }, []);
+  const toggleCollapse  = useCallback((id: string) =>
     setCollapsedSet(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
 
-  // ── export ─────────────────────────────────────────────────────────────────
+  // ── Export ─────────────────────────────────────────────────────────────────
   const doExport = useCallback(async (format: "png" | "pdf") => {
     if (!exportRef.current) return;
     setIsExporting(true); setExportMenuOpen(false);
@@ -694,32 +888,23 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     } finally { setIsExporting(false); }
   }, [t.canvas]);
 
-  // ── loading ─────────────────────────────────────────────────────────────────
-  if (isLoading || !layout) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen w-full gap-5" style={{ backgroundColor: "#f1f5f9" }}>
-        <div className="relative w-14 h-14">
-          <div className="absolute inset-0 rounded-full border-[2.5px] border-indigo-100 border-t-indigo-500 animate-spin" />
-          <Heart className="absolute inset-0 m-auto w-4 h-4 text-indigo-400" />
-        </div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-400">Building your tree…</p>
-      </div>
-    );
+  // ── Loading / empty state ─────────────────────────────────────────────────
+  if (isLoading) {
+    return null; // Parent page handles initial loading
   }
 
-  const canvasW = layout.totalWidth  + PADDING * 2;
-  const canvasH = layout.totalHeight + PADDING * 2;
+  const canvasW = (layout?.totalWidth  ?? 0) + PADDING * 2;
+  const canvasH = (layout?.totalHeight ?? 0) + PADDING * 2;
 
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div ref={containerRef} className="relative flex w-full h-full overflow-hidden transition-colors duration-500"
+    <div ref={containerRef}
+      className="relative flex w-full h-full overflow-hidden transition-colors duration-500"
       style={{ backgroundColor: t.canvas }}>
 
       {/* ══════════════════════════════════════════════════════════════════
-          OUTER OVERLAY — controls that span sidebar + canvas boundary
+          OUTER OVERLAY — sidebar toggle + search (straddles sidebar/canvas)
       ══════════════════════════════════════════════════════════════════ */}
       <div className="absolute inset-0 pointer-events-none z-30">
-        {/* Sidebar toggle */}
         <div className="absolute top-4 left-4 pointer-events-auto">
           <IconBtn onClick={() => setShowSandbox(s => !s)}
             title={showSandbox ? "Hide panel" : "Show panel"} className={t.iconBtn}>
@@ -727,20 +912,16 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
           </IconBtn>
         </div>
 
-        {/* Expandable search bar */}
         <div className="absolute top-4 left-16 pointer-events-auto">
-          <motion.div
-            animate={{ width: searchOpen ? 228 : 36 }}
+          <motion.div animate={{ width: searchOpen ? 228 : 36 }}
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            className={cn("h-9 rounded-xl flex items-center overflow-hidden", t.panel)}
-          >
+            className={cn("h-9 rounded-xl flex items-center overflow-hidden", t.panel)}>
             <button onClick={searchOpen ? closeSearch : openSearch}
               className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0", t.muted)}>
               <Search className="w-3.5 h-3.5" />
             </button>
             <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search people…"
-              className={cn("flex-1 bg-transparent outline-none text-xs font-medium", t.text)} />
+              placeholder="Search people…" className={cn("flex-1 bg-transparent outline-none text-xs font-medium", t.text)} />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0", t.muted)}>
                 <X className="w-3 h-3" />
@@ -753,18 +934,14 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
                 className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden", t.panel)}>
                 {searchResults.map((p, i) => (
-                  <button key={p.id}
-                    onClick={() => { handleCardClick(p.id); closeSearch(); }}
-                    className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5",
-                      i && "border-t border-black/5")}>
+                  <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
+                    className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5", i && "border-t border-black/5")}>
                     <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
                       style={{ backgroundColor: t.accent }}>
                       {p.firstName[0]}{p.lastName?.[0] ?? ""}
                     </span>
                     <div className="min-w-0">
-                      <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>
-                        {p.firstName} {p.lastName}
-                      </p>
+                      <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
                       {p.birthDate && <p className={cn("text-[10px]", t.muted)}>{p.birthDate}</p>}
                     </div>
                   </button>
@@ -783,37 +960,35 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
           <motion.div
             initial={{ x: -SIDEBAR_W }} animate={{ x: 0 }} exit={{ x: -SIDEBAR_W }}
             transition={{ type: "spring", stiffness: 340, damping: 34 }}
-            className="h-full flex-shrink-0 relative z-40"
-            style={{ width: SIDEBAR_W }}
-          >
-            <TreeSandboxSidebar 
-              treeId={treeId} 
-              onAddNew={() => setShowCreateModal(true)} 
+            className="h-full flex-shrink-0 relative z-40" style={{ width: SIDEBAR_W }}>
+                <TreeSandboxSidebar treeId={treeId}
+              onAddNew={() => setShowCreateModal(true)}
               onSelectPerson={handleCardClick}
-              onDrop={handleDrop}
-            />
+              onDrop={handleDrop} />
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* ══════════════════════════════════════════════════════════════════
-          CANVAS AREA  (flex-1)
-          All canvas overlays are children here so left-1/2 centres
-          within the canvas, not the full page including sidebar.
+          CANVAS  (flex-1)
+          All overlays are children here → left-1/2 is canvas-relative,
+          not page-relative. The canvasDivRef gives us accurate clientWidth
+          for centering calculations.
       ══════════════════════════════════════════════════════════════════ */}
-      <div className="flex-1 relative overflow-hidden">
+      <div ref={canvasDivRef} className="flex-1 relative overflow-hidden">
 
-        {/* Canvas overlay */}
-        <div className="absolute inset-0 left-8 pointer-events-none z-20">
-          {/* Fullscreen — top-right */}
+        {/* Canvas overlay — inset-0 (no left-8 offset) */}
+        <div className="absolute inset-0 pointer-events-none z-20">
+
+          {/* Fullscreen — top-right of canvas */}
           <div className="absolute top-4 right-4 pointer-events-auto">
             <IconBtn onClick={toggleFS} title={isFullScreen ? "Exit fullscreen" : "Fullscreen"} className={t.iconBtn}>
               {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
             </IconBtn>
           </div>
 
-          {/* Tree stats — bottom-left */}
-          {peopleInTree && (
+          {/* Stats — bottom-left */}
+          {peopleInTree.length > 0 && (
             <div className="absolute bottom-4 left-4 pointer-events-auto">
               <div className={cn("flex items-center gap-1.5 px-3 h-8 rounded-xl text-[11px] font-medium", t.panel, t.muted)}>
                 <Users className="w-3 h-3 flex-shrink-0" />
@@ -822,27 +997,17 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
             </div>
           )}
 
-          {/* ──────────────────────────────────────────────────────────
-              Bottom-centre floating toolbar
-              Zoom buttons call transformRef.current directly —
-              no need to be inside TransformWrapper context.
-          ────────────────────────────────────────────────────────── */}
+          {/* Bottom-centre floating toolbar */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
             <div className={cn("flex items-center gap-0.5 px-2 h-11 rounded-2xl", t.toolbar)}>
-
-              {/* Zoom out */}
               <button title="Zoom out" onClick={() => transformRef.current?.zoomOut(0.3)}
                 className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-
-              {/* Fit / re-centre */}
               <button title="Fit to screen" onClick={centerTree}
                 className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
-
-              {/* Zoom in */}
               <button title="Zoom in" onClick={() => transformRef.current?.zoomIn(0.3)}
                 className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                 <ZoomIn className="w-3.5 h-3.5" />
@@ -850,7 +1015,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
 
               <div className="w-px h-5 mx-1 bg-current opacity-10" />
 
-              {/* Theme chips */}
               {(Object.keys(THEMES) as ThemeKey[]).map(k => {
                 const { Icon, name } = THEMES[k];
                 return (
@@ -864,7 +1028,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
 
               <div className="w-px h-5 mx-1 bg-current opacity-10" />
 
-              {/* Export */}
               <div className="relative">
                 <button title="Export" onClick={() => setExportMenuOpen(o => !o)}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
@@ -887,17 +1050,13 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                   )}
                 </AnimatePresence>
               </div>
-
             </div>
           </div>
         </div>
         {/* end canvas overlay */}
 
-        {/* ── Pan / Zoom wrapper ──────────────────────────────────── */}
         <TransformWrapper
-          // No centerOnInit — centerView() is called via useEffect after sidebar
-          // animation settles to always measure the correct canvas div width.
-          onInit={(ref) => { transformRef.current = ref; }}
+          onInit={ref => { transformRef.current = ref; }}
           initialScale={INITIAL_SCALE}
           minScale={0.06}
           maxScale={4}
@@ -906,16 +1065,14 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         >
           <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
 
-            {/*
-              exportRef wraps ALL rendering layers (background SVG, connector SVG,
-              cards). toPng on this element captures the complete tree in one pass.
-            */}
+            {/* exportRef: wraps ALL layers → toPng captures complete tree */}
             <div ref={exportRef} style={{ position: "relative", width: canvasW, height: canvasH }}>
 
-              {/* Layer 1 — Rich themed background (dots + decorative gradients) */}
+              {/* Layer 1 — Themed background */}
               <ThemeBackground themeKey={themeKey} t={t} w={canvasW} h={canvasH} />
 
-              {/* Layer 2 — Connector lines (SVG, same coordinate system as cards) */}
+              {/* Layer 2 — Connector SVG
+                  translate(PADDING, PADDING) aligns SVG coords with the card layer */}
               {layout && (
                 <svg className="absolute inset-0 pointer-events-none" width={canvasW} height={canvasH}>
                   <g transform={`translate(${PADDING},${PADDING})`}>
@@ -925,9 +1082,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               )}
 
               {/* Layer 3 — Person cards
-                  left/top = PADDING aligns card coordinate origin with
-                  the SVG <g transform="translate(PADDING,PADDING)"> above.
-              */}
+                  left/top = PADDING: coordinate origin matches SVG translate above */}
               <div className="absolute" style={{ left: PADDING, top: PADDING }}>
                 {layout && Array.from(layout.nodes.entries()).map(([pid, pos]) => {
                   const person = peopleMap.get(pid);
@@ -936,46 +1091,36 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                     (u.partner1Id === pid || u.partner2Id === pid) && u.childrenIds.length > 0
                   );
                   return (
-                    <motion.div
-                      key={pid}
+                    <motion.div key={pid}
                       initial={{ opacity: 0, scale: 0.88, y: 6 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       transition={{ duration: 0.22, ease: "easeOut" }}
                       className="absolute"
-                      style={{ left: pos.x - CARD_W / 2, top: pos.y }}
-                    >
+                      style={{ left: pos.x - CARD_W / 2, top: pos.y }}>
                       <PersonNode
-                        person={person}
-                        t={t}
-                        accentHex={t.accent}
-                        isFocus={focusId === pid}
-                        isHit={searchHitIds.has(pid)}
-                        hasKids={hasKids}
-                        isCollapsed={collapsedSet.has(pid)}
-                        onFocus={handleCardClick}
-                        onDrop={handleDrop}
-                        onCollapse={toggleCollapse}
+                        person={person} t={t} accentHex={t.accent}
+                        isFocus={focusId === pid} isHit={searchHitIds.has(pid)}
+                        hasKids={hasKids} isCollapsed={collapsedSet.has(pid)}
+                        onFocus={handleCardClick} onDrop={handleDrop} onCollapse={toggleCollapse}
                       />
                     </motion.div>
                   );
                 })}
               </div>
 
-              {/* Empty tree state message */}
+              {/* Empty state */}
               {peopleInTree.length === 0 && !isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className={cn("px-12 py-10 rounded-[2.5rem] border text-center shadow-xl max-w-md mx-auto", t.panel)}>
                     <div className={cn("w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6", THEMES.light.chipOn)}>
                       <Users className="w-8 h-8" />
                     </div>
-                    <h3 className={cn("text-xl font-black mb-3", t.text)}>Your Tree is Empty</h3>
+                    <h3 className={cn("text-xl font-black mb-3", t.text)}>Build Your Family Tree</h3>
                     <p className={cn("text-sm font-medium mb-8 leading-relaxed", t.muted)}>
-                      Start by adding your first relative from the sandbox or using the button below.
+                      Add your first family member and connect them to start visualizing your history.
                     </p>
-                    <button 
-                      onClick={() => setShowCreateModal(true)}
-                      className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-lg active:scale-95", THEMES.light.chipOn)}
-                    >
+                    <button onClick={() => setShowCreateModal(true)}
+                      className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-lg active:scale-95", THEMES.light.chipOn)}>
                       Add First Member
                     </button>
                   </div>
@@ -983,16 +1128,12 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               )}
 
             </div>
-            {/* end exportRef */}
-
           </TransformComponent>
         </TransformWrapper>
-
       </div>
-      {/* end canvas area */}
 
       {/* ══════════════════════════════════════════════════════════════════
-          PROFILE DRAWER + PROPOSAL MODAL
+          DRAWERS & MODALS
       ══════════════════════════════════════════════════════════════════ */}
       <ProfileDrawer
         person={drawerPersonId ? (allPeopleMap.get(drawerPersonId) ?? null) : null}
@@ -1006,25 +1147,17 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
 
       <AnimatePresence>
         {proposalSrc && proposalTgt !== null && (
-          <RelationshipProposalModal
-            sourceId={proposalSrc}
-            targetId={proposalTgt}
-            treeId={treeId}
-            onClose={() => { setProposalSrc(null); setProposalTgt(null); }}
-          />
+          <RelationshipProposalModal sourceId={proposalSrc} targetId={proposalTgt} treeId={treeId}
+            onClose={() => { setProposalSrc(null); setProposalTgt(null); }} />
         )}
         {showCreateModal && (
-          <CreatePersonModal
-            treeId={treeId}
-            onClose={() => setShowCreateModal(false)}
-          />
+          <CreatePersonModal treeId={treeId} onClose={() => setShowCreateModal(false)} />
         )}
       </AnimatePresence>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 export default function FamilyTreeContainer({ treeId }: FamilyTreeProps) {
   return <TreeCanvas treeId={treeId} />;
 }

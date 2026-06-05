@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../components/providers/AuthProvider";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../lib/api";
 import Link from "next/link";
+import TreeActionModal from "../../components/TreeActionModal";
 
 import {
   TreeDeciduous,
@@ -14,6 +15,7 @@ import {
   Users,
   Clock,
   LayoutGrid,
+  MoreVertical,
 } from "lucide-react";
 
 import DataState from "../../components/shared/DataState";
@@ -28,6 +30,19 @@ export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const { theme } = useAppTheme();
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [activeModal, setActiveModal] = useState<{ type: 'rename' | 'delete', tree: any } | null>(null);
+  const queryClient = useQueryClient();
+
+  const deleteTreeMutation = useMutation({
+    mutationFn: async (id: string) => await api.delete(`/trees/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["trees"] }),
+  });
+
+  const renameTreeMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: string, name: string }) => await api.patch(`/trees/${id}`, { name }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["trees"] }),
+  });
 
   // Protect route
   useEffect(() => {
@@ -178,9 +193,8 @@ export default function DashboardPage() {
           {trees && trees.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {trees.map((tree: any) => (
-                <Link
+                <div
                   key={tree.id}
-                  href={tree.status === 'pending' ? '#' : `/tree/${tree.id}`}
                   className={cn(
                     "group p-5 rounded-lg border shadow-sm transition-all relative overflow-hidden",
                     theme.colors.surface,
@@ -189,33 +203,70 @@ export default function DashboardPage() {
                   )}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <h3 className={cn("text-lg font-bold group-hover:" + theme.colors.accent + " transition-colors", theme.colors.text)}>
-                          {tree.name}
-                        </h3>
-                        <p className={cn("text-xs font-medium", theme.colors.textMuted)}>
-                          Created {formatDate(tree.createdAt)}
-                        </p>
-                      </div>
+                    <Link
+                      href={tree.status === 'pending' ? '#' : `/tree/${tree.id}`}
+                      className="flex-1"
+                    >
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <h3 className={cn("text-lg font-bold group-hover:" + theme.colors.accent + " transition-colors", theme.colors.text)}>
+                            {tree.name}
+                          </h3>
+                          <p className={cn("text-xs font-medium", theme.colors.textMuted)}>
+                            Created {formatDate(tree.createdAt)}
+                          </p>
+                        </div>
 
-                      <div className="flex items-center gap-3">
-                         <span className={cn(
-                          "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
-                          tree.status === 'pending' ? "bg-amber-100 text-amber-700" : cn(theme.colors.bg, theme.colors.textMuted)
-                        )}>
-                          {tree.status === 'pending' ? "Pending" : tree.role}
-                        </span>
-                        
-                        {tree.status !== 'pending' && (
-                          <span className={cn("flex items-center gap-1 text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity", theme.colors.accent)}>
-                            Open Tree <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                        <div className="flex items-center gap-3">
+                           <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                            tree.status === 'pending' ? "bg-amber-100 text-amber-700" : cn(theme.colors.bg, theme.colors.textMuted)
+                          )}>
+                            {tree.status === 'pending' ? "Pending" : tree.role}
                           </span>
-                        )}
+                          
+                          {tree.status !== 'pending' && (
+                            <span className={cn("flex items-center gap-1 text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity", theme.colors.accent)}>
+                              Open Tree <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                            </span>
+                          )}
+                        </div>
                       </div>
+                    </Link>
+                    
+                    {/* 3-dot Menu */}
+                    <div className="relative">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === tree.id ? null : tree.id); }}
+                        className={cn("p-1.5 rounded-md", theme.colors.textMuted, "hover:" + theme.colors.bg)}>
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                      
+                      {menuOpenId === tree.id && (
+                        <div className={cn("absolute right-0 mt-2 w-32 rounded-lg border shadow-lg z-50", theme.colors.surface, theme.colors.border)}>
+                           <button 
+                             onClick={(e) => { 
+                               e.stopPropagation(); 
+                               setActiveModal({ type: 'rename', tree });
+                               setMenuOpenId(null);
+                             }}
+                             className={cn("w-full text-left px-4 py-2 text-xs font-medium hover:bg-black/5", theme.colors.text)}>
+                             Rename
+                           </button>
+                           <button 
+                             onClick={(e) => { 
+                               e.stopPropagation(); 
+                               setActiveModal({ type: 'delete', tree });
+                               setMenuOpenId(null);
+                             }}
+                             className={cn("w-full text-left px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50", theme.colors.text)}>
+                             Delete
+                           </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           ) : (
@@ -240,6 +291,20 @@ export default function DashboardPage() {
           )}
         </DataState>
       </section>
+
+      {/* Tree Action Modal */}
+      {activeModal && (
+        <TreeActionModal 
+          isOpen={!!activeModal}
+          onClose={() => setActiveModal(null)}
+          type={activeModal.type}
+          treeName={activeModal.tree.name}
+          onConfirm={(input) => {
+            if (activeModal.type === 'rename') renameTreeMutation.mutate({ id: activeModal.tree.id, name: input });
+            if (activeModal.type === 'delete') deleteTreeMutation.mutate(activeModal.tree.id);
+          }}
+        />
+      )}
     </div>
   );
 }

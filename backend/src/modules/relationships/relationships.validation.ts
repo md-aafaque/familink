@@ -59,15 +59,26 @@ export class RelationshipValidation {
       };
 
       // 4. Ancestry Cycle Detection
-      if (type === 'parent') {
-        // If A is parent of B, then B cannot already be an ancestor of A
+      if (type === 'parent' || type === 'child' || type === 'adopted_child') {
+        const sourceId = (type === 'parent') ? fromId : toId;
+        const targetId = (type === 'parent') ? toId : fromId;
+        
+        // If Parent is A and Child is B (A -> B), check if B is already an ancestor of A
         const cycleResult = await session.run(
-          `MATCH (a:Person {id: $fromId, treeId: $treeId})
-           MATCH (b:Person {id: $toId, treeId: $treeId})
-           MATCH path = (b)-[:FAMILY_RELATIONSHIP* {type: 'parent', treeId: $treeId}]->(a)
+          `MATCH (source:Person {id: $sourceId, treeId: $treeId})
+           MATCH (target:Person {id: $targetId, treeId: $treeId})
+           MATCH path = (target)-[:FAMILY_RELATIONSHIP* {treeId: $treeId}]-(source)
            WHERE all(r in relationships(path) WHERE r.deletedAt IS NULL)
+           AND all(idx in range(0, size(relationships(path))-1) WHERE 
+             let r = relationships(path)[idx] in
+             let prevNode = (idx = 0 ? target : (startNode(r) = nodes(path)[idx] ? startNode(r) : endNode(r))) in
+             let nextNode = nodes(path)[idx+1] in
+             (r.type = 'parent' AND startNode(r) = nextNode AND endNode(r) = prevNode) OR
+             (r.type = 'child' AND startNode(r) = prevNode AND endNode(r) = nextNode) OR
+             (r.type = 'adopted_child' AND startNode(r) = nextNode AND endNode(r) = prevNode)
+           )
            RETURN path`,
-          { fromId, toId, treeId }
+          { sourceId, targetId, treeId }
         );
 
         if (cycleResult.records.length > 0) {

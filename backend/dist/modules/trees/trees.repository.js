@@ -92,30 +92,39 @@ class TreesRepository {
          WHERE p.deletedAt IS NULL
          OPTIONAL MATCH (p)-[r:FAMILY_RELATIONSHIP]-(n:Person)
          WHERE n.deletedAt IS NULL AND r.treeId = $treeId AND r.deletedAt IS NULL
-         RETURN p, collect({rel: r, target: n, isSource: (startNode(r) = p)}) as relationships`, { treeId });
+         RETURN p, collect({rel: r, target: n, sourceId: id(startNode(r))}) as relationships`, { treeId });
             return res.records.map(r => {
-                const pProps = r.get('p').properties;
+                const pNode = r.get('p');
+                const pProps = pNode.properties;
+                const pInternalId = pNode.identity;
                 const rawRels = r.get('relationships');
-                const relationships = rawRels
+                const relationshipsMap = new Map();
+                rawRels
                     .filter((item) => item.target !== null)
-                    .map((item) => {
+                    .forEach((item) => {
                     const relProps = item.rel.properties;
                     const targetProps = item.target.properties;
-                    const isSource = item.isSource;
+                    const sourceId = item.sourceId;
                     let type = relProps.type;
-                    if (!isSource) {
-                        if (type === 'parent')
-                            type = 'child';
-                        else if (type === 'child')
-                            type = 'parent';
-                        else if (type === 'adopted_child')
-                            type = 'parent';
+                    const isSource = sourceId.equals(pInternalId);
+                    // Standardizing Directions:
+                    // 'parent' edge: [Parent] -> [Child]
+                    // If I am SOURCE of 'parent' edge -> target is my CHILD
+                    // If I am TARGET of 'parent' edge -> source is my PARENT
+                    if (type === 'parent' || type === 'adopted_child') {
+                        type = isSource ? 'child' : 'parent';
                     }
-                    return {
-                        type,
-                        targetId: targetProps.id
-                    };
+                    else if (type === 'child') {
+                        type = isSource ? 'parent' : 'child';
+                    }
+                    // 'spouse' and 'sibling' are symmetric
+                    // Deduplicate: multiple edges might exist (though shouldn't)
+                    relationshipsMap.set(`${type}-${targetProps.id}`, targetProps.id);
                 });
+                const relationships = Array.from(relationshipsMap.entries()).map(([key, targetId]) => ({
+                    type: key.split('-')[0],
+                    targetId
+                }));
                 return {
                     ...(0, database_utils_1.normalizeNeo4jProperties)(pProps),
                     relationships

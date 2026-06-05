@@ -5,6 +5,10 @@ const tree_auth_1 = require("../../middleware/tree-auth");
 const trees_1 = require("../../shared/schemas/trees");
 const trees_service_1 = require("./trees.service");
 const audit_service_1 = require("../../modules/audit/audit.service");
+const zod_1 = require("zod");
+const treeIdParamSchema = zod_1.z.object({
+    treeId: zod_1.z.string().uuid()
+});
 async function treeRoutes(fastify) {
     /**
      * Create a new family tree
@@ -32,7 +36,7 @@ async function treeRoutes(fastify) {
     fastify.get('/trees/:treeId', {
         preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin', 'member', 'viewer'])]
     }, async (request, reply) => {
-        const { treeId } = request.params;
+        const { treeId } = treeIdParamSchema.parse(request.params);
         const tree = await trees_service_1.TreesService.getTreeDetails(treeId);
         return {
             success: true,
@@ -48,7 +52,7 @@ async function treeRoutes(fastify) {
     fastify.get('/trees/:treeId/visual', {
         preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin', 'member', 'viewer'])]
     }, async (request, reply) => {
-        const { treeId } = request.params;
+        const { treeId } = treeIdParamSchema.parse(request.params);
         const people = await trees_service_1.TreesService.getVisualData(treeId);
         return { success: true, data: people };
     });
@@ -58,7 +62,7 @@ async function treeRoutes(fastify) {
     fastify.get('/trees/:treeId/members', {
         preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin', 'member', 'viewer'])]
     }, async (request, reply) => {
-        const { treeId } = request.params;
+        const { treeId } = treeIdParamSchema.parse(request.params);
         const members = await trees_service_1.TreesService.getMembers(treeId);
         return { success: true, data: members };
     });
@@ -68,8 +72,8 @@ async function treeRoutes(fastify) {
     fastify.get('/trees/:treeId/activity', {
         preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin', 'member', 'viewer'])]
     }, async (request, reply) => {
-        const { treeId } = request.params;
-        const { limit } = request.query;
+        const { treeId } = treeIdParamSchema.parse(request.params);
+        const { limit } = zod_1.z.object({ limit: zod_1.z.string().optional() }).parse(request.query);
         const logs = await audit_service_1.AuditService.getTreeLogs(treeId, limit ? parseInt(limit, 10) : 50);
         return { success: true, data: logs };
     });

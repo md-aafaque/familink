@@ -55,7 +55,9 @@ export class TreesRepository {
         `
         MATCH (u:User {id: $userId})
         OPTIONAL MATCH (u)-[m:MEMBER_OF]->(t1:FamilyTree)
+        WHERE t1.deletedAt IS NULL
         OPTIONAL MATCH (u)-[:HAS_ACCESS_REQUEST]->(ar:TreeAccessRequest {status: 'pending'})-[:REQUESTS_ACCESS_TO]->(t2:FamilyTree)
+        WHERE t2.deletedAt IS NULL
         WITH 
           collect({tree: t1, role: m.role, status: 'active'}) + 
           collect({tree: t2, role: ar.requestedRole, status: 'pending'}) as entries
@@ -101,38 +103,47 @@ export class TreesRepository {
          WHERE p.deletedAt IS NULL
          OPTIONAL MATCH (p)-[r:FAMILY_RELATIONSHIP]-(n:Person)
          WHERE n.deletedAt IS NULL AND r.treeId = $treeId AND r.deletedAt IS NULL
-         RETURN p, collect({rel: r, target: n, isSource: (startNode(r) = p)}) as relationships`,
+         RETURN p, collect({rel: r, target: n, sourceId: id(startNode(r))}) as relationships`,
         { treeId }
       );
 
       return res.records.map(r => {
-        const pProps = r.get('p').properties;
+        const pNode = r.get('p');
+        const pProps = pNode.properties;
+        const pInternalId = pNode.identity;
         const rawRels = r.get('relationships');
         
-        const relationships = rawRels
+        const relationshipsMap = new Map<string, string>();
+        
+        rawRels
           .filter((item: any) => item.target !== null)
-          .map((item: any) => {
+          .forEach((item: any) => {
             const relProps = item.rel.properties;
             const targetProps = item.target.properties;
-            const isSource = item.isSource;
+            const sourceId = item.sourceId;
             
             let type = relProps.type;
+            const isSource = sourceId.equals(pInternalId);
             
-            if (isSource) {
-              if (type === 'parent') type = 'child';
-              else if (type === 'child') type = 'parent';
-              else if (type === 'adopted_child') type = 'child';
-            } else {
-              if (type === 'parent') type = 'parent';
-              else if (type === 'child') type = 'child';
-              else if (type === 'adopted_child') type = 'parent';
+            // Standardizing Directions:
+            // 'parent' edge: [Parent] -> [Child]
+            // If I am SOURCE of 'parent' edge -> target is my CHILD
+            // If I am TARGET of 'parent' edge -> source is my PARENT
+            if (type === 'parent' || type === 'adopted_child') {
+              type = isSource ? 'child' : 'parent';
+            } else if (type === 'child') {
+              type = isSource ? 'parent' : 'child';
             }
+            // 'spouse' and 'sibling' are symmetric
             
-            return {
-              type,
-              targetId: targetProps.id
-            };
+            // Deduplicate: multiple edges might exist (though shouldn't)
+            relationshipsMap.set(`${type}-${targetProps.id}`, targetProps.id);
           });
+
+        const relationships = Array.from(relationshipsMap.entries()).map(([key, targetId]) => ({
+          type: key.split('-')[0],
+          targetId
+        }));
 
         return {
           ...normalizeNeo4jProperties(pProps),
@@ -201,6 +212,35 @@ export class TreesRepository {
 
       if (result.records.length === 0) return null;
       return result.records[0].get('role');
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async renameTree(treeId: string, name: string) {
+    const session = getSession();
+    try {
+      await session.run(
+        `MATCH (t:FamilyTree {id: $treeId}) SET t.name = $name RETURN t`,
+        { treeId, name }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async deleteTree(treeId: string) {
+    const session = getSession();
+    try {
+      // Soft delete: set deletedAt timestamp on the tree and all its components
+      await session.run(
+        `MATCH (t:FamilyTree {id: $treeId}) 
+         SET t.deletedAt = timestamp()
+         WITH t
+         MATCH (t)<-[:BELONGS_TO_TREE]-(p:Person)
+         SET p.deletedAt = timestamp()`,
+        { treeId }
+      );
     } finally {
       await session.close();
     }
