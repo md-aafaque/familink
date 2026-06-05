@@ -387,6 +387,89 @@ export class PeopleRepository {
     }
   }
 
+  static async updateTreeGenerations(treeId: string): Promise<void> {
+    const session = getSession();
+    try {
+      // 1. Fetch data
+      const peopleRes = await session.run(
+        `MATCH (p:Person {treeId: $treeId}) WHERE p.deletedAt IS NULL RETURN p`,
+        { treeId }
+      );
+      const relsRes = await session.run(
+        `MATCH (p1:Person {treeId: $treeId})-[r:FAMILY_RELATIONSHIP {treeId: $treeId}]->(p2:Person {treeId: $treeId})
+         WHERE r.deletedAt IS NULL
+         RETURN p1.id as from, p2.id as to, r.type as type`,
+        { treeId }
+      );
+
+      const people = peopleRes.records.map(r => r.get('p').properties);
+      const rels = relsRes.records.map(r => ({
+        from: r.get('from'),
+        to: r.get('to'),
+        type: r.get('type')
+      }));
+
+      if (people.length === 0) return;
+
+      // 2. Build adjacency list
+      const adj = new Map<string, Array<{ to: string, type: string, direction: number }>>();
+      people.forEach(p => adj.set(p.id, []));
+      rels.forEach(r => {
+        adj.get(r.from)?.push({ to: r.to, type: r.type, direction: 1 });
+        adj.get(r.to)?.push({ to: r.from, type: r.type, direction: -1 });
+      });
+
+      // 3. BFS for each connected component
+      const generations = new Map<string, number>();
+      const visited = new Set<string>();
+
+      people.forEach(startPerson => {
+        if (visited.has(startPerson.id)) return;
+
+        const queue: Array<{ id: string, gen: number }> = [];
+        
+        // Start with existing generation if available, else 0
+        let startGen = typeof startPerson.generation === 'number' ? startPerson.generation : 0;
+        queue.push({ id: startPerson.id, gen: startGen });
+        visited.add(startPerson.id);
+        generations.set(startPerson.id, startGen);
+
+        while (queue.length > 0) {
+          const { id, gen } = queue.shift()!;
+          
+          (adj.get(id) ?? []).forEach(edge => {
+            if (visited.has(edge.to)) return;
+
+            let nextGen = gen;
+            if (edge.type === 'parent') {
+              nextGen = gen + (edge.direction === 1 ? 1 : -1);
+            } else if (edge.type === 'child' || edge.type === 'adopted_child') {
+              nextGen = gen + (edge.direction === 1 ? -1 : 1);
+            }
+            // siblings/spouses stay in same gen (nextGen = gen)
+
+            visited.add(edge.to);
+            generations.set(edge.to, nextGen);
+            queue.push({ id: edge.to, gen: nextGen });
+          });
+        }
+      });
+
+      // 4. Batch update
+      const updates = Array.from(generations.entries()).map(([id, gen]) => ({ id, gen }));
+      if (updates.length > 0) {
+        await session.run(
+          `UNWIND $updates as u 
+           MATCH (p:Person {id: u.id, treeId: $treeId}) 
+           SET p.generation = u.gen`,
+          { updates, treeId }
+        );
+      }
+    } finally {
+      await session.close();
+    }
+  }
+
   static async linkUserToPerson(userId: string, personId: string, treeId: string) {
     const session = getSession();
     try {

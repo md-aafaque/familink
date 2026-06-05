@@ -21,6 +21,7 @@ export const personSchema = z.object({
   addressVisibility: visibilitySchema,
   
   birthDateVisibility: visibilitySchema,
+  generation: z.number().optional().nullable(),
 });
 
 export const createPersonSchema = personSchema.extend({
@@ -34,6 +35,7 @@ export type Person = z.infer<typeof personSchema> & {
   treeId: string;
   createdBy: string;
   createdAt: number;
+  generation?: number | null;
   deletedAt?: number | null;
 };
 

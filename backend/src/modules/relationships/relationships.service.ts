@@ -92,7 +92,10 @@ export class RelationshipsService {
       { proposerId: proposal.proposerId, type: proposal.relationshipType }
     );
 
-    // 5. Notify Proposer
+    // 5. Update Tree Generations
+    await PeopleRepository.updateTreeGenerations(proposal.treeId);
+
+    // 6. Notify Proposer
     await NotificationsService.createNotification(
       proposal.proposerId,
       'relationship_approved',

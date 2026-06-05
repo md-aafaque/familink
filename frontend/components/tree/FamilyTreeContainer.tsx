@@ -1,10 +1,7 @@
 "use client";
 
 // ─── layout math via d3-hierarchy; all UI stays in React/Tailwind ────────────
-// Install:  npm install d3-hierarchy
-// Types:    npm install -D @types/d3-hierarchy
 import { hierarchy as d3Hierarchy, tree as d3Tree, HierarchyNode } from "d3-hierarchy";
-
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { useQuery } from "@tanstack/react-query";
@@ -40,6 +37,7 @@ interface Person {
   birthDate?: string;
   deathDate?: string;
   relationships: Array<{ type: string; targetId: string }>;
+  generation?: number | null;
 }
 
 interface Union {
@@ -49,13 +47,22 @@ interface Union {
   childrenIds: string[];
 }
 
+interface GenUnit {
+  uid:           string;        // Unique tree node ID
+  personId:      string;        // Primary person ID
+  unions:        Array<{ partnerId: string | null, children: GenUnit[] }>;
+  isVirtual?:    boolean;       
+  generation?:   number;        // Persisted or calculated generation
+}
+
 interface LayoutConnector {
   id: string;
-  p1x: number;        // centre-x of primary person card
-  p2x: number;        // centre-x of spouse card (= p1x when solo)
+  p1x: number;        
+  p2x: number;        
   parentBottomY: number;
-  childXs: number[];  // centre-x of each child unit (couple-midpoint or solo-centre)
+  childXs: number[];  
   childTopY: number;
+  isSpouseLink?: boolean;
 }
 
 interface LayoutResult {
@@ -68,17 +75,15 @@ interface LayoutResult {
 // ─────────────────────────────────────────────────────────────────────────────
 // Layout Constants
 // ─────────────────────────────────────────────────────────────────────────────
-const CARD_W       = 220; // Increased for better readability
-const CARD_H       = 80;  // Increased for a more premium feel
-const H_GAP        = 96;  // More breathing room
-const V_GAP        = 140; // More vertical space for connectors
+const CARD_W       = 220; 
+const CARD_H       = 80;  
+const H_GAP        = 96;  
+const V_GAP        = 140; 
 const SPOUSE_GAP   = 56;  
-const COUPLE_W     = CARD_W + SPOUSE_GAP + CARD_W;
 const PADDING      = 300; 
 const SIDEBAR_W    = 320;
 const INITIAL_SCALE = 0.6;
 
-// Unit width used as the d3 nodeSize base and the separation denominator.
 const UNIT_W = CARD_W + H_GAP;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -233,32 +238,6 @@ function ThemeBackground({ themeKey, t, w, h }: { themeKey: ThemeKey; t: Theme; 
 // D3 Layout Engine
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * A "generation unit" — the atom of the d3 tree.
- * Each unit is either a solo person OR a couple (primary + spouse).
- * Virtual root unifies multiple family trees under one d3 root node.
- *
- *   virtualRoot
- *   ├── GenUnit(mum, papa)            ← depth 1
- *   │   ├── GenUnit(aafaque, genius)  ← depth 2
- *   │   │   └── GenUnit(sonat, wifi)  ← depth 3
- *   │   │       └── GenUnit(granson)  ← depth 4
- *   │   └── GenUnit(krish, agarwal)   ← depth 2
- *   │       ├── GenUnit(krishjr)      ← depth 3
- *   │       └── GenUnit(dotka)        ← depth 3
- *   └── GenUnit(BA)                   ← depth 1  (isolated root)
- */
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-interface GenUnit {
-  uid:           string;        // Person ID
-  personId:      string;
-  spouseIds:     string[];      // All spouses of this person
-  children:      GenUnit[];
-  isVirtual?:    boolean;       // For the root wrapper
-}
-
 // ── Step 1: build the virtual GenUnit tree from flat data ─────────────────────
 function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<string>): GenUnit {
   const pMap = new Map<string, Person>();
@@ -277,82 +256,62 @@ function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<strin
   function buildUnit(pid: string): GenUnit {
     visited.add(pid);
     const person = pMap.get(pid);
+    
     if (!person || collapsedSet.has(pid)) {
-      return { uid: pid, personId: pid, spouseIds: [], children: [] };
+      return { uid: pid, personId: pid, unions: [], generation: person?.generation ?? 0 };
     }
 
-    // Find all spouses
-    const spouses: string[] = [];
     const myUnions = personUnions.get(pid) ?? [];
-    myUnions.forEach(u => {
-      const sid = u.partner1Id === pid ? u.partner2Id : u.partner1Id;
-      if (sid && !visited.has(sid)) {
-        visited.add(sid);
-        spouses.push(sid);
-      }
-    });
+    const genUnions: GenUnit['unions'] = [];
 
-    // Find all children from ALL unions of this person
-    const childrenIds = new Set<string>();
     myUnions.forEach(u => {
-      u.childrenIds.forEach(cid => {
-        if (!visited.has(cid)) childrenIds.add(cid);
-      });
+      const partnerId = u.partner1Id === pid ? u.partner2Id : u.partner1Id;
+      
+      // We only "descend" into a union if we haven't visited the partner yet 
+      // OR if there is no partner (single parent).
+      if (!partnerId || !visited.has(partnerId)) {
+        if (partnerId) visited.add(partnerId);
+        
+        genUnions.push({
+          partnerId: partnerId,
+          children: u.childrenIds
+            .filter(cid => !visited.has(cid))
+            .map(cid => buildUnit(cid))
+        });
+      }
     });
 
     return {
       uid: pid,
       personId: pid,
-      spouseIds: spouses,
-      children: Array.from(childrenIds).map(cid => buildUnit(cid)),
+      unions: genUnions,
+      generation: person.generation ?? 0
     };
   }
 
-  // Identify roots: people with no parents IN THE TREE
+  // Identify roots: people with no parents IN THE DATA
   const hasParent = new Set<string>();
   unions.forEach(u => u.childrenIds.forEach(cid => hasParent.add(cid)));
-  const roots = people.filter(p => !hasParent.has(p.id) && !visited.has(p.id));
+  const roots = people.filter(p => !hasParent.has(p.id));
 
-  // If multiple roots, we might have siblings. Try to group them.
   const rootUnits: GenUnit[] = [];
-  
-  // Advanced: group siblings who are roots
-  const processedRoots = new Set<string>();
   roots.forEach(r => {
-    if (processedRoots.has(r.id)) return;
-    
-    // Find all siblings of this root that are also roots
-    const siblings = [r.id];
-    r.relationships
-      .filter(rel => rel.type === 'sibling' && !hasParent.has(rel.targetId))
-      .forEach(rel => {
-        if (!processedRoots.has(rel.targetId)) siblings.push(rel.targetId);
-      });
-    
-    if (siblings.length > 1) {
-      // Create a virtual unit to hold these siblings
-      const clusterId = `cluster-${r.id}`;
-      rootUnits.push({
-        uid: clusterId,
-        personId: clusterId,
-        spouseIds: [],
-        children: siblings.filter(id => !visited.has(id)).map(id => buildUnit(id)),
-        isVirtual: true
-      });
-      siblings.forEach(s => processedRoots.add(s));
-    } else {
-      if (!visited.has(r.id)) {
-        rootUnits.push(buildUnit(r.id));
-        processedRoots.add(r.id);
-      }
+    if (!visited.has(r.id)) {
+      rootUnits.push(buildUnit(r.id));
+    }
+  });
+
+  // Final fallback: catch anyone missed (e.g. islands or cycles)
+  people.forEach(p => {
+    if (!visited.has(p.id)) {
+      rootUnits.push(buildUnit(p.id));
     }
   });
 
   return {
     uid: "__root__",
     personId: "__root__",
-    spouseIds: [],
-    children: rootUnits,
+    unions: [{ partnerId: null, children: rootUnits }],
     isVirtual: true
   };
 }
@@ -361,14 +320,17 @@ function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<strin
 function applyD3Layout(genTree: GenUnit): LayoutResult {
   const root = d3Hierarchy<GenUnit>(
     genTree,
-    (d: GenUnit) => (d.children.length > 0 ? d.children : null),
+    (d: GenUnit) => {
+      const allChildren: GenUnit[] = [];
+      d.unions.forEach(u => allChildren.push(...u.children));
+      return allChildren.length > 0 ? allChildren : null;
+    }
   );
 
-  // Layout sizing logic
   const getUnitWidth = (node: HierarchyNode<GenUnit>) => {
     if (node.data.isVirtual) return 40;
-    const count = 1 + node.data.spouseIds.length;
-    return count * CARD_W + (count - 1) * SPOUSE_GAP;
+    const spouseCount = node.data.unions.filter(u => u.partnerId).length;
+    return CARD_W + spouseCount * (CARD_W + SPOUSE_GAP);
   };
 
   d3Tree<GenUnit>()
@@ -376,7 +338,7 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
     .separation((a, b) => {
       const wA = getUnitWidth(a);
       const wB = getUnitWidth(b);
-      const gap = a.parent === b.parent ? H_GAP : H_GAP * 2.5;
+      const gap = a.parent === b.parent ? H_GAP : H_GAP * 3;
       return (wA / 2 + wB / 2 + gap) / UNIT_W;
     })(root);
 
@@ -396,52 +358,83 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
   root.each((node: HierarchyNode<GenUnit>) => {
     if (node.data.uid === "__root__") return;
     
-    // Normal generation mapping:
-    // depth 1 = root cluster/unit
-    // depth 2 = first descendants
-    const visualY = (node.depth - 1) * (CARD_H + V_GAP);
+    // STRICT GENERATIONAL ALIGNMENT
+    // Priority: Persisted generation from database -> calculated depth from D3
+    const generation = node.data.generation ?? (node.depth - 1);
+    const visualY = generation * (CARD_H + V_GAP);
     const shiftedX = node.x! + xShift;
 
     if (node.data.isVirtual) {
-      // Draw a line from the virtual center to children
       if (node.children) {
         connectors.push({
           id: node.data.uid,
           p1x: shiftedX, p2x: shiftedX,
           parentBottomY: visualY,
           childXs: node.children.map(c => c.x! + xShift),
-          childTopY: visualY + V_GAP / 2 // drop halfway to next generation
+          childTopY: visualY + V_GAP / 2
         });
       }
       return;
     }
 
-    const { personId, spouseIds } = node.data;
-    const unitW = getUnitWidth(node);
-    let curX = shiftedX - unitW / 2 + CARD_W / 2;
+    const { personId, unions } = node.data;
+    positions.set(personId, { x: shiftedX, y: visualY });
 
-    positions.set(personId, { x: curX, y: visualY });
-    const pX = curX;
+    // Symmetrical Spouse Distribution: [S2] [S4] [PRIMARY] [S1] [S3]
+    let leftCount = 0;
+    let rightCount = 0;
 
-    spouseIds.forEach(sid => {
-      curX += CARD_W + SPOUSE_GAP;
-      positions.set(sid, { x: curX, y: visualY });
-    });
-
-    // Connectors: draw from the MIDPOINT of all spouses if children exist
-    if (node.children) {
-      const lastSpouseX = curX;
-      const unionX = (pX + lastSpouseX) / 2;
+    unions.forEach((u, uIdx) => {
+      const partnerId = u.partnerId;
       
+      if (!partnerId) {
+        // Solo parent descent
+        if (u.children.length > 0) {
+          connectors.push({
+            id: `desc-solo-${personId}-${uIdx}`,
+            p1x: shiftedX, p2x: shiftedX,
+            parentBottomY: visualY + CARD_H,
+            childXs: u.children.map(c => {
+              const childNode = node.children?.find(cn => cn.data === c);
+              return (childNode?.x ?? 0) + xShift;
+            }),
+            childTopY: (generation + 1) * (CARD_H + V_GAP)
+          });
+        }
+        return;
+      }
+
+      const isRight = uIdx % 2 === 0;
+      const offsetCount = isRight ? ++rightCount : ++leftCount;
+      const spouseX = shiftedX + (isRight ? 1 : -1) * offsetCount * (CARD_W + SPOUSE_GAP);
+      
+      positions.set(partnerId, { x: spouseX, y: visualY });
+
+      // Spouse connector (horizontal dashed)
       connectors.push({
-        id: `rel-${personId}`,
-        p1x: pX,
-        p2x: lastSpouseX,
-        parentBottomY: visualY + CARD_H,
-        childXs: node.children.map(c => c.x! + xShift),
-        childTopY: (node.depth) * (CARD_H + V_GAP)
+        id: `sp-${personId}-${partnerId}`,
+        p1x: shiftedX, p2x: spouseX,
+        parentBottomY: visualY + CARD_H / 2,
+        childXs: [],
+        childTopY: visualY + CARD_H / 2,
+        isSpouseLink: true
       });
-    }
+
+      // Descendant connector from UNION midpoint
+      if (u.children.length > 0) {
+        const unionX = (shiftedX + spouseX) / 2;
+        connectors.push({
+          id: `desc-${personId}-${partnerId}`,
+          p1x: unionX, p2x: unionX,
+          parentBottomY: visualY + CARD_H / 2, 
+          childXs: u.children.map(c => {
+            const childNode = node.children?.find(cn => cn.data === c);
+            return (childNode?.x ?? 0) + xShift;
+          }),
+          childTopY: (generation + 1) * (CARD_H + V_GAP)
+        });
+      }
+    });
   });
 
   const allPos = Array.from(positions.values());
@@ -462,38 +455,33 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
   return (
     <>
       {connectors.map(c => {
-        const hasSpouse = c.p1x !== c.p2x;
-        const p1RX   = c.p1x + CARD_W / 2;
-        const p2LX   = c.p2x - CARD_W / 2;
-        const unionX = hasSpouse ? (p1RX + p2LX) / 2 : c.p1x;
+        if (c.isSpouseLink) {
+          const p1X = c.p1x < c.p2x ? c.p1x + CARD_W / 2 : c.p1x - CARD_W / 2;
+          const p2X = c.p1x < c.p2x ? c.p2x - CARD_W / 2 : c.p2x + CARD_W / 2;
+          return (
+            <line key={c.id} x1={p1X} y1={c.parentBottomY} x2={p2X} y2={c.parentBottomY}
+              stroke={spouseColor} strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" opacity={0.6} />
+          );
+        }
+
         const elbowY = c.parentBottomY + (c.childTopY - c.parentBottomY) * 0.5;
 
         return (
           <g key={c.id}>
-            {/* Horizontal spouse connection */}
-            {hasSpouse && (
-              <line x1={p1RX} y1={c.parentBottomY - CARD_H/2} x2={p2LX} y2={c.parentBottomY - CARD_H/2}
-                stroke={spouseColor} strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" opacity={0.6} />
-            )}
-            
             {/* Junction dot */}
-            <circle cx={unionX} cy={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} r={4.5} 
-              fill={hasSpouse ? spouseColor : lineColor} stroke="white" strokeWidth={2} />
-
+            <circle cx={c.p1x} cy={c.parentBottomY} r={4.5} fill={lineColor} stroke="white" strokeWidth={2} />
+            
             {/* Vertical stem */}
-            <line x1={unionX} y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} x2={unionX} y2={elbowY}
-              stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+            <line x1={c.p1x} y1={c.parentBottomY} x2={c.p1x} y2={elbowY} stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
 
             {/* Horizontal bus */}
             {c.childXs.length > 1 && (
-              <line x1={Math.min(...c.childXs)} y1={elbowY} x2={Math.max(...c.childXs)} y2={elbowY}
-                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+              <line x1={Math.min(...c.childXs)} y1={elbowY} x2={Math.max(...c.childXs)} y2={elbowY} stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
             )}
 
             {/* Vertical drops */}
             {c.childXs.map((cx, i) => (
-              <line key={i} x1={cx} y1={elbowY} x2={cx} y2={c.childTopY}
-                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+              <line key={i} x1={cx} y1={elbowY} x2={cx} y2={c.childTopY} stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
             ))}
           </g>
         );
@@ -556,17 +544,11 @@ function PersonNode({
           isFocus && "ring-2 ring-primary/20",
         )}
       >
-        {/* Decorative Background Pattern */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
              style={{ backgroundImage: `radial-gradient(${accentHex} 1px, transparent 1px)`, backgroundSize: "12px 12px" }} />
-
-        {/* Left accent bar */}
         <div className="absolute left-0 inset-y-0 w-1.5"
           style={{ backgroundColor: accentHex, opacity: isDead ? 0.3 : 1 }} />
-
-        {/* Card Content */}
         <div className="flex items-center w-full pl-5 pr-4 gap-4 z-10">
-          {/* Avatar Container */}
           <div className="relative flex-shrink-0">
             <div className={cn(
               "rounded-2xl flex items-center justify-center text-[13px] font-black text-white shadow-sm transition-transform duration-500 group-hover:scale-105",
@@ -579,13 +561,10 @@ function PersonNode({
             }}>
               {initials}
             </div>
-            
-            {/* Live/Status Indicator */}
             {!isDead && person.status === 'active' && (
               <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" />
             )}
           </div>
-
           <div className="flex-1 min-w-0 py-1">
             <h4 className={cn("text-[14px] font-black tracking-tight leading-none truncate mb-1.5", t.text)}
               style={{ opacity: isDead ? 0.6 : 1 }}>
@@ -601,8 +580,6 @@ function PersonNode({
               </p>
             )}
           </div>
-          
-          {/* Deceased Marker */}
           {isDead && (
             <div className="flex-shrink-0 opacity-20">
               <div className="w-1.5 h-6 bg-slate-400 rounded-full" />
@@ -610,8 +587,6 @@ function PersonNode({
           )}
         </div>
       </button>
-
-      {/* Collapse / expand button - Styled to be more integrated */}
       {hasKids && (
         <button
           onClick={e => { e.stopPropagation(); onCollapse(person.id); }}
@@ -652,11 +627,10 @@ function IconBtn({ onClick, title, children, className = "" }: {
 function TreeCanvas({ treeId }: FamilyTreeProps) {
   const router         = useRouter();
   const containerRef   = useRef<HTMLDivElement>(null);
-  const canvasDivRef   = useRef<HTMLDivElement>(null); // flex-1 canvas area
+  const canvasDivRef   = useRef<HTMLDivElement>(null); 
   const exportRef      = useRef<HTMLDivElement>(null);
   const transformRef   = useRef<ReactZoomPanPinchRef | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  // Tracks whether the initial centering has fired (for delay logic)
   const centeredRef    = useRef(false);
 
   const [themeKey, setThemeKey]             = useState<ThemeKey>("light");
@@ -675,13 +649,11 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
 
   const t = THEMES[themeKey];
 
-  // ── Data ───────────────────────────────────────────────────────────────────
   const { data: rawPeople, isLoading } = useQuery({
     queryKey: ["tree-visual", treeId],
     queryFn:  async () => (await api.get(`/trees/${treeId}/visual`)).data as Person[],
   });
 
-  // ── Fullscreen ─────────────────────────────────────────────────────────────
   const toggleFS = useCallback(() =>
     document.fullscreenElement
       ? document.exitFullscreen()
@@ -693,31 +665,15 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     return () => document.removeEventListener("fullscreenchange", h);
   }, []);
 
-    // ── Graph processing ───────────────────────────────────────────────────────
-  const { peopleMap, unions, rootClusters, peopleInTree } = useMemo(() => {
+  const { peopleMap, unions, peopleInTree } = useMemo(() => {
     if (!rawPeople) return {
       peopleMap: new Map<string, Person>(), unions: [] as Union[],
-      rootClusters: [] as string[][], peopleInTree: [] as Person[],
+      peopleInTree: [] as Person[],
     };
 
-    // Include people who have at least one relationship, 
-    // OR if there is only 1 person in the tree (the creator).
-    const connected = new Set<string>();
-    rawPeople.forEach(p => {
-      if (p.relationships.length > 0) {
-        connected.add(p.id);
-        p.relationships.forEach(r => connected.add(r.targetId));
-      }
-    });
-    const inTree = rawPeople.filter(p => connected.has(p.id));
-
-    // const inTree = (rawPeople.length === 1 || connected.size > 0) 
-    //   ? rawPeople.filter(p => connected.has(p.id) || rawPeople.length === 1)
-    //   : rawPeople.filter(p => connected.has(p.id));
-
+    const inTree = rawPeople;
     const pMap     = new Map<string, Person>();
     const unionMap = new Map<string, Union>();
-    const hasParent = new Set<string>();
 
     inTree.forEach(p => pMap.set(p.id, p));
 
@@ -725,7 +681,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       const parents = person.relationships
         .filter(r => r.type === "parent").map(r => r.targetId).sort();
       if (parents.length) {
-        hasParent.add(person.id);
         const key = parents.join("–");
         if (!unionMap.has(key))
           unionMap.set(key, { id: key, partner1Id: parents[0], partner2Id: parents[1] ?? null, childrenIds: [] });
@@ -741,36 +696,9 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       })
     );
 
-    const rootIds = inTree.filter(p => !hasParent.has(p.id)).map(p => p.id);
-
-    // ── Sibling Root Grouping ──
-    const rootClusters: string[][] = [];
-    const usedInCluster = new Set<string>();
-
-    rootIds.forEach(rid => {
-      if (usedInCluster.has(rid)) return;
-      const cluster = [rid];
-      usedInCluster.add(rid);
-
-      const queue = [rid];
-      while (queue.length > 0) {
-        const currentId = queue.shift()!;
-        const person = pMap.get(currentId);
-        person?.relationships
-          .filter(r => r.type === "sibling" && rootIds.includes(r.targetId) && !usedInCluster.has(r.targetId))
-          .forEach(r => {
-            cluster.push(r.targetId);
-            usedInCluster.add(r.targetId);
-            queue.push(r.targetId);
-          });
-      }
-      rootClusters.push(cluster);
-    });
-
     return {
       peopleMap:    pMap,
       unions:       Array.from(unionMap.values()),
-      rootClusters,
       peopleInTree: inTree,
     };
   }, [rawPeople]);
@@ -781,14 +709,12 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     return m;
   }, [rawPeople]);
 
-  // ── Layout (D3) ────────────────────────────────────────────────────────────
   const layout = useMemo(() => {
     if (peopleInTree.length === 0) return null;
     const genTree = buildGenTree(peopleInTree, unions, collapsedSet);
     return applyD3Layout(genTree);
   }, [unions, peopleInTree, collapsedSet]);
 
-  // ── Search ─────────────────────────────────────────────────────────────────
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
@@ -798,27 +724,14 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   }, [peopleInTree, searchQuery]);
 
   const searchHitIds = useMemo(() => new Set(searchResults.map(p => p.id)), [searchResults]);
-
   const openSearch  = useCallback(() => { setSearchOpen(true);  setTimeout(() => searchInputRef.current?.focus(), 80); }, []);
   const closeSearch = useCallback(() => { setSearchOpen(false); setSearchQuery(""); }, []);
 
-  // ── Centering ──────────────────────────────────────────────────────────────
-  /**
-   * Uses the ACTUAL content bounding box (not full canvas dimensions) so that
-   * isolated outlier nodes (like a solo "BA" root far to the right) don't push
-   * the center into empty space.
-   *
-   * setTransform is used instead of centerView because centerView aims at the
-   * exact centre of the canvas element, which includes the large PADDING zone
-   * and the empty space to the right of outlier roots.
-   */
   const centerTree = useCallback(() => {
     if (!transformRef.current || !layout) return;
-
     const nodePositions = Array.from(layout.nodes.values());
     if (nodePositions.length === 0) return;
 
-    // Content bounding box in canvas coordinates (layout coords + PADDING offset)
     const xs = nodePositions.map(p => p.x);
     const ys = nodePositions.map(p => p.y);
     const cMinX = Math.min(...xs) - CARD_W / 2 + PADDING;
@@ -831,44 +744,32 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     const contentCX = (cMinX + cMaxX) / 2;
     const contentCY = (cMinY + cMaxY) / 2;
 
-    // Viewport = the flex-1 canvas div (not full window width)
     const vpW = canvasDivRef.current?.clientWidth  ?? window.innerWidth - (showSandbox ? SIDEBAR_W : 0);
     const vpH = canvasDivRef.current?.clientHeight ?? window.innerHeight;
 
-    // Scale to fill ~88% of the viewport, capped at INITIAL_SCALE (don't zoom in)
-    const fitScale = Math.min(
-      vpW * 0.88 / contentW,
-      vpH * 0.85 / contentH,
-      INITIAL_SCALE,
-    );
+    const fitScale = Math.min(vpW * 0.88 / contentW, vpH * 0.85 / contentH, INITIAL_SCALE);
 
-    // Translate so contentCX maps to vpW/2 and contentCY maps to vpH/2
     transformRef.current.setTransform(
       vpW / 2 - contentCX * fitScale,
       vpH / 2 - contentCY * fitScale,
       fitScale,
-      centeredRef.current ? 300 : 0, // animate re-centers; snap on first load
+      centeredRef.current ? 300 : 0,
     );
   }, [layout, showSandbox]);
 
   useEffect(() => {
-    if (!layout) return; // ← KEY FIX: don't attempt to center before data loads
-
-    // First center: short delay lets the DOM paint before we measure
-    // Subsequent centers (sidebar toggle): longer delay for spring animation
+    if (!layout) return;
     const delay = centeredRef.current ? 380 : 150;
     centeredRef.current = true;
     const timer = setTimeout(centerTree, delay);
     return () => clearTimeout(timer);
-  }, [layout, showSandbox, centerTree]); // ← layout in deps fixes the "always top-left" bug
+  }, [layout, showSandbox, centerTree]);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCardClick = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
   const handleDrop      = useCallback((src: string, tgt: string) => { setProposalSrc(src); setProposalTgt(tgt); }, []);
   const toggleCollapse  = useCallback((id: string) =>
     setCollapsedSet(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
   const doExport = useCallback(async (format: "png" | "pdf") => {
     if (!exportRef.current) return;
     setIsExporting(true); setExportMenuOpen(false);
@@ -888,10 +789,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     } finally { setIsExporting(false); }
   }, [t.canvas]);
 
-  // ── Loading / empty state ─────────────────────────────────────────────────
-  if (isLoading) {
-    return null; // Parent page handles initial loading
-  }
+  if (isLoading) return null;
 
   const canvasW = (layout?.totalWidth  ?? 0) + PADDING * 2;
   const canvasH = (layout?.totalHeight ?? 0) + PADDING * 2;
@@ -901,9 +799,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       className="relative flex w-full h-full overflow-hidden transition-colors duration-500"
       style={{ backgroundColor: t.canvas }}>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          OUTER OVERLAY — sidebar toggle + search (straddles sidebar/canvas)
-      ══════════════════════════════════════════════════════════════════ */}
       <div className="absolute inset-0 pointer-events-none z-30">
         <div className="absolute top-4 left-4 pointer-events-auto">
           <IconBtn onClick={() => setShowSandbox(s => !s)}
@@ -952,9 +847,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          SIDEBAR
-      ══════════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {showSandbox && (
           <motion.div
@@ -969,25 +861,14 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         )}
       </AnimatePresence>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          CANVAS  (flex-1)
-          All overlays are children here → left-1/2 is canvas-relative,
-          not page-relative. The canvasDivRef gives us accurate clientWidth
-          for centering calculations.
-      ══════════════════════════════════════════════════════════════════ */}
       <div ref={canvasDivRef} className="flex-1 relative overflow-hidden">
-
-        {/* Canvas overlay — inset-0 (no left-8 offset) */}
         <div className="absolute inset-0 pointer-events-none z-20">
-
-          {/* Fullscreen — top-right of canvas */}
           <div className="absolute top-4 right-4 pointer-events-auto">
             <IconBtn onClick={toggleFS} title={isFullScreen ? "Exit fullscreen" : "Fullscreen"} className={t.iconBtn}>
               {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
             </IconBtn>
           </div>
 
-          {/* Stats — bottom-left */}
           {peopleInTree.length > 0 && (
             <div className="absolute bottom-4 left-4 pointer-events-auto">
               <div className={cn("flex items-center gap-1.5 px-3 h-8 rounded-xl text-[11px] font-medium", t.panel, t.muted)}>
@@ -997,7 +878,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
             </div>
           )}
 
-          {/* Bottom-centre floating toolbar */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
             <div className={cn("flex items-center gap-0.5 px-2 h-11 rounded-2xl", t.toolbar)}>
               <button title="Zoom out" onClick={() => transformRef.current?.zoomOut(0.3)}
@@ -1012,9 +892,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                 className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                 <ZoomIn className="w-3.5 h-3.5" />
               </button>
-
               <div className="w-px h-5 mx-1 bg-current opacity-10" />
-
               {(Object.keys(THEMES) as ThemeKey[]).map(k => {
                 const { Icon, name } = THEMES[k];
                 return (
@@ -1025,9 +903,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                   </button>
                 );
               })}
-
               <div className="w-px h-5 mx-1 bg-current opacity-10" />
-
               <div className="relative">
                 <button title="Export" onClick={() => setExportMenuOpen(o => !o)}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
@@ -1053,7 +929,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
             </div>
           </div>
         </div>
-        {/* end canvas overlay */}
 
         <TransformWrapper
           onInit={ref => { transformRef.current = ref; }}
@@ -1064,15 +939,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
           doubleClick={{ disabled: false, step: 0.5 }}
         >
           <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
-
-            {/* exportRef: wraps ALL layers → toPng captures complete tree */}
             <div ref={exportRef} style={{ position: "relative", width: canvasW, height: canvasH }}>
-
-              {/* Layer 1 — Themed background */}
               <ThemeBackground themeKey={themeKey} t={t} w={canvasW} h={canvasH} />
-
-              {/* Layer 2 — Connector SVG
-                  translate(PADDING, PADDING) aligns SVG coords with the card layer */}
               {layout && (
                 <svg className="absolute inset-0 pointer-events-none" width={canvasW} height={canvasH}>
                   <g transform={`translate(${PADDING},${PADDING})`}>
@@ -1080,16 +948,11 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                   </g>
                 </svg>
               )}
-
-              {/* Layer 3 — Person cards
-                  left/top = PADDING: coordinate origin matches SVG translate above */}
               <div className="absolute" style={{ left: PADDING, top: PADDING }}>
                 {layout && Array.from(layout.nodes.entries()).map(([pid, pos]) => {
                   const person = peopleMap.get(pid);
                   if (!person) return null;
-                  const hasKids = unions.some(u =>
-                    (u.partner1Id === pid || u.partner2Id === pid) && u.childrenIds.length > 0
-                  );
+                  const hasKids = unions.some(u => (u.partner1Id === pid || u.partner2Id === pid) && u.childrenIds.length > 0);
                   return (
                     <motion.div key={pid}
                       initial={{ opacity: 0, scale: 0.88, y: 6 }}
@@ -1108,7 +971,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                 })}
               </div>
 
-              {/* Empty state */}
               {peopleInTree.length === 0 && !isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className={cn("px-12 py-10 rounded-[2.5rem] border text-center shadow-xl max-w-md mx-auto", t.panel)}>
@@ -1126,15 +988,11 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                   </div>
                 </div>
               )}
-
             </div>
           </TransformComponent>
         </TransformWrapper>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          DRAWERS & MODALS
-      ══════════════════════════════════════════════════════════════════ */}
       <ProfileDrawer
         person={drawerPersonId ? (allPeopleMap.get(drawerPersonId) ?? null) : null}
         peopleMap={allPeopleMap}

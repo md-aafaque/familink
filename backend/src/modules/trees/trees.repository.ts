@@ -1,6 +1,7 @@
 import { getSession } from '../../core/database';
 import { normalizeNeo4jProperties } from '../../core/database-utils';
 import { v4 as uuidv4 } from 'uuid';
+import { PeopleRepository } from '../people/people.repository';
 
 export class TreesRepository {
   static async create(name: string, userId: string, userEmail: string, userName: string) {
@@ -98,6 +99,11 @@ export class TreesRepository {
   static async getVisualData(treeId: string) {
     const session = getSession();
     try {
+      // 1. Ensure generations are calculated (Idempotent BFS)
+      // Note: In production, we might want to skip this if generations already exist 
+      // but for accuracy, a quick recalculation ensures visual stability.
+      await PeopleRepository.updateTreeGenerations(treeId);
+
       const res = await session.run(
         `MATCH (p:Person {treeId: $treeId})
          WHERE p.deletedAt IS NULL
