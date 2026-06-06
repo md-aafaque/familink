@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const publicInvitationRoleSchema = z.enum(['member', 'viewer']);
+export const publicInvitationRoleSchema = z.enum(['admin', 'member', 'viewer']);
 export const accessRoleSchema = z.enum(['admin', 'member', 'viewer']);
 
 export const generateInvitationSchema = z.object({

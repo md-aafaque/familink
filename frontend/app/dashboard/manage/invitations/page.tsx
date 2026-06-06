@@ -48,7 +48,7 @@ export default function ManageInvitationsPage() {
 
   const generateMutation = useMutation({
     mutationFn: async (type: string) => {
-      const res = await api.post(`/trees/${selectedTreeId}/invitations`, { invitationType: type });
+      const res = await api.post(`/trees/${selectedTreeId}/invitations`, { role: type });
       return (res as any).data;
     },
     onSuccess: () => {
@@ -151,10 +151,10 @@ export default function ManageInvitationsPage() {
                     <div className="flex items-center gap-3">
                       <span className={cn(
                         "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                        inv.invitationType === 'admin' ? cn(theme.colors.primaryMuted, theme.colors.accent) : 
-                        inv.invitationType === 'member' ? "bg-violet-500/10 text-violet-600" : "bg-slate-500/10 text-slate-500"
+                        inv.role === 'admin' ? cn(theme.colors.primaryMuted, theme.colors.accent) : 
+                        inv.role === 'member' ? "bg-violet-500/10 text-violet-600" : "bg-slate-500/10 text-slate-500"
                       )}>
-                        {inv.invitationType}
+                        {inv.role}
                       </span>
                       <div className={cn("flex items-center gap-1 text-xs font-medium", theme.colors.textMuted)}>
                         <Clock className="w-3 h-3" />
