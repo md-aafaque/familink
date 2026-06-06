@@ -10,21 +10,12 @@ export default async function relationshipsRoutes(fastify: FastifyInstance) {
   /**
    * Get suggested relationships for a person
    */
-  fastify.get('/people/:id/suggestions', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const session = getSession();
-    
-    try {
-      // Find the person to get their treeId
-      const person = await session.run(`MATCH (p:Person {id: $id}) RETURN p.treeId as treeId`, { id });
-      if (person.records.length === 0) throw new AppError('Person not found', 404);
-      const treeId = person.records[0].get('treeId');
-
-      const suggestions = await RelationshipsService.getSuggestedRelationships(id, treeId);
-      return { success: true, data: suggestions };
-    } finally {
-      await session.close();
-    }
+  fastify.get('/trees/:treeId/people/:id/suggestions', { 
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member', 'viewer'])] 
+  }, async (request, reply) => {
+    const { id, treeId } = request.params as { id: string, treeId: string };
+    const suggestions = await RelationshipsService.getSuggestedRelationships(id, treeId);
+    return { success: true, data: suggestions };
   });
 
   /**
