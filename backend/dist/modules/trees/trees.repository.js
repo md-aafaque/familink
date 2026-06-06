@@ -53,7 +53,9 @@ class TreesRepository {
             const result = await session.run(`
         MATCH (u:User {id: $userId})
         OPTIONAL MATCH (u)-[m:MEMBER_OF]->(t1:FamilyTree)
+        WHERE t1.deletedAt IS NULL
         OPTIONAL MATCH (u)-[:HAS_ACCESS_REQUEST]->(ar:TreeAccessRequest {status: 'pending'})-[:REQUESTS_ACCESS_TO]->(t2:FamilyTree)
+        WHERE t2.deletedAt IS NULL
         WITH 
           collect({tree: t1, role: m.role, status: 'active'}) + 
           collect({tree: t2, role: ar.requestedRole, status: 'pending'}) as entries
@@ -179,6 +181,29 @@ class TreesRepository {
             if (result.records.length === 0)
                 return null;
             return result.records[0].get('role');
+        }
+        finally {
+            await session.close();
+        }
+    }
+    static async renameTree(treeId, name) {
+        const session = (0, database_1.getSession)();
+        try {
+            await session.run(`MATCH (t:FamilyTree {id: $treeId}) SET t.name = $name RETURN t`, { treeId, name });
+        }
+        finally {
+            await session.close();
+        }
+    }
+    static async deleteTree(treeId) {
+        const session = (0, database_1.getSession)();
+        try {
+            // Soft delete: set deletedAt timestamp on the tree and all its components
+            await session.run(`MATCH (t:FamilyTree {id: $treeId}) 
+         SET t.deletedAt = timestamp()
+         WITH t
+         MATCH (t)<-[:BELONGS_TO_TREE]-(p:Person)
+         SET p.deletedAt = timestamp()`, { treeId });
         }
         finally {
             await session.close();

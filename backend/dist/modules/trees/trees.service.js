@@ -25,5 +25,19 @@ class TreesService {
     static async getMembers(treeId) {
         return trees_repository_1.TreesRepository.getMembers(treeId);
     }
+    static async renameTree(treeId, userId, name) {
+        const isAdmin = await trees_repository_1.TreesRepository.isAdmin(treeId, userId);
+        if (!isAdmin)
+            throw new errors_1.AppError('Only admins can rename the tree', 403);
+        await trees_repository_1.TreesRepository.renameTree(treeId, name);
+        await audit_service_1.AuditService.log(treeId, userId, 'tree_renamed', 'FamilyTree', treeId, { name });
+    }
+    static async deleteTree(treeId, userId) {
+        const isAdmin = await trees_repository_1.TreesRepository.isAdmin(treeId, userId);
+        if (!isAdmin)
+            throw new errors_1.AppError('Only admins can delete the tree', 403);
+        await trees_repository_1.TreesRepository.deleteTree(treeId);
+        await audit_service_1.AuditService.log(treeId, userId, 'tree_deleted', 'FamilyTree', treeId);
+    }
 }
 exports.TreesService = TreesService;

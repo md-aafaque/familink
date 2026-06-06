@@ -3,7 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = peopleRoutes;
 const people_1 = require("@shared/schemas/people");
 const people_service_1 = require("./people.service");
+const people_repository_1 = require("./people.repository");
 const tree_auth_1 = require("../../middleware/tree-auth");
+const errors_1 = require("../../core/errors");
 const zod_1 = require("zod");
 const treeIdParamSchema = zod_1.z.object({
     treeId: zod_1.z.string().uuid()
@@ -17,6 +19,16 @@ const mergeParamsSchema = zod_1.z.object({
     targetId: zod_1.z.string().uuid()
 });
 async function peopleRoutes(fastify) {
+    /**
+     * Global person lookup (no tree isolation)
+     */
+    fastify.get('/people/:id/global', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+        const { id } = zod_1.z.object({ id: zod_1.z.string().uuid() }).parse(request.params);
+        const person = await people_repository_1.PeopleRepository.findByIdGlobal(id);
+        if (!person)
+            throw new errors_1.AppError('Profile not found', 404);
+        return { success: true, data: person };
+    });
     /**
      * Create a new person
      */

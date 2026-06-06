@@ -62,6 +62,14 @@ class RelationshipRepository {
     static async createOfficialRelationship(treeId, fromId, toId, type, createdBy, approvedBy) {
         const session = (0, database_1.getSession)();
         try {
+            const reciprocalMap = {
+                'parent': 'child',
+                'child': 'parent',
+                'spouse': 'spouse',
+                'sibling': 'sibling',
+                'adopted_child': 'parent'
+            };
+            const reciprocalType = reciprocalMap[type] || type;
             // 1. Create primary relationship
             const res1 = await session.run(`
         MATCH (a:Person {id: $fromId, treeId: $treeId}), (b:Person {id: $toId, treeId: $treeId})
@@ -74,15 +82,43 @@ class RelationshipRepository {
             if (res1.records.length === 0) {
                 throw new errors_1.AppError('Failed to create relationship: One or both people not found', 404);
             }
-            // 2. Handle bidirectional types
-            if (['spouse', 'sibling'].includes(type)) {
+            // 2. Create reciprocal relationship
+            await session.run(`
+        MATCH (a:Person {id: $fromId, treeId: $treeId}), (b:Person {id: $toId, treeId: $treeId})
+        MERGE (b)-[r:FAMILY_RELATIONSHIP {type: $reciprocalType, treeId: $treeId}]->(a)
+        ON CREATE SET r.createdBy = $createdBy, 
+                      r.approvedBy = $approvedBy, 
+                      r.createdAt = timestamp()
+        `, { fromId, toId, reciprocalType, treeId, createdBy, approvedBy });
+            // 3. Sibling Parent Inference
+            if (type === 'sibling') {
                 await session.run(`
           MATCH (a:Person {id: $fromId, treeId: $treeId}), (b:Person {id: $toId, treeId: $treeId})
-          MERGE (b)-[r:FAMILY_RELATIONSHIP {type: $type, treeId: $treeId}]->(a)
-          ON CREATE SET r.createdBy = $createdBy, 
-                        r.approvedBy = $approvedBy, 
-                        r.createdAt = timestamp()
-          `, { fromId, toId, type, treeId, createdBy, approvedBy });
+          
+          // Parents of A -> become parents of B
+          OPTIONAL MATCH (pA:Person)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(a)
+          WHERE pA.deletedAt IS NULL
+          WITH a, b, collect(pA) as parentsA
+          UNWIND (CASE WHEN size(parentsA) > 0 THEN parentsA ELSE [null] END) as p1
+          WITH a, b, p1 WHERE p1 IS NOT NULL
+          MERGE (p1)-[r1:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(b)
+          ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+          MERGE (b)-[r2:FAMILY_RELATIONSHIP {type: 'child', treeId: $treeId}]->(p1)
+          ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          
+          WITH DISTINCT a, b
+          
+          // Parents of B -> become parents of A
+          OPTIONAL MATCH (pB:Person)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(b)
+          WHERE pB.deletedAt IS NULL
+          WITH a, b, collect(pB) as parentsB
+          UNWIND (CASE WHEN size(parentsB) > 0 THEN parentsB ELSE [null] END) as p2
+          WITH a, b, p2 WHERE p2 IS NOT NULL
+          MERGE (p2)-[r3:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(a)
+          ON CREATE SET r3.createdBy = $createdBy, r3.approvedBy = $approvedBy, r3.createdAt = timestamp()
+          MERGE (a)-[r4:FAMILY_RELATIONSHIP {type: 'child', treeId: $treeId}]->(p2)
+          ON CREATE SET r4.createdBy = $createdBy, r4.approvedBy = $approvedBy, r4.createdAt = timestamp()
+          `, { fromId, toId, treeId, createdBy, approvedBy });
             }
         }
         finally {
@@ -92,10 +128,20 @@ class RelationshipRepository {
     static async softDeleteRelationship(treeId, fromId, toId, type, deletedBy) {
         const session = (0, database_1.getSession)();
         try {
+            const reciprocalMap = {
+                'parent': 'child',
+                'child': 'parent',
+                'spouse': 'spouse',
+                'sibling': 'sibling',
+                'adopted_child': 'parent'
+            };
+            const reciprocalType = reciprocalMap[type] || type;
             await session.run(`
-        MATCH (a:Person {id: $fromId, treeId: $treeId})-[r:FAMILY_RELATIONSHIP {type: $type, treeId: $treeId}]-(b:Person {id: $toId, treeId: $treeId})
+        MATCH (a:Person {id: $fromId, treeId: $treeId})-[r:FAMILY_RELATIONSHIP {treeId: $treeId}]-(b:Person {id: $toId, treeId: $treeId})
+        WHERE (r.type = $type AND startNode(r).id = $fromId AND endNode(r).id = $toId)
+           OR (r.type = $reciprocalType AND startNode(r).id = $toId AND endNode(r).id = $fromId)
         SET r.deletedAt = timestamp(), r.deletedBy = $deletedBy
-        `, { fromId, toId, type, treeId, deletedBy });
+        `, { fromId, toId, type, reciprocalType, treeId, deletedBy });
         }
         finally {
             await session.close();

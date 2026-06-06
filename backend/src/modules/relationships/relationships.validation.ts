@@ -70,12 +70,8 @@ export class RelationshipValidation {
            MATCH path = (target)-[:FAMILY_RELATIONSHIP* {treeId: $treeId}]-(source)
            WHERE all(r in relationships(path) WHERE r.deletedAt IS NULL)
            AND all(idx in range(0, size(relationships(path))-1) WHERE 
-             let r = relationships(path)[idx] in
-             let prevNode = (idx = 0 ? target : (startNode(r) = nodes(path)[idx] ? startNode(r) : endNode(r))) in
-             let nextNode = nodes(path)[idx+1] in
-             (r.type = 'parent' AND startNode(r) = nextNode AND endNode(r) = prevNode) OR
-             (r.type = 'child' AND startNode(r) = prevNode AND endNode(r) = nextNode) OR
-             (r.type = 'adopted_child' AND startNode(r) = nextNode AND endNode(r) = prevNode)
+             (relationships(path)[idx].type IN ['parent', 'adopted_child'] AND startNode(relationships(path)[idx]) = nodes(path)[idx+1] AND endNode(relationships(path)[idx]) = nodes(path)[idx]) OR
+             (relationships(path)[idx].type = 'child' AND startNode(relationships(path)[idx]) = nodes(path)[idx] AND endNode(relationships(path)[idx]) = nodes(path)[idx+1])
            )
            RETURN path`,
           { sourceId, targetId, treeId }

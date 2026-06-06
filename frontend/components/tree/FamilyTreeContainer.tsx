@@ -1,10 +1,6 @@
 "use client";
 
-// ─── layout math via d3-hierarchy; all UI stays in React/Tailwind ────────────
-// Install:  npm install d3-hierarchy
-// Types:    npm install -D @types/d3-hierarchy
 import { hierarchy as d3Hierarchy, tree as d3Tree, HierarchyNode } from "d3-hierarchy";
-
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { useQuery } from "@tanstack/react-query";
@@ -311,7 +307,23 @@ function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<strin
   // Identify roots: people with no parents IN THE TREE
   const hasParent = new Set<string>();
   unions.forEach(u => u.childrenIds.forEach(cid => hasParent.add(cid)));
-  const roots = people.filter(p => !hasParent.has(p.id) && !visited.has(p.id));
+
+  // A person should NOT be a root if they are a spouse of someone who HAS parents
+  // (because they should be pulled in as a spouse of that descendant instead).
+  const isSpouseOfDescendant = new Set<string>();
+  people.forEach(p => {
+    if (hasParent.has(p.id)) {
+      p.relationships.forEach(rel => {
+        if (rel.type === 'spouse') isSpouseOfDescendant.add(rel.targetId);
+      });
+    }
+  });
+
+  const roots = people.filter(p => 
+    !hasParent.has(p.id) && 
+    !isSpouseOfDescendant.has(p.id) && 
+    !visited.has(p.id)
+  );
 
   // If multiple roots, we might have siblings. Try to group them.
   const rootUnits: GenUnit[] = [];
