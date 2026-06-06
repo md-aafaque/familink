@@ -5,10 +5,18 @@ import api from "@/lib/api";
 import DataState from "@/components/shared/DataState";
 import { Check, X, User, ArrowRight, Calendar, GitPullRequest, ChevronDown } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import CustomSelect from "@/components/ui/CustomSelect";
+// ... (rest of imports)
+
+// [Need to add import statement]
+// Actually, I have to replace the whole file or manage the imports separately. 
+// Let's do it in steps. 
+// First, add the import to the top of the file.
+
 
 export default function ManageProposalsPage() {
   const queryClient = useQueryClient();
@@ -20,20 +28,23 @@ export default function ManageProposalsPage() {
     queryKey: ["trees"],
     queryFn: async () => {
       const res = await api.get("/trees");
-      const data = (res as any).data;
-      if (data?.length > 0 && !selectedTreeId) {
-        const adminTree = data.find((t: any) => t.role === 'admin');
-        setSelectedTreeId(adminTree?.id || data[0].id);
-      }
-      return data;
+      return (res as any).data;
     },
   });
+
+  // Initialize selectedTreeId
+  useEffect(() => {
+    if (trees?.length > 0 && !selectedTreeId) {
+      const adminTree = trees.find((t: any) => t.role === 'admin');
+      setSelectedTreeId(adminTree?.id || trees[0].id);
+    }
+  }, [trees, selectedTreeId]);
 
   const { data: proposals, isLoading, isError, error } = useQuery({
     queryKey: ["tree-proposals", selectedTreeId],
     queryFn: async () => {
       const res = await api.get(`/trees/${selectedTreeId}/relationship-proposals`);
-      return (res as any).data;
+      return (res as any).data; // axios interceptor returns { success, data }
     },
     enabled: !!selectedTreeId,
   });
@@ -70,7 +81,7 @@ export default function ManageProposalsPage() {
 
       {/* Tree Selector */}
       <section className="relative">
-        <div className={cn("p-8 rounded-[2rem] shadow-xl overflow-hidden transition-colors duration-500", theme.isDark ? "bg-slate-900" : "bg-slate-900")}>
+        <div className={cn("p-8 rounded-[2rem] shadow-xl transition-colors duration-500", theme.isDark ? "bg-slate-900" : "bg-slate-900")}>
           <div className="absolute top-0 right-0 p-8 opacity-10">
              <GitPullRequest className="w-32 h-32 text-white" />
           </div>
@@ -82,21 +93,12 @@ export default function ManageProposalsPage() {
             </div>
             
             <div className="relative min-w-[300px]">
-              <select
+              <CustomSelect
                 value={selectedTreeId}
-                onChange={(e) => setSelectedTreeId(e.target.value)}
-                className="w-full pl-6 pr-12 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl font-bold text-white focus:ring-4 focus:ring-primary/30 outline-none appearance-none transition-all cursor-pointer backdrop-blur-md"
-              >
-                {!trees && <option className="text-slate-900">Loading trees...</option>}
-                {trees?.map((tree: any) => (
-                  <option key={tree.id} value={tree.id} className="text-slate-900">
-                    {tree.name} ({tree.role})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
-                <ChevronDown className="w-5 h-5" />
-              </div>
+                onChange={setSelectedTreeId}
+                options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
+                placeholder="Choose a tree..."
+              />
             </div>
           </div>
         </div>

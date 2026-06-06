@@ -8,6 +8,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 export default function ManageUsersPage() {
   const queryClient = useQueryClient();
@@ -60,7 +61,7 @@ export default function ManageUsersPage() {
 
       {/* Tree Selector */}
       <section className="relative">
-        <div className={cn("p-8 rounded-[2rem] shadow-xl overflow-hidden transition-colors duration-500", theme.isDark ? "bg-slate-900" : "bg-slate-900")}>
+        <div className={cn("p-8 rounded-[2rem] shadow-xl transition-colors duration-500", theme.isDark ? "bg-slate-900" : "bg-slate-900")}>
           <div className="absolute top-0 right-0 p-8 opacity-10">
              <Shield className="w-32 h-32 text-white" />
           </div>
@@ -70,21 +71,12 @@ export default function ManageUsersPage() {
               <p className="text-slate-300 font-medium">Manage members for the selected workspace</p>
             </div>
             <div className="relative min-w-[300px]">
-              <select
+              <CustomSelect
                 value={selectedTreeId}
-                onChange={(e) => setSelectedTreeId(e.target.value)}
-                className="w-full pl-6 pr-12 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl font-bold text-white focus:ring-4 focus:ring-primary/30 outline-none appearance-none transition-all cursor-pointer backdrop-blur-md"
-              >
-                {!trees && <option className="text-slate-900">Loading trees...</option>}
-                {trees?.map((tree: any) => (
-                  <option key={tree.id} value={tree.id} className="text-slate-900">
-                    {tree.name} ({tree.role})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
-                <Users className="w-5 h-5" />
-              </div>
+                onChange={setSelectedTreeId}
+                options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
+                placeholder="Choose a tree..."
+              />
             </div>
           </div>
         </div>
