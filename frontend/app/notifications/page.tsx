@@ -134,7 +134,7 @@ export default function NotificationsPage() {
                       onClick={markAllAsRead}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn("flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium", theme.colors.primary)}
+                      className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium bg-indigo-500 hover:bg-indigo-600"
                     >
                       <Check className="w-4 h-4" />
                       Mark All as Read
