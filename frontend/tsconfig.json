@@ -18,11 +18,17 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@/*": ["./*"],
+      "@shared/*": ["lib/shared/*"]
+    }
   },
   "include": [
     "next-env.d.ts",

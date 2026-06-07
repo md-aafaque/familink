@@ -17,9 +17,9 @@ Login: open `/login` and use a mock token like `alice` with role `admin`/`editor
 Supabase setup:
 
 - Create a Supabase project at https://app.supabase.com
-- Go to Project Settings → API and copy the `Project URL` and `anon public` key.
-- In Project Settings → API find the `JWT Secret` and copy it for the backend.
-- In Authentication → Settings → External OAuth Providers enable Google and add redirect URL: `http://localhost:3000/login`.
+- Go to Project Settings > API and copy the `Project URL` and `anon public` key.
+- In Project Settings > API find the `JWT Secret` and copy it for the backend.
+- In Authentication > Settings > External OAuth Providers enable Google and add redirect URL: `http://localhost:3000/login`.
 
 Create a `.env.local` with these values:
 

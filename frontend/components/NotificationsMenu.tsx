@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Trash2, Check, X } from 'lucide-react';
 import api from '../lib/api';
+import { useRouter } from 'next/navigation';
+import { formatDateTime } from '../lib/dateUtils';
+import { useAppTheme } from './providers/ThemeProvider';
+import { cn } from '@/lib/cn';
 
 type Notification = {
   id: string;
@@ -19,7 +23,8 @@ export default function NotificationsMenu() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { theme } = useAppTheme();
 
   useEffect(() => {
     loadNotifications();
@@ -77,11 +82,71 @@ export default function NotificationsMenu() {
     }
   }
 
+  const handleNotificationClick = async (notif: Notification) => {
+    if (!notif.isRead) {
+      await markAsRead(notif.id);
+    }
+
+    setOpen(false);
+
+    if (!notif.data) return;
+
+    try {
+      // Data might be a string (JSON) or an object depending on how it's handled by the client
+      const data = typeof notif.data === 'string' ? JSON.parse(notif.data) : notif.data;
+      
+      switch (notif.type) {
+        case 'access_request_pending':
+          router.push('/dashboard/manage/users');
+          break;
+        case 'access_request_approved':
+        case 'relationship_approved':
+        case 'relationship_rejected':
+        case 'claim_request_approved':
+        case 'claim_request_rejected':
+          if (data.treeId) router.push(`/tree/${data.treeId}`);
+          break;
+        case 'relationship_pending':
+          router.push('/dashboard/manage/proposals');
+          break;
+        case 'claim_request_pending':
+          router.push('/dashboard/manage/claims');
+          break;
+        default:
+          router.push('/notifications');
+      }
+    } catch (err) {
+      console.error('Failed to parse notification data', err);
+      router.push('/notifications');
+    }
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // The bell button handles its own click, so we shouldn't close if that's clicked
+      // However, the overlay is meant for outside clicks.
+      if (open) {
+        setOpen(false);
+      }
+    };
+    
+    if (open) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [open]);
+
   return (
     <div className="relative">
       {/* Bell Icon Button */}
       <motion.button
-        onClick={() => setOpen(!open)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
         className="relative p-2 hover:bg-slate-100 rounded-lg transition-colors"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -102,15 +167,18 @@ export default function NotificationsMenu() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-50"
+            className="fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[100]"
             onClick={(e) => e.stopPropagation()}
+            style={{ 
+              maxWidth: '400px',
+            }}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-orange-50 to-blue-50 border-b border-slate-200 p-4 flex items-center justify-between">
+            <div className={cn("border-b border-slate-200 p-4 flex items-center justify-between", theme.colors.primaryMuted)}>
               <div>
                 <h3 className="font-semibold text-slate-900">Notifications</h3>
                 <p className="text-sm text-slate-600">{unreadCount} unread</p>
@@ -120,7 +188,7 @@ export default function NotificationsMenu() {
                   {unreadCount > 0 && (
                     <button
                       onClick={() => markAllAsRead()}
-                      className="p-1 hover:bg-white rounded text-slate-600 hover:text-orange-600 transition-colors text-sm"
+                      className={cn("p-1 hover:bg-white rounded text-slate-600 hover:text-primary transition-colors text-sm")}
                       title="Mark all as read"
                     >
                       <Check className="w-4 h-4" />
@@ -152,9 +220,11 @@ export default function NotificationsMenu() {
                       key={notif.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className={`p-4 hover:bg-slate-50 transition-colors ${
-                        !notif.isRead ? 'bg-blue-50' : ''
-                      }`}
+                      onClick={() => handleNotificationClick(notif)}
+                      className={cn(
+                        "p-4 hover:bg-slate-50 transition-colors cursor-pointer",
+                        !notif.isRead && theme.colors.primaryMuted
+                      )}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -163,22 +233,22 @@ export default function NotificationsMenu() {
                               {notif.title}
                             </h4>
                             {!notif.isRead && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                              <div className={cn("w-2 h-2 rounded-full", theme.colors.primary)} />
                             )}
                           </div>
                           <p className="text-sm text-slate-600 mt-1 line-clamp-2">
                             {notif.message}
                           </p>
                           <p className="text-xs text-slate-500 mt-2">
-                            {new Date(notif.createdAt).toLocaleDateString()} {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            {formatDateTime(notif.createdAt)}
                           </p>
                         </div>
 
-                        <div className="flex gap-1 flex-shrink-0">
+                        <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           {!notif.isRead && (
                             <button
                               onClick={() => markAsRead(notif.id)}
-                              className="p-1 hover:bg-white rounded text-slate-400 hover:text-blue-600 transition-colors"
+                              className={cn("p-1 hover:bg-white rounded text-slate-400 hover:text-primary transition-colors")}
                               title="Mark as read"
                             >
                               <Check className="w-4 h-4" />
@@ -204,7 +274,7 @@ export default function NotificationsMenu() {
               <div className="bg-slate-50 border-t border-slate-200 p-3 text-center">
                 <a
                   href="/notifications"
-                  className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                  className={cn("text-sm font-medium hover:opacity-80 transition-colors", theme.colors.accent)}
                 >
                   View All Notifications
                 </a>

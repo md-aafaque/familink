@@ -1,0 +1,142 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = invitationRoutes;
+const invitations_1 = require("@shared/schemas/invitations");
+const invitations_service_1 = require("./invitations.service");
+const invitations_repository_1 = require("./invitations.repository");
+const tree_auth_1 = require("../../middleware/tree-auth");
+const config_1 = require("../../core/config");
+const errors_1 = require("../../core/errors");
+const zod_1 = require("zod");
+const treeIdParamSchema = zod_1.z.object({
+    treeId: zod_1.z.string().uuid()
+});
+const invitationIdParamSchema = treeIdParamSchema.extend({
+    invitationId: zod_1.z.string().uuid()
+});
+const requestIdParamSchema = treeIdParamSchema.extend({
+    requestId: zod_1.z.string().uuid()
+});
+async function invitationRoutes(fastify) {
+    /**
+     * Generate an invitation link
+     * Access: Admin only
+     */
+    fastify.post('/trees/:treeId/invitations', {
+        preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin'])]
+    }, async (request, reply) => {
+        const { treeId } = treeIdParamSchema.parse(request.params);
+        const { role } = invitations_1.generateInvitationSchema.parse(request.body);
+        const user = request.user;
+        const invite = await invitations_service_1.InvitationsService.generateInvitation(treeId, role, user.id);
+        return {
+            success: true,
+            data: {
+                ...invite,
+                url: `${config_1.config.FRONTEND_URL}/join/${invite.token}`
+            }
+        };
+    });
+    /**
+     * Create an email-specific admin invitation
+     */
+    fastify.post('/trees/:treeId/admin-invitations', {
+        preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin'])]
+    }, async (request, reply) => {
+        const { treeId } = treeIdParamSchema.parse(request.params);
+        const { email } = invitations_1.createAdminInvitationSchema.parse(request.body);
+        const user = request.user;
+        const invite = await invitations_service_1.InvitationsService.createAdminInvitation(treeId, email, user.id);
+        return { success: true, data: invite };
+    });
+    /**
+     * List active invitations for a tree
+     */
+    fastify.get('/trees/:treeId/invitations', {
+        preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin'])]
+    }, async (request, reply) => {
+        const { treeId } = treeIdParamSchema.parse(request.params);
+        const invitations = await invitations_repository_1.InvitationsRepository.listInvitations(treeId);
+        return {
+            success: true,
+            activeInvitations: invitations.map(inv => ({
+                ...inv,
+                invitationUrl: `${config_1.config.FRONTEND_URL}/join/${inv.token}`
+            }))
+        };
+    });
+    /**
+     * Get invitation info (public)
+     */
+    fastify.get('/invitations/:token', async (request, reply) => {
+        const { token } = zod_1.z.object({ token: zod_1.z.string() }).parse(request.params);
+        const invite = await invitations_repository_1.InvitationsRepository.findInvitationByToken(token);
+        if (!invite)
+            throw new errors_1.AppError('Invitation not found', 404);
+        if (invite.expiresAt < Date.now())
+            throw new errors_1.AppError('Invitation expired', 410);
+        return {
+            success: true,
+            data: {
+                treeId: invite.treeId,
+                role: invite.role,
+                expiresAt: invite.expiresAt
+            }
+        };
+    });
+    /**
+     * Accept invitation
+     */
+    fastify.post('/invitations/:token/accept', {
+        preHandler: [fastify.authenticate]
+    }, async (request, reply) => {
+        const { token } = zod_1.z.object({ token: zod_1.z.string() }).parse(request.params);
+        const user = request.user;
+        const result = await invitations_service_1.InvitationsService.acceptInvitation(token, user.id);
+        return result;
+    });
+    /**
+     * List pending access requests
+     */
+    fastify.get('/trees/:treeId/access-requests', {
+        preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin'])]
+    }, async (request, reply) => {
+        const { treeId } = treeIdParamSchema.parse(request.params);
+        const requests = await invitations_service_1.InvitationsService.getPendingRequests(treeId);
+        return { success: true, data: requests };
+    });
+    /**
+     * Approve access request
+     */
+    fastify.post('/trees/:treeId/access-requests/:requestId/approve', {
+        preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin'])]
+    }, async (request, reply) => {
+        const user = request.user;
+        const { treeId, requestId } = requestIdParamSchema.parse(request.params);
+        const result = await invitations_service_1.InvitationsService.approveRequest(requestId, user.id);
+        return result;
+    });
+    /**
+     * Reject access request
+     */
+    fastify.post('/trees/:treeId/access-requests/:requestId/reject', {
+        preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin'])]
+    }, async (request, reply) => {
+        const user = request.user;
+        const { treeId, requestId } = requestIdParamSchema.parse(request.params);
+        const { reason } = invitations_1.rejectAccessRequestSchema.parse(request.body);
+        const result = await invitations_service_1.InvitationsService.rejectRequest(requestId, reason, user.id);
+        return result;
+    });
+    /**
+     * Revoke an active invitation
+     */
+    fastify.post('/trees/:treeId/invitations/:invitationId/revoke', {
+        preHandler: [fastify.authenticate, (0, tree_auth_1.verifyTreeAccess)(['admin'])]
+    }, async (request, reply) => {
+        const user = request.user;
+        const { treeId, invitationId } = invitationIdParamSchema.parse(request.params);
+        const result = await invitations_service_1.InvitationsService.revokeInvitation(treeId, invitationId, user.id);
+        return result;
+    });
+}

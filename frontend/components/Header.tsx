@@ -1,128 +1,98 @@
 "use client";
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import api from '../lib/api';
-import supabase from '../lib/supabaseClient';
-import { LogOut, Home, Trees, Shield, UserPlus } from 'lucide-react';
-import NotificationsMenu from './NotificationsMenu';
+
+import NotificationsMenu from "@/components/NotificationsMenu";
+import { usePathname } from "next/navigation";
+import { useAppTheme, AppThemeType } from "./providers/ThemeProvider";
+import { Maximize, Minimize, Moon, Sun } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { useState } from "react";
 
 export default function Header() {
-  const [user, setUser] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const router = useRouter();
+  const pathname = usePathname();
+  const { themeType, setTheme, theme } = useAppTheme();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  useEffect(() => {
-    const getSession = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          const token = data.session.access_token;
-          localStorage.setItem('token', token);
-          setUser(data.session.user);
-          
-          // Check if user is admin
-          try {
-            const res = await api.get('/auth/me');
-            if (res.data.role === 'admin') {
-              setIsAdmin(true);
-            }
-          } catch (err) {
-            // Silently fail if not authenticated
-          }
-        } else {
-          const t = localStorage.getItem('token');
-          if (t) {
-            setUser({ id: 'unknown' });
-            // Try to get user role from API
-            try {
-              const res = await api.get('/auth/me');
-              if (res.data.role === 'admin') {
-                setIsAdmin(true);
-              }
-            } catch (err) {
-              // Silently fail
-            }
-          }
-        }
-      } catch (err) {
-        // Silently fail
-      }
-    };
-    
-    getSession();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        localStorage.setItem('token', session.access_token);
-        setUser(session.user);
-      } else {
-        localStorage.removeItem('token');
-        setUser(null);
-        setIsAdmin(false);
-      }
-    });
-    return () => listener.subscription.unsubscribe();
-  }, []);
+  const getTitle = () => {
+    if (pathname.includes('/dashboard/manage/proposals')) return 'Relationship Proposals';
+    if (pathname.includes('/dashboard/manage/invitations')) return 'Tree Invitations';
+    if (pathname.includes('/dashboard/manage/claims')) return 'Profile Claims';
+    if (pathname.includes('/dashboard/manage/users')) return 'Access Requests';
+    if (pathname.includes('/dashboard')) return 'Dashboard';
+    if (pathname.includes('/tree/')) return 'Family Tree';
+    if (pathname.includes('/notifications')) return 'Notifications';
+    return 'Family Tree';
+  };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAdmin(false);
-    router.push('/login');
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <Trees className="w-8 h-8 text-orange-600" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-blue-500 bg-clip-text text-transparent">Family Tree</span>
-            </a>
-            {user && (
-              <nav className="flex items-center gap-6">
-                <a href="/dashboard" className="flex items-center gap-2 text-slate-700 hover:text-orange-600 transition-colors font-medium">
-                  <Home className="w-5 h-5" />
-                  Dashboard
-                </a>
-                {isAdmin && (
-                  <a href="/admin/pending-users" className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors font-medium">
-                    <Shield className="w-5 h-5" />
-                    Admin
-                  </a>
-                )}
-              </nav>
-            )}
-          </div>
+    <header className={cn(
+      "h-16 flex items-center justify-between px-6 border-b sticky top-0 z-50 transition-colors",
+      theme.colors.header.bg,
+      theme.colors.header.border,
+      "backdrop-blur-md"
+    )}>
+      <div className="lg:hidden w-8"></div> {/* Spacer for sidebar toggle on mobile */}
+      
+      <div className="flex items-center gap-4">
+        <h1 className={cn("text-base font-bold tracking-tight", theme.colors.text)}>
+          {getTitle()}
+        </h1>
+      </div>
 
-          <div className="flex items-center gap-4">
-            {user ? (
-              <>
-                <NotificationsMenu />
-                <div className="text-right">
-                  <p className="text-sm text-slate-600">Welcome back</p>
-                  <p className="font-semibold text-slate-900">{user.email || user.id}</p>
-                </div>
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-2 btn-secondary"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center gap-3">
-                <a href="/signup" className="flex items-center gap-2 btn-primary">
-                  <UserPlus className="w-4 h-4" />
-                  Sign Up
-                </a>
-                <a href="/login" className="btn-secondary">Sign In</a>
-              </div>
+      <div className="flex items-center gap-2 ml-auto">
+        <div className={cn("flex items-center p-1 rounded-md border", theme.colors.bg, theme.colors.border)}>
+          <button
+            onClick={() => setTheme('light')}
+            className={cn(
+              "p-1.5 rounded transition-colors",
+              themeType === 'light' 
+                ? cn("bg-white shadow-sm border border-slate-200", theme.colors.accent)
+                : "text-slate-400 hover:text-slate-600"
             )}
-          </div>
+            title="Light Mode"
+          >
+            <Sun className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setTheme('dark')}
+            className={cn(
+              "p-1.5 rounded transition-colors",
+              themeType === 'dark' 
+                ? cn("bg-slate-800 shadow-sm border border-slate-700", theme.colors.accent) 
+                : "text-slate-500 hover:text-slate-300"
+            )}
+            title="Dark Mode"
+          >
+            <Moon className="w-4 h-4" />
+          </button>
         </div>
+
+        {pathname.includes('/tree/') && (
+          <button 
+            onClick={toggleFullscreen}
+            className={cn(
+              "p-2 rounded-md border transition-colors",
+              theme.colors.bg,
+              theme.colors.border,
+              "text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            )}
+          >
+            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+          </button>
+        )}
+        <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1" />
+        <NotificationsMenu />
       </div>
     </header>
   );

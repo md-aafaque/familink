@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '../../../lib/api';
+import api from '@/lib/api';
 import { Mail, Lock, Loader, Shield, Trees } from 'lucide-react';
 
 export default function AdminLoginPage() {
@@ -53,17 +53,17 @@ export default function AdminLoginPage() {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-linear-to-br from-orange-600 to-blue-500 rounded-lg">
+              <div className="p-3 bg-linear-to-br from-indigo-600 to-indigo-500 rounded-lg">
                 <Trees className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold bg-linear-to-r from-orange-600 to-blue-500 bg-clip-text text-transparent">Family Tree</h1>
+              <h1 className="text-3xl font-bold bg-linear-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent">Family Tree</h1>
             </div>
           </div>
 
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Shield className="w-6 h-6 text-blue-600" />
+              <Shield className="w-6 h-6 text-indigo-600" />
               <h2 className="text-2xl font-bold text-slate-900">Admin Login</h2>
             </div>
             <p className="text-slate-600">Sign in to your admin account</p>
@@ -139,7 +139,7 @@ export default function AdminLoginPage() {
               Need a regular account?{' '}
               <button
                 onClick={() => router.push('/signup')}
-                className="text-orange-600 hover:text-orange-700 font-medium"
+                className="text-indigo-600 hover:text-indigo-700 font-medium"
               >
                 Sign up here
               </button>

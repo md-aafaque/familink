@@ -1,143 +1,310 @@
 "use client";
-import { useEffect, useState } from 'react';
-import api from '../../lib/api'
-import { Plus, User, Calendar, Link as LinkIcon } from 'lucide-react';
 
-type Person = { id: string; name: string; dob?: string | null; dod?: string | null; createdBy?: string };
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../components/providers/AuthProvider";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "../../lib/api";
+import Link from "next/link";
+import TreeActionModal from "../../components/TreeActionModal";
 
-export default function Dashboard() {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+import {
+  TreeDeciduous,
+  Plus,
+  ArrowRight,
+  Users,
+  Clock,
+  LayoutGrid,
+  MoreVertical,
+} from "lucide-react";
 
-  async function load() {
-    try {
-      setError('');
-      const res = await api.get('/people');
-      setPeople(res.data || []);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load people');
-      setPeople([]);
+import DataState from "../../components/shared/DataState";
+import { motion } from "framer-motion";
+import Skeleton from "../../components/shared/Skeleton";
+import { cn } from "@/lib/cn";
+import { formatDate } from "../../lib/dateUtils";
+
+import { useAppTheme } from "../../components/providers/ThemeProvider";
+
+export default function DashboardPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const { theme } = useAppTheme();
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [activeModal, setActiveModal] = useState<{ type: 'rename' | 'delete', tree: any } | null>(null);
+  const queryClient = useQueryClient();
+
+  const deleteTreeMutation = useMutation({
+    mutationFn: async (id: string) => await api.delete(`/trees/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["trees"] }),
+  });
+
+  const renameTreeMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: string, name: string }) => await api.patch(`/trees/${id}`, { name }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["trees"] }),
+  });
+
+  // Protect route
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
     }
+  }, [authLoading, user, router]);
+
+  // Wait for auth
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className={cn("text-sm font-medium animate-pulse", theme.colors.textMuted)}>
+          Loading dashboard...
+        </div>
+      </div>
+    );
   }
 
-  useEffect(() => { load(); }, []);
-
-  async function create(e: any) {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setLoading(true);
-    try {
-      await api.post('/people', { name });
-      setName('');
-      setError('');
-      load();
-    } catch (err) {
-      console.error(err);
-      setError('Failed to create person');
-    } finally {
-      setLoading(false);
-    }
+  // Prevent render before redirect
+  if (!user) {
+    return null;
   }
+
+  const {
+    data: trees,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["trees"],
+    enabled: !!user, // only fetch when authenticated
+    queryFn: async () => {
+      const res = await api.get("/trees");
+      return (res as any).data;
+    },
+  });
+
+  const userName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
+    "User";
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="mb-2">Family Members</h1>
-        <p className="text-slate-600">Manage and explore your family tree</p>
-      </div>
+    <div className="space-y-10">
+      {/* Welcome Header */}
+      <header className="space-y-2">
+        <h1 className={cn("text-3xl font-bold tracking-tight", theme.colors.text)}>
+          Welcome, {userName}
+        </h1>
+        <p className={cn("text-base max-w-2xl", theme.colors.textMuted)}>
+          Manage your family trees, permissions, and historical records.
+        </p>
+      </header>
 
-      {/* Create Form */}
-      <div className="card">
-        <div className="card-header">
-          <h3 className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-orange-600" />
-            Add New Family Member
-          </h3>
-        </div>
-        
-        <form onSubmit={create} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            placeholder="Enter family member's name..."
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="flex-1 input-field"
-            disabled={loading}
-          />
-          <button
-            type="submit"
-            disabled={loading || !name.trim()}
-            className="btn-primary whitespace-nowrap flex items-center justify-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            {loading ? 'Adding...' : 'Add Person'}
-          </button>
-        </form>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {isLoading ? (
+          Array(3).fill(0).map((_, i) => (
+            <div key={i} className={cn("p-6 rounded-lg border shadow-sm space-y-3", theme.colors.surface, theme.colors.border)}>
+              <Skeleton className="w-10 h-10 rounded-md" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            </div>
+          ))
+        ) : (
+          <>
+            <div className={cn("p-6 rounded-lg border shadow-sm transition-all hover:shadow-md", theme.colors.surface, theme.colors.border)}>
+              <div className="flex items-center justify-between mb-4">
+                <div className={cn("w-10 h-10 rounded-md flex items-center justify-center", theme.colors.primaryMuted)}>
+                  <TreeDeciduous className={cn("w-5 h-5", theme.colors.accent)} />
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                <p className={cn("text-2xl font-bold", theme.colors.text)}>
+                  {trees?.filter((t: any) => t.status === 'active').length || 0}
+                </p>
+                <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
+                  Active Trees
+                </p>
+              </div>
+            </div>
 
-        {error && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
-          </div>
+            <div className={cn("p-6 rounded-lg border shadow-sm transition-all hover:shadow-md", theme.colors.surface, theme.colors.border)}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-emerald-50 dark:bg-emerald-900/20">
+                  <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                <p className={cn("text-2xl font-bold", theme.colors.text)}>
+                  --
+                </p>
+                <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
+                  Members
+                </p>
+              </div>
+            </div>
+
+            <div className={cn("p-6 rounded-lg border shadow-sm transition-all hover:shadow-md", theme.colors.surface, theme.colors.border)}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-amber-50 dark:bg-amber-900/20">
+                  <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                <p className={cn("text-2xl font-bold", theme.colors.text)}>
+                  --
+                </p>
+                <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
+                  Last Update
+                </p>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
-      {/* People List */}
-      <div>
-        <h2 className="mb-4">Family Members ({people.length})</h2>
-        
-        {people.length === 0 ? (
-          <div className="card text-center py-12">
-            <User className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-600 mb-2">No family members yet</p>
-            <p className="text-sm text-slate-500">Add your first family member to get started</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {people.map(p => (
-              <a
-                key={p.id}
-                href={`/person/${p.id}`}
-                className="card group hover:border-primary-300"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-linear-to-br from-orange-100 to-blue-100 rounded-lg group-hover:from-orange-200 group-hover:to-blue-200 transition-colors">
-                    <User className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 truncate group-hover:text-orange-600 transition-colors">
-                      {p.name}
-                    </h3>
-                    <div className="flex flex-col gap-1 mt-2 text-sm text-slate-600">
-                      {p.dob && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>Born: {p.dob}</span>
+      {/* Trees Section */}
+      <section className="space-y-6">
+        <div className={cn("flex items-center justify-between border-b pb-4", theme.colors.border)}>
+          <h2 className={cn("text-xl font-bold flex items-center gap-2.5", theme.colors.text)}>
+            <LayoutGrid className="w-5 h-5 opacity-50" />
+            Family Trees
+            {trees && trees.length > 0 && (
+              <span className={cn("ml-1 text-xs px-2 py-0.5 rounded-full font-bold", theme.colors.bg, theme.colors.textMuted)}>
+                {trees.length}
+              </span>
+            )}
+          </h2>
+
+          <Link
+            href="/dashboard/new-tree"
+            className={cn("flex items-center gap-1.5 text-sm font-semibold hover:underline", theme.colors.accent)}
+          >
+            <Plus className="w-4 h-4" />
+            New Tree
+          </Link>
+        </div>
+
+        <DataState
+          isLoading={isLoading}
+          isError={isError}
+          error={error as Error}
+        >
+          {trees && trees.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {trees.map((tree: any) => (
+                <div
+                  key={tree.id}
+                  className={cn(
+                    "group p-5 rounded-lg border shadow-sm transition-all relative overflow-hidden",
+                    theme.colors.surface,
+                    theme.colors.border,
+                    tree.status === 'pending' ? "opacity-60 cursor-not-allowed" : "hover:border-primary/50 hover:shadow-md"
+                  )}
+                >
+                  <div className="flex items-start justify-between">
+                    <Link
+                      href={tree.status === 'pending' ? '#' : `/tree/${tree.id}`}
+                      className="flex-1"
+                    >
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <h3 className={cn("text-lg font-bold group-hover:" + theme.colors.accent + " transition-colors", theme.colors.text)}>
+                            {tree.name}
+                          </h3>
+                          <p className={cn("text-xs font-medium", theme.colors.textMuted)}>
+                            Created {formatDate(tree.createdAt)}
+                          </p>
                         </div>
-                      )}
-                      {p.dod && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>Passed: {p.dod}</span>
+
+                        <div className="flex items-center gap-3">
+                           <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                            tree.status === 'pending' ? "bg-amber-100 text-amber-700" : cn(theme.colors.bg, theme.colors.textMuted)
+                          )}>
+                            {tree.status === 'pending' ? "Pending" : tree.role}
+                          </span>
+                          
+                          {tree.status !== 'pending' && (
+                            <span className={cn("flex items-center gap-1 text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity", theme.colors.accent)}>
+                              Open Tree <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                    
+                    {/* 3-dot Menu */}
+                    <div className="relative">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === tree.id ? null : tree.id); }}
+                        className={cn("p-1.5 rounded-md", theme.colors.textMuted, "hover:" + theme.colors.bg)}>
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                      
+                      {menuOpenId === tree.id && (
+                        <div className={cn("absolute right-0 mt-2 w-32 rounded-lg border shadow-lg z-50", theme.colors.surface, theme.colors.border)}>
+                           <button 
+                             onClick={(e) => { 
+                               e.stopPropagation(); 
+                               setActiveModal({ type: 'rename', tree });
+                               setMenuOpenId(null);
+                             }}
+                             className={cn("w-full text-left px-4 py-2 text-xs font-medium hover:bg-black/5", theme.colors.text)}>
+                             Rename
+                           </button>
+                           <button 
+                             onClick={(e) => { 
+                               e.stopPropagation(); 
+                               setActiveModal({ type: 'delete', tree });
+                               setMenuOpenId(null);
+                             }}
+                             className={cn("w-full text-left px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50", theme.colors.text)}>
+                             Delete
+                           </button>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <div className="flex items-center gap-2 text-blue-600 text-sm font-medium group-hover:gap-3 transition-all">
-                    View Details
-                    <LinkIcon className="w-4 h-4" />
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          ) : (
+            <div className={cn("border border-dashed rounded-lg p-12 text-center space-y-4 bg-slate-50/50 dark:bg-slate-900/50", theme.colors.border)}>
+              <div className="space-y-1">
+                <h3 className={cn("text-lg font-bold", theme.colors.text)}>
+                  No family trees yet
+                </h3>
+                <p className={cn("text-sm max-w-sm mx-auto", theme.colors.textMuted)}>
+                  Start documenting your family history by creating your first tree.
+                </p>
+              </div>
+
+              <Link
+                href="/dashboard/new-tree"
+                className={cn("inline-flex items-center gap-2 px-6 py-2.5 text-white rounded-md text-sm font-bold hover:opacity-90 transition-all shadow-sm", theme.colors.primary)}
+              >
+                Create Your First Tree
+                <Plus className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
+        </DataState>
+      </section>
+
+      {/* Tree Action Modal */}
+      {activeModal && (
+        <TreeActionModal 
+          isOpen={!!activeModal}
+          onClose={() => setActiveModal(null)}
+          type={activeModal.type}
+          treeName={activeModal.tree.name}
+          onConfirm={(input) => {
+            if (activeModal.type === 'rename') renameTreeMutation.mutate({ id: activeModal.tree.id, name: input });
+            if (activeModal.type === 'delete') deleteTreeMutation.mutate(activeModal.tree.id);
+          }}
+        />
+      )}
     </div>
   );
 }

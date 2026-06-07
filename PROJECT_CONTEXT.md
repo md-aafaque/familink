@@ -1,265 +1,1078 @@
-# Family Tree Project - Context
+# Family Tree Project - Production Context
 
-## What is the Project?
+# Vision
 
-**Family Tree** is a platform where users can create and manage multiple private family tree rooms. Each family has its own isolated space with:
-- One admin who created the tree room
-- Invited members with different roles (Admin, Member, Viewer)
-- Relationships that need admin verification before becoming official
-- Ghost profiles for people who can't create their own accounts
+**Family Tree** is a collaborative genealogy platform where families can privately build, manage, and verify family relationships together.
 
-Think of it as a collaborative family genealogy platform where each family has their own private workspace, and family members can work together to build and maintain their family tree.
+Each family operates inside its own isolated workspace called a **Tree Room**.
+
+The platform is designed to:
+
+* support collaborative editing
+* preserve historical integrity
+* prevent accidental data corruption
+* remain simple enough for rapid development
+* support a polished, emotionally warm family tree experience
+* scale gradually without overengineering
+
+This specification intentionally balances:
+
+* clean architecture
+* business practicality
+* strong UX
+* maintainability
+* fast implementation speed
 
 ---
 
-## Key Features
+# Core Product Philosophy
 
-### 1. Family Tree Rooms
-- Any user can create a new family tree room
-- Each room gets a unique ID
-- The creator becomes the admin of that room
-- Only invited members can access that specific tree
-- Users can be part of multiple family trees
+The system follows these principles:
 
-### 2. Role-Based Access Control (Per Tree)
-Each member of a family tree can have one of three roles:
-- **Admin**: 
-  - Create and edit relationships
-  - Invite/remove members
-  - Assign roles to members
-  - Approve pending relationships
-  - Edit any profile
-- **Member**: 
-  - View all profiles and relationships
-  - Create new relationships (needs admin approval)
-  - Create ghost profiles
-  - Claim ghost profiles (needs admin approval)
-  - Cannot approve relationships
-- **Viewer**: 
-  - View only (read-only access)
-  - Cannot create relationships or profiles
+1. **Each family tree is isolated**
 
-### 3. User Nodes
-- When a user joins a tree, they start as an isolated node
-- Their profile is linked to their account
-- They can be connected to other people through relationships
-- The user details(Name, Age, Education, Occupation, Address, Contact Details, etc.) will not vary for the various family tree he has joined. 
-- Every node will have an "editors" array tracking who can edit them
-- Anyone can claim to edit and when approved by admin, the claimant's ID gets added to the editors array for that profile
-- The first person in the editor array will be the one who created the profile i.e. the user because he can edit his own profile. 
+   * no data leakage between families
 
+2. **Accounts and people are separate concepts**
 
-### 4. Ghost Profiles
-Users can create ghost profiles for people who:
-- Are children (too young for accounts)
-- Are not tech savvy
-- Are deceased
-- Cannot create their own profile
-- Don't have email or internet access
+   * a person can exist without an account
+   * accounts may link to people later
+
+3. **All important changes are reviewable**
+
+   * relationship proposals require approval
+   * edits are tracked
+
+4. **Most users are non-technical**
+
+   * UX must stay simple
+   * family tree visualization must remain readable
+   * core actions must be obvious for elders, children, and first-time users
+
+5. **Avoid unnecessary enterprise complexity**
+
+   * no microservices
+   * no event buses initially
+   * no CQRS
+   * no premature abstractions
+
+6. **Traditional family model for V1**
+
+   * focus on two genders: male and female
+   * prioritize parent, child, spouse, sibling, and adopted child relationships
+   * support common remarriage/divorce cases without turning V1 into a full legal/genealogy edge-case engine
+
+---
+
+# Tech Stack
+
+## Frontend
+
+* TypeScript
+* Next.js 14
+* Tailwind CSS
+* Framer Motion
+* React Query / TanStack Query
+* Axios
+* Lucide React
+
+## Backend
+
+* TypeScript
+* Fastify
+* Zod validation
+* Supabase Authentication
+
+## Database
+
+* Neo4j
+
+## Optional Infrastructure (Phase 2)
+
+* Redis
+* BullMQ
+* S3-compatible object storage
+
+---
+
+# Core Architecture
+
+---
+
+# 1. Authentication vs Identity vs Person
+
+The system separates:
+
+## A. UserAccount
+
+Represents login/authentication identity.
+
+Example:
+
+* email
+* password
+* oauth login
+* global user identity
+
+A user account:
+
+* can belong to multiple family trees
+* may link to one or more people records
+
+---
+
+## B. Person
+
+Represents a human being inside a family tree.
+
+A person:
+
+* may or may not have an account
+* may be alive or deceased
+* may be a ghost profile
+* belongs to a specific tree
+
+Examples:
+
+* grandfather
+* child
+* deceased relative
+* family member without internet access
+
+---
+
+## C. PersonAccountLink
+
+Connects a UserAccount to a Person.
+
+Used for:
+
+* profile claiming
+* merged ghost profiles
+* editor permissions
+
+---
+
+# Tree Isolation Model
+
+Every entity belongs to a tree.
+
+All queries must include:
+
+```ts
+treeId
+```
+
+This prevents cross-tree contamination.
+
+---
+
+# Main Features
+
+---
+
+# 1. Family Tree Rooms
+
+Users can:
+
+* create family trees
+* join existing trees
+* belong to multiple trees
+* start a tree from a guided setup wizard
+* download/export a visual tree
+
+Each tree contains:
+
+* members
+* people
+* relationships
+* permissions
+* invitations
+* audit history
+
+---
+
+# 2. Tree Roles
+
+Roles are scoped per tree.
+
+## Admin
+
+Can:
+
+* approve relationship proposals
+* manage members
+* manage permissions
+* edit all profiles
+* delete/archive relationships
+* manage invitations
+
+---
+
+## Member
+
+Can:
+
+* view all profiles
+* create people
+* propose relationships
+* edit permitted profiles
+* claim profiles
+
+Cannot:
+
+* approve relationships
+* manage roles
+
+---
+
+## Viewer
+
+Read-only access.
+
+---
+
+# Role Hierarchy
+
+```text
+Admin > Member > Viewer
+```
+
+Higher roles automatically inherit lower permissions.
+
+---
+
+# 3. Person Types
+
+Every person has a status:
+
+```ts
+type PersonStatus =
+  | "active"
+  | "ghost"
+  | "merged"
+  | "archived"
+```
+
+---
+
+## Active Person
+
+Real person currently represented in tree.
+
+---
+
+## Ghost Profile
+
+Used for:
+
+* children
+* deceased relatives
+* offline family members
 
 Ghost profiles:
-- Have no account associated
-- Can be claimed later by the actual person
-- The first person in the editor array will be the one who created that ghost profile. 
 
-### 5. Profile Editor Logic
-- Each profile has an `editors` array containing user IDs
-- **Admins** can always edit any profile in the tree
-- **Profile creators** and **claimers** are automatically in the editors array
-- **Members** can edit only profiles they created or claimed 
-- **Viewers** cannot edit any profile
-
-### 6. Relationship Management
-- member can create any kind of relationship between themselves and any other person in the tree
-- Relationships require **admin verification** before becoming official
-- Once approved by admin, relationship is visible to all members
-- Admin can edit or delete existing relationships
-- Notifications sent when relationships are approved/rejected
-- Every relationship in a tree will have a treeId to mark that connection belongs to that tree
-
-### 7. Unified Dashboard
-- Single dashboard after login (not separate admin/user dashboards)
-- Shows all family trees the user is part of
-- Option to create a new family tree
-- Option to join an existing tree (via invitation)
-- Role indicators (Admin/Member/Viewer) shown for each tree
-- Admin-only features are conditionally hidden based on user's role in that tree
-
-### 8. Notifications
-- Notifications sent for:
-  - Relationship approval
-  - Relationship rejection (with reason)
-  - Member invitation to tree (for that member only)
-  - Member added/removed from tree (for that member only)
-  - Role changes (for that member only)
-
-### 9. Member Invitation
-- Admin can invite members via email 
-- Invitation includes link to join specific family tree
-- Invitee can accept and choose to join
-- Admin assigns role when inviting (Admin/Member/Viewer)
-- Invitee recieves a mail and also a notification in the website with link to join a tree
+* have no login account
+* can later be claimed
 
 ---
 
-## Tech Stack
+## Merged Person
 
-### Frontend
-- **Language**: TypeScript
-- **Framework**: Next.js 13 (React)
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **HTTP Client**: Axios
-- **UI Icons**: Lucide React
-- **Port**: 3000
+Old ghost profile merged into real account-linked profile.
 
-### Backend
-- **Language**: TypeScript
-- **Framework**: Fastify (lightweight Node.js server)
-- **Authentication**: Supabase (Email & Password or Google OAuth Login)
-- **Port**: 3001
-
-### Database
-- **Type**: Neo4j (Graph Database)
-- **Why Graph DB?**: Perfect for storing relationships between people (family connections are naturally graph-like)
-
-
+Kept only for history/audit references.
 
 ---
 
-## User Roles & Permissions Matrix
+# 4. Permissions Model
 
-| Action | Admin | Member | Viewer |
-|--------|-------|--------|--------|
-| View all profiles | ✅ | ✅ | ✅ |
-| Create profile | ✅ | ✅ | ❌ |
-| Edit own profile | ✅ | ✅ | ❌ |
-| Edit others' profile | ✅ | ❌ | ❌ |
-| Create relationship | ✅ | ✅ | ❌ |
-| Approve relationship | ✅ | ❌ | ❌ |
-| Edit relationship | ✅ | ❌ | ❌ |
-| Delete relationship | ✅ | ❌ | ❌ |
-| Invite member | ✅ | ❌ | ❌ |
-| Remove member | ✅ | ❌ | ❌ |
-| Change member role | ✅ | ❌ | ❌ |
-| Claim ghost profile | ✅ | ✅ | ❌ |
-| Create ghost profile | ✅ | ✅ | ❌ |
-| Delete own relationship | ✅ | ✅ | ❌ |
-| Edit claimed profile | ✅ | ✅ | ❌ |
----
+Avoid storing raw arrays like:
 
-## Core User Flows
+```ts
+editors: string[]
+```
 
-### Flow 1: Create Family Tree
-1. User clicks "Create New Family Tree"
-2. Provides family name
-3. System creates new tree room with unique ID
-4. User becomes admin of that tree
-5. User added as a node in that tree
-6. Dashboard shows this new tree
-
-### Flow 2: Invite Members to Tree
-1. Admin goes to tree settings
-2. Enters email(s) of people to invite
-3. System sends invitation
-4. Invitee receives notification + link
-5. Invitee joins tree with specified role
-6. Invitee becomes a node in the tree
-
-### Flow 3: Create and Claim Ghost Profile
-1. Member creates ghost profile for deceased relative "John"
-2. Ghost profile added to tree (no account associated)
-3. Later, John's son (now on the tree) wants to claim the profile.
-4. Son clicks "Claim Profile"
-5. Admin Approves
-6. Son's ID added to "editors" array
-7. Son can now edit John's profile
-
-### Flow 4: Create Relationship (Pending Approval)
-1. User A clicks on User B's profile
-2. Creates relationship "User A is parent of User B"
-3. Relationship marked as "pending"
-4. Admin receives notification
-5. Admin reviews and approves/rejects
-6. If approved, relationship visible to all members
-7. User A and User B receive notifications
-
-### Flow 5: Join Existing Tree
-1. User receives invitation link
-2. Clicks link and lands on join page
-3. Sees family tree details
-4. Clicks "Join" button
-5. Added to tree with assigned role
-6. Becomes a node in the tree
-7. Tree now appears in their dashboard
-
-### Flow 6: Claim Ghost profile 
-1. Whenever a ghost profile is claimed an options shows - 
-    - You want to merge the profile with your own profile 
-    - You want to be editor of both the profile
-2. Ghost profile created for new born son by "John".
-3. Son grows up and join the family tree with his details and is an isolated node.
-4. Wants to merge the relationship of the ghost node created by john and profile details of the isolated node. 
-5. Delete that ghost node and replace it with his node. 
+Instead use permission relationships.
 
 ---
 
-## Why This Tech Stack?
+## ProfilePermission
 
-- **Next.js**: Modern React framework with great developer experience, built-in routing
-- **Fastify**: Lightweight, fast Node.js server perfect for APIs with per-route control
-- **TypeScript**: Type safety prevents bugs and enables better IDE support
-- **Neo4j**: Graph database makes querying relationships trivial; perfect for family connections
-- **Supabase**: Pre-built authentication service saves development time
-- **Tailwind**: Rapid UI development with utility classes
-- **Framer Motion**: Smooth animations for better UX
-
----
-
-## Architecture Overview
-
-### Authentication Flow
-1. User signs up with Supabase (email/password or Google Oauth)
-2. Supabase returns JWT token
-3. Token stored in localStorage
-4. All API requests include JWT in Authorization header
-5. Backend validates JWT and extracts user ID
-6. User can then create/join family trees
-
-### Data Model
-- **User nodes**: One per registered user
-- **Person nodes**: Represent family members (may or may not have accounts)
-- **FamilyTree nodes**: Represent rooms/workspaces
-- **MEMBER_OF relationships**: Connect users to family trees with roles
-- **Relationships**: Connect people (Parent, Spouse, Sibling, etc.)
-
-### Authorization Pattern
-- **Authentication**: Is the request from a valid user? (JWT validation)
-- **Authorization**: Does this user have access to this tree? (MEMBER_OF relationship check)
-- **Role-based**: What actions can they perform? (Admin/Member/Viewer based on role in that specific tree)
+```ts
+{
+  personId
+  userId
+  permission: "owner" | "editor"
+}
+```
 
 ---
 
-## What Problems Does It Solve?
+## Rules
 
-1. **Family Genealogy Management**: Easy way to track and visualize family relationships
-2. **Decentralized Collaboration**: Each family has their own isolated space; no mixing of data
-3. **Privacy**: Only family members invited to a tree can see it
-4. **Flexibility**: Users can be part of multiple families/trees
-5. **Ghost Profiles**: Support for family members who can't create accounts
-6. **Collaborative Editing**: Multiple people can contribute, with admin oversight
-7. **Data Integrity**: Pending relationships require admin approval before going official
+### Admin
+
+Can edit all profiles.
+
+### Owner
+
+Can fully edit profile.
+
+### Editor
+
+Can edit permitted fields.
+
+### Viewer
+
+Cannot edit.
 
 ---
 
-## Planned Features for Phase 2
+# 5. Relationship System
 
-- Export family tree as PDF
-- Photo gallery for each person
-- Timeline of family events
-- Advanced search and filtering
-- Bulk import from CSV
-- Relationship suggestions based on data
-- Mobile-responsive design improvements
-- Batch invite members
-- Family tree templates
+Relationships are NOT created directly.
+
+Instead:
+
+## RelationshipProposal
+
+```ts
+{
+  id
+  treeId
+  proposerId
+  fromPersonId
+  toPersonId
+  relationshipType
+  status
+  createdAt
+}
+```
+
+---
+
+## Proposal Status
+
+```ts
+type ProposalStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+```
+
+---
+
+## Workflow
+
+1. Member proposes relationship
+2. Admin reviews proposal
+3. Admin approves/rejects
+4. Approved proposal creates official relationship
+
+---
+
+# Official Relationships
+
+Core relationship types:
+
+* parent
+* child
+* spouse
+* sibling
+* adopted_child
+* divorced_spouse
+
+Every relationship includes:
+
+```ts
+{
+  treeId
+  createdBy
+  approvedBy
+  createdAt
+}
+```
+
+---
+
+# 6. Relationship Validation Rules
+
+Before approval:
+
+## Prevent:
+
+* self-parenting
+* ancestry cycles
+* impossible ages
+* duplicate relationships
+
+---
+
+## Example Checks
+
+### Invalid:
+
+* father younger than child
+* person becomes own ancestor
+* person assigned as both parent and child of the same person
+* duplicate spouse relationship for the same marriage pair
+
+### Optional Warnings:
+
+* conflicting birth years
+* multiple biological parents
+* unusually large parent-child age gap
+* sibling birth order conflicts
+
+Warnings do NOT always block approval.
+
+## Relationship Inference Rules
+
+Approved relationships must update obvious connected family logic so users do not need to repeat tedious work.
+
+Examples:
+
+* If A is approved as parent of B, and B already has siblings C and D in the same sibling group, A should be proposed or applied as parent of C and D depending on admin policy.
+* If A and B are approved as spouses and B is already a verified parent of child C, the system should suggest A as the other parent of C unless a conflicting parent already exists.
+* If A and B are approved as siblings, verified parents of A should be suggested as parents of B, and verified parents of B should be suggested as parents of A.
+* If a child relationship is approved, the inverse parent relationship must be represented consistently.
+* If a spouse relationship is approved, the inverse spouse relationship must be represented consistently.
+
+Do not silently create high-impact inferred relationships when there is ambiguity. Use admin-reviewable suggestions for cases involving remarriage, adoption, divorce, or conflicting existing parents.
+
+---
+
+# 7. Ghost Profile Claiming
+
+Users can claim ghost profiles.
+
+---
+
+## Claim Flow
+
+1. User requests claim
+2. Admin reviews request
+3. If approved:
+
+   * account linked to person
+   * user receives owner permission
+
+---
+
+# 8. Ghost Merge Flow
+
+Sometimes:
+
+* ghost profile already exists
+* real user later joins separately
+
+The user may choose:
+
+## Option A
+
+Keep both profiles linked.
+
+## Option B
+
+Merge profiles.
+
+---
+
+## Merge Rules
+
+When merged:
+
+* relationships move to real profile
+* old ghost profile becomes:
+
+  * `"merged"`
+* old node remains for audit history
+
+Never hard delete merged profiles.
+
+---
+
+# 9. Invitation System
+
+Admins can generate invitation links.
+
+---
+
+# IMPORTANT SECURITY RULE
+
+Public links are allowed ONLY for:
+
+* Member
+* Viewer
+
+Admin invitations must be:
+
+* email-specific
+* manually approved
+* revocable
+
+Public admin invitation links are not allowed in V1.
+
+---
+
+# Invitation Types
+
+## Member Invite Link
+
+Requires admin approval.
+
+---
+
+## Viewer Invite Link
+
+Requires admin approval.
+
+---
+
+## Admin Invite
+
+Private email invitation only.
+
+No public admin links.
+
+---
+
+# Invitation Token Structure
+
+```ts
+{
+  token
+  treeId
+  role
+  expiresAt
+  createdBy
+}
+```
+
+---
+
+# Invitation Rules
+
+## Existing Member
+
+If user already has:
+
+* same role
+* higher role
+
+Result: directly open tree
+
+---
+
+## Lower Role Upgrade
+
+Example:
+
+* Viewer clicks Member link
+
+Result: creates upgrade request
+
+Requires admin approval.
+
+---
+
+# 10. Dashboard
+
+Single unified dashboard.
+
+Shows:
+
+* all joined trees
+* role in each tree
+* pending invitations
+* pending approvals (admin only)
+* recent activity
+* quick actions to open tree, add relative, invite family, or review proposals
+
+---
+
+# 11. Notifications
+
+Keep notifications simple initially.
+
+## Notification Types
+
+* relationship approved
+* relationship rejected
+* invitation accepted
+* role changed
+* claim approved
+* merge completed
+
+---
+
+# Notification Structure
+
+```ts
+{
+  id
+  userId
+  type
+  read
+  createdAt
+}
+```
+
+---
+
+# 12. Audit History
+
+Track important actions.
+
+This is REQUIRED.
+
+---
+
+## ActivityLog
+
+```ts
+{
+  id
+  treeId
+  actorId
+  actionType
+  entityType
+  entityId
+  createdAt
+}
+```
+
+---
+
+## Logged Actions
+
+Examples:
+
+* relationship approved
+* profile edited
+* role changed
+* merge completed
+* invitation generated
+
+---
+
+# 13. Soft Delete Strategy
+
+Never permanently delete important data.
+
+Use:
+
+```ts
+deletedAt
+deletedBy
+```
+
+Applies to:
+
+* relationships
+* profiles
+* invitations
+
+---
+
+# 14. Privacy Controls
+
+Sensitive fields should support visibility levels.
+
+Example:
+
+```ts
+{
+  phoneVisibility: "private" | "editors" | "tree"
+}
+```
+
+Recommended fields:
+
+* phone
+* address
+* email
+* birth date
+
+---
+
+# Data Model Overview
+
+---
+
+# Nodes
+
+## UserAccount
+
+```ts
+{
+  id
+  email
+  name
+  createdAt
+}
+```
+
+---
+
+## FamilyTree
+
+```ts
+{
+  id
+  name
+  createdBy
+  createdAt
+}
+```
+
+---
+
+## Person
+
+```ts
+{
+  id
+  treeId
+  firstName
+  lastName
+  gender
+  birthDate
+  deathDate
+  status
+  createdAt
+}
+```
+
+---
+
+## RelationshipProposal
+
+```ts
+{
+  id
+  treeId
+  proposerId
+  relationshipType
+  status
+}
+```
+
+---
+
+## Invitation
+
+```ts
+{
+  id
+  treeId
+  role
+  token
+  expiresAt
+}
+```
+
+---
+
+## Notification
+
+```ts
+{
+  id
+  userId
+  type
+  read
+}
+```
+
+---
+
+## ActivityLog
+
+```ts
+{
+  id
+  treeId
+  actorId
+  actionType
+}
+```
+
+---
+
+# Relationships
+
+## MEMBER_OF
+
+```ts
+role: "admin" | "member" | "viewer"
+```
+
+---
+
+## HAS_PERMISSION
+
+```ts
+permission: "owner" | "editor"
+```
+
+---
+
+## LINKED_TO_ACCOUNT
+
+Connects Person and UserAccount.
+
+---
+
+## FAMILY_RELATIONSHIP
+
+Examples:
+
+* parent
+* spouse
+* sibling
+
+---
+
+# UI / UX Principles
+
+---
+
+# 1. Keep Tree Readable
+
+Default UI should NOT be:
+
+* free-form graph chaos
+
+Preferred:
+
+* layered family tree
+* generation-based layout
+* orthogonal connection lines
+* full-screen tree mode
+* easy visual export/download
+
+---
+
+# 2. Visual Status Badges
+
+Every important state must be visible.
+
+Examples:
+
+| State    | Badge  |
+| -------- | ------ |
+| Pending  | Yellow |
+| Verified | Green  |
+| Ghost    | Gray   |
+| Rejected | Red    |
+
+---
+
+# 3. Progressive Disclosure
+
+Do not overwhelm users.
+
+Advanced actions:
+
+* hidden under menus
+* shown only when relevant
+
+---
+
+# 4. Mobile-Friendly Navigation
+
+Large trees should support:
+
+* zoom
+* collapse branches
+* focus mode
+* fit-to-screen
+* search within tree
+* mini-map or orientation aid where useful
+
+---
+
+# Visual Product Direction
+
+The family tree should feel attractive, familiar, and welcoming across ages and cultures.
+
+Use:
+
+* a refined neutral canvas
+* user-selectable background styles, similar in spirit to how messaging apps let users personalize chat backgrounds
+* tasteful built-in background collections such as plain, paper, floral, geometric, heritage, celebration, and dark
+* optional custom background upload where privacy and readability rules allow it
+* clean cards with avatars, names, lifespan dates, and small status badges
+* crisp high-contrast relationship lines
+* tasteful color accents for status and relationship meaning
+
+Background customization must never reduce readability. Person cards, relationship lines, and text remain the priority.
+
+Avoid:
+
+* admin-dashboard visuals as the main experience
+* chaotic force-directed graphs
+* decorative clutter that competes with names and relationship lines
+* abstract visuals that make the family structure hard to understand
+
+---
+
+# Security Rules
+
+---
+
+# Required
+
+## JWT Validation
+
+All protected routes require auth.
+
+---
+
+## Tree Authorization
+
+Every request must verify:
+
+* user belongs to tree
+
+---
+
+## Rate Limiting
+
+Protect:
+
+* invitations
+* login
+* relationship creation
+
+---
+
+## Expiring Tokens
+
+Invitation links expire.
+
+Default:
+
+```ts
+7 days
+```
+
+---
+
+# Validation Layer
+
+All API inputs validated using:
+
+* Zod
+
+Never trust frontend types.
+
+---
+
+# API Design Principles
+
+Use:
+
+* REST APIs
+* simple route structure
+* predictable naming
+
+Avoid:
+
+* premature GraphQL
+* over-abstracted services
+
+---
+
+# Suggested Backend Structure
+
+```text
+src/
+  modules/
+    auth/
+    trees/
+    people/
+    relationships/
+    invitations/
+    notifications/
+    audit/
+
+  middleware/
+  plugins/
+  utils/
+```
+
+---
+
+# Performance Considerations
+
+Do NOT optimize prematurely.
+
+But prepare for:
+
+* subtree loading
+* pagination
+* lazy relationship expansion
+
+Avoid loading entire huge trees at once.
+
+---
+
+# Phase 2 Features
+
+Only after core system is stable.
+
+---
+
+## Planned Features
+
+* PDF export
+* photo uploads
+* family event timeline
+* CSV import
+* GEDCOM import/export
+* search & filtering
+* relationship suggestions
+* mobile optimization
+* batch invitations
+
+---
+
+# Explicit Non-Goals (For Now)
+
+Avoid building:
+
+* AI relationship inference
+* realtime collaboration
+* microservices
+* websocket synchronization
+* complex workflow engines
+* public tree discovery
+
+Keep version 1 manageable.
+
+---
+
+# Final Product Direction
+
+The system should feel:
+
+* trustworthy
+* family-friendly
+* easy for non-technical users
+* collaborative but controlled
+
+The architecture should remain:
+
+* scalable enough
+* easy to reason about
+* fast to build
+* easy to vibe-code with AI tools
+
+This specification intentionally prioritizes:
+
+* clarity over cleverness
+* maintainability over abstraction
+* product usability over engineering vanity

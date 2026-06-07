@@ -1,5 +1,9 @@
 import './globals.css'
-import Header from '../components/Header'
+import QueryProvider from '../components/providers/QueryProvider'
+import { AuthProvider } from '../components/providers/AuthProvider'
+import GlobalErrorBoundary from '../components/shared/GlobalErrorBoundary'
+import { ThemeProvider } from '../components/providers/ThemeProvider'
+import { TreeInteractionProvider } from '../components/tree/TreeInteractionProvider'
 
 export const metadata = {
   title: 'Family Tree',
@@ -8,9 +12,18 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <Header />
-        <main className="min-h-screen max-w-7xl mx-auto px-6 py-12">{children}</main>
+      <body className="antialiased font-sans text-slate-900 transition-colors duration-500">
+        <GlobalErrorBoundary>
+          <QueryProvider>
+            <AuthProvider>
+              <ThemeProvider>
+                <TreeInteractionProvider>
+                  {children}
+                </TreeInteractionProvider>
+              </ThemeProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   )
