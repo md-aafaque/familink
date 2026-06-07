@@ -35,7 +35,7 @@ export default function TreeActionModal({ isOpen, onClose, type, treeName, onCon
           initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
           className={cn("relative w-full max-w-md p-6 rounded-3xl border shadow-2xl", theme.colors.surface, theme.colors.border)}
         >
-          <button onClick={onClose} className={cn("absolute top-4 right-4 p-2 rounded-full", theme.colors.bg, "hover:" + theme.colors.accentText)}>
+          <button onClick={onClose} className={cn("absolute top-4 right-4 p-2 rounded-full", theme.colors.bg, "hover:" + theme.colors.accent)}>
             <X className="w-4 h-4" />
           </button>
 
