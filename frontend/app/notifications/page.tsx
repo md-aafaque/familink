@@ -120,48 +120,39 @@ export default function NotificationsPage() {
   return (
     <div>
       <main className="min-h-screen">
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className={cn("flex items-center gap-2 font-medium mb-8", theme.colors.textMuted)}
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
-
-        {/* Header */}
-        <div className={cn("rounded-xl shadow-sm border p-6 mb-6", theme.colors.surface, theme.colors.border)}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className={cn("text-3xl font-bold", theme.colors.text)}>Notifications</h1>
-              <p className={cn("mt-1", theme.colors.textMuted)}>{unreadCount} unread messages</p>
-            </div>
-            {notifications.length > 0 && (
-              <div className="flex gap-3">
-                {unreadCount > 0 && (
+          {/* Header */}
+          <div className="py-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className={cn("text-3xl font-bold", theme.colors.text)}>Notifications</h1>
+                <p className={cn("mt-1", theme.colors.textMuted)}>{unreadCount} unread messages</p>
+              </div>
+              {notifications.length > 0 && (
+                <div className="flex gap-3">
+                  {unreadCount > 0 && (
+                    <motion.button
+                      onClick={markAllAsRead}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={cn("flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium", theme.colors.primary)}
+                    >
+                      <Check className="w-4 h-4" />
+                      Mark All as Read
+                    </motion.button>
+                  )}
                   <motion.button
-                    onClick={markAllAsRead}
+                    onClick={deleteAll}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={cn("flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium", theme.colors.primary)}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
                   >
-                    <Check className="w-4 h-4" />
-                    Mark All as Read
+                    <Trash2 className="w-4 h-4" />
+                    Delete All
                   </motion.button>
-                )}
-                <motion.button
-                  onClick={deleteAll}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete All
-                </motion.button>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
         {/* Notifications List */}
         {loading ? (

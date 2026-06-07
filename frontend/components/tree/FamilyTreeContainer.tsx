@@ -22,6 +22,8 @@ import { useRouter } from "next/navigation";
 import CreatePersonModal from "../CreatePersonModal";
 import { cn } from "@/lib/cn";
 import { useTreeInteraction } from "./TreeInteractionProvider";
+import DragRelationshipIndicator from "./DragRelationshipIndicator";
+import { useAppTheme } from "../providers/ThemeProvider";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -100,7 +102,7 @@ const THEMES = {
     panel:   "bg-[#161d2e]/90 backdrop-blur-xl border border-slate-700/50 shadow-md shadow-black/30",
     toolbar: "bg-[#161d2e]/95 backdrop-blur-xl border border-slate-700/40 shadow-xl shadow-black/50",
     text: "text-slate-100", muted: "text-slate-500",
-    chipOn:  "bg-blue-600 text-slate-100",
+    chipOn:  "bg-indigo-600 text-slate-100",
     chipOff: "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
     iconBtn: "bg-[#161d2e]/90 backdrop-blur-xl border border-slate-700/50 shadow-sm text-slate-400 hover:text-slate-100",
     cardBg: "bg-[#161d2e]", cardBorder: "border-slate-700/60",
@@ -671,7 +673,12 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   // Tracks whether the initial centering has fired (for delay logic)
   const centeredRef    = useRef(false);
 
-  const [themeKey, setThemeKey]             = useState<ThemeKey>("light");
+  const { theme: appTheme } = useAppTheme();
+  const [themeKey, setThemeKey] = useState<ThemeKey>(appTheme.isDark ? "dark" : "light");
+
+  useEffect(() => {
+    setThemeKey(appTheme.isDark ? "dark" : "light");
+  }, [appTheme.isDark]);
   const [showSandbox, setShowSandbox]       = useState(true);
   const [isFullScreen, setIsFullScreen]     = useState(false);
   const [focusId, setFocusId]               = useState<string | null>(null);
@@ -990,82 +997,85 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       <div ref={canvasDivRef} className="flex-1 relative overflow-hidden">
 
         {/* Canvas overlay — inset-0 (no left-8 offset) */}
-        <div className="absolute inset-0 pointer-events-none z-20">
+        {peopleInTree.length > 0 && (
+          <div className="absolute inset-0 pointer-events-none z-20">
 
-          {/* Fullscreen — top-right of canvas */}
-          <div className="absolute top-4 right-4 pointer-events-auto">
-            <IconBtn onClick={toggleFS} title={isFullScreen ? "Exit fullscreen" : "Fullscreen"} className={t.iconBtn}>
-              {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-            </IconBtn>
-          </div>
-
-          {/* Stats — bottom-left */}
-          {peopleInTree.length > 0 && (
-            <div className="absolute bottom-4 left-4 pointer-events-auto">
-              <div className={cn("flex items-center gap-1.5 px-3 h-8 rounded-xl text-[11px] font-medium", t.panel, t.muted)}>
-                <Users className="w-3 h-3 flex-shrink-0" />
-                {peopleInTree.length} people · {unions.length} connections
-              </div>
+            {/* Fullscreen — top-right of canvas */}
+            <div className="absolute top-4 right-4 pointer-events-auto">
+              <IconBtn onClick={toggleFS} title={isFullScreen ? "Exit fullscreen" : "Fullscreen"} className={t.iconBtn}>
+                {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              </IconBtn>
             </div>
-          )}
 
-          {/* Bottom-centre floating toolbar */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
-            <div className={cn("flex items-center gap-0.5 px-2 h-11 rounded-2xl", t.toolbar)}>
-              <button title="Zoom out" onClick={() => transformRef.current?.zoomOut(0.3)}
-                className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                <ZoomOut className="w-3.5 h-3.5" />
-              </button>
-              <button title="Fit to screen" onClick={centerTree}
-                className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
-              <button title="Zoom in" onClick={() => transformRef.current?.zoomIn(0.3)}
-                className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                <ZoomIn className="w-3.5 h-3.5" />
-              </button>
+            {/* Stats — bottom-left */}
+            {peopleInTree.length > 0 && (
+              <div className="absolute bottom-4 left-4 pointer-events-auto">
+                <div className={cn("flex items-center gap-1.5 px-3 h-8 rounded-xl text-[11px] font-medium", t.panel, t.muted)}>
+                  <Users className="w-3 h-3 flex-shrink-0" />
+                  {peopleInTree.length} people · {unions.length} connections
+                </div>
+              </div>
+            )}
 
-              <div className="w-px h-5 mx-1 bg-current opacity-10" />
-
-              {(Object.keys(THEMES) as ThemeKey[]).map(k => {
-                const { Icon, name } = THEMES[k];
-                return (
-                  <button key={k} title={name} onClick={() => setThemeKey(k)}
-                    className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95",
-                      k === themeKey ? t.chipOn : t.chipOff)}>
-                    <Icon className="w-3.5 h-3.5" />
-                  </button>
-                );
-              })}
-
-              <div className="w-px h-5 mx-1 bg-current opacity-10" />
-
-              <div className="relative">
-                <button title="Export" onClick={() => setExportMenuOpen(o => !o)}
+            {/* Bottom-centre floating toolbar */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
+              <div className={cn("flex items-center gap-0.5 px-2 h-11 rounded-2xl", t.toolbar)}>
+                <button title="Zoom out" onClick={() => transformRef.current?.zoomOut(0.3)}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                  {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageDown className="w-3.5 h-3.5" />}
+                  <ZoomOut className="w-3.5 h-3.5" />
                 </button>
-                <AnimatePresence>
-                  {exportMenuOpen && (
-                    <motion.div initial={{ y: 6, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }}
-                      exit={{ y: 6, opacity: 0, scale: 0.95 }} transition={{ duration: 0.13 }}
-                      className={cn("absolute bottom-11 right-0 w-40 rounded-xl overflow-hidden", t.panel)}>
-                      <button onClick={() => doExport("png")}
-                        className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5", t.text)}>
-                        <ImageDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PNG
-                      </button>
-                      <button onClick={() => doExport("pdf")}
-                        className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5 border-t border-black/5", t.text)}>
-                        <FileDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PDF
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <button title="Fit to screen" onClick={centerTree}
+                  className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+                <button title="Zoom in" onClick={() => transformRef.current?.zoomIn(0.3)}
+                  className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
+                  <ZoomIn className="w-3.5 h-3.5" />
+                </button>
+
+                <div className="w-px h-5 mx-1 bg-current opacity-10" />
+
+                {(Object.keys(THEMES) as ThemeKey[]).map(k => {
+                  const { Icon, name } = THEMES[k];
+                  return (
+                    <button key={k} title={name} onClick={() => setThemeKey(k)}
+                      className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95",
+                        k === themeKey ? t.chipOn : t.chipOff)}>
+                      <Icon className="w-3.5 h-3.5" />
+                    </button>
+                  );
+                })}
+
+                <div className="w-px h-5 mx-1 bg-current opacity-10" />
+
+                <div className="relative">
+                  <button title="Export" onClick={() => setExportMenuOpen(o => !o)}
+                    className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
+                    {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageDown className="w-3.5 h-3.5" />}
+                  </button>
+                  <AnimatePresence>
+                    {exportMenuOpen && (
+                      <motion.div initial={{ y: 6, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ y: 6, opacity: 0, scale: 0.95 }} transition={{ duration: 0.13 }}
+                        className={cn("absolute bottom-11 right-0 w-40 rounded-xl overflow-hidden", t.panel)}>
+                        <button onClick={() => doExport("png")}
+                          className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5", t.text)}>
+                          <ImageDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PNG
+                        </button>
+                        <button onClick={() => doExport("pdf")}
+                          className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5 border-t border-black/5", t.text)}>
+                          <FileDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PDF
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        {/* end canvas overlay */}
+        )}
+        {/* end canvas overlay */}'
+
 
         <TransformWrapper
           onInit={ref => { transformRef.current = ref; }}
@@ -1078,53 +1088,63 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
           <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
 
             {/* exportRef: wraps ALL layers → toPng captures complete tree */}
-            <div ref={exportRef} style={{ position: "relative", width: canvasW, height: canvasH }}>
+            <div ref={exportRef} style={{ 
+              position: "relative", 
+              width: peopleInTree.length === 0 ? "100%" : canvasW, 
+              height: peopleInTree.length === 0 ? "100%" : canvasH,
+              minWidth: "100vw",
+              minHeight: "100vh"
+            }}>
 
-              {/* Layer 1 — Themed background */}
-              <ThemeBackground themeKey={themeKey} t={t} w={canvasW} h={canvasH} />
+              {peopleInTree.length > 0 && (
+                <>
+                  {/* Layer 1 — Themed background */}
+                  <ThemeBackground themeKey={themeKey} t={t} w={canvasW} h={canvasH} />
 
-              {/* Layer 2 — Connector SVG
-                  translate(PADDING, PADDING) aligns SVG coords with the card layer */}
-              {layout && (
-                <svg className="absolute inset-0 pointer-events-none" width={canvasW} height={canvasH}>
-                  <g transform={`translate(${PADDING},${PADDING})`}>
-                    <ConnectorLayer connectors={layout.connectors} lineColor={t.line} spouseColor={t.spouseLine} />
-                  </g>
-                </svg>
+                  {/* Layer 2 — Connector SVG
+                      translate(PADDING, PADDING) aligns SVG coords with the card layer */}
+                  {layout && (
+                    <svg className="absolute inset-0 pointer-events-none" width={canvasW} height={canvasH}>
+                      <g transform={`translate(${PADDING},${PADDING})`}>
+                        <ConnectorLayer connectors={layout.connectors} lineColor={t.line} spouseColor={t.spouseLine} />
+                      </g>
+                    </svg>
+                  )}
+
+                  {/* Layer 3 — Person cards
+                      left/top = PADDING: coordinate origin matches SVG translate above */}
+                  <div className="absolute" style={{ left: PADDING, top: PADDING }}>
+                    {layout && Array.from(layout.nodes.entries()).map(([pid, pos]) => {
+                      const person = peopleMap.get(pid);
+                      if (!person) return null;
+                      const hasKids = unions.some(u =>
+                        (u.partner1Id === pid || u.partner2Id === pid) && u.childrenIds.length > 0
+                      );
+                      return (
+                        <motion.div key={pid}
+                          initial={{ opacity: 0, scale: 0.88, y: 6 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          transition={{ duration: 0.22, ease: "easeOut" }}
+                          className="absolute"
+                          style={{ left: pos.x - CARD_W / 2, top: pos.y }}>
+                          <PersonNode
+                            person={person} t={t} accentHex={t.accent}
+                            isFocus={focusId === pid} isHit={searchHitIds.has(pid)}
+                            hasKids={hasKids} isCollapsed={collapsedSet.has(pid)}
+                            onFocus={handleCardClick} onDrop={handleDrop} onCollapse={toggleCollapse}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
-
-              {/* Layer 3 — Person cards
-                  left/top = PADDING: coordinate origin matches SVG translate above */}
-              <div className="absolute" style={{ left: PADDING, top: PADDING }}>
-                {layout && Array.from(layout.nodes.entries()).map(([pid, pos]) => {
-                  const person = peopleMap.get(pid);
-                  if (!person) return null;
-                  const hasKids = unions.some(u =>
-                    (u.partner1Id === pid || u.partner2Id === pid) && u.childrenIds.length > 0
-                  );
-                  return (
-                    <motion.div key={pid}
-                      initial={{ opacity: 0, scale: 0.88, y: 6 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ duration: 0.22, ease: "easeOut" }}
-                      className="absolute"
-                      style={{ left: pos.x - CARD_W / 2, top: pos.y }}>
-                      <PersonNode
-                        person={person} t={t} accentHex={t.accent}
-                        isFocus={focusId === pid} isHit={searchHitIds.has(pid)}
-                        hasKids={hasKids} isCollapsed={collapsedSet.has(pid)}
-                        onFocus={handleCardClick} onDrop={handleDrop} onCollapse={toggleCollapse}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </div>
 
               {/* Empty state */}
               {peopleInTree.length === 0 && !isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center w-full h-full">
                   <div className={cn("px-12 py-10 rounded-[2.5rem] border text-center shadow-xl max-w-md mx-auto", t.panel)}>
-                    <div className={cn("w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6", THEMES.light.chipOn)}>
+                    <div className={cn("w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6", t.chipOn)}>
                       <Users className="w-8 h-8" />
                     </div>
                     <h3 className={cn("text-xl font-black mb-3", t.text)}>Build Your Family Tree</h3>
@@ -1132,7 +1152,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                       Add your first family member and connect them to start visualizing your history.
                     </p>
                     <button onClick={() => setShowCreateModal(true)}
-                      className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-lg active:scale-95", THEMES.light.chipOn)}>
+                      className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-lg active:scale-95", t.chipOn)}>
                       Add First Member
                     </button>
                   </div>
@@ -1166,6 +1186,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
           <CreatePersonModal treeId={treeId} onClose={() => setShowCreateModal(false)} />
         )}
       </AnimatePresence>
+
+      <DragRelationshipIndicator />
     </div>
   );
 }

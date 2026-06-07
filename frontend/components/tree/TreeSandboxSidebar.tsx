@@ -115,13 +115,39 @@ export default function TreeSandboxSidebar({ treeId, onSelectPerson, onAddNew, o
 
 function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClick: () => void, onDrop?: (src: string, tgt: string) => void }) {
   const { theme } = useAppTheme();
-  const { setDraggingPersonId, hoveredPersonId } = useTreeInteraction();
+  const { 
+    setDraggingPersonId, 
+    hoveredPersonId, 
+    setDragCoordinates, 
+    setDragStartCoords,
+    setDragHistory,
+    dragHistory
+  } = useTreeInteraction();
   
+  const handleDragStart = (event: any, info: any) => {
+    setDraggingPersonId(person.id);
+    document.body.style.cursor = 'grabbing';
+    setDragStartCoords({ x: info.point.x, y: info.point.y });
+    setDragHistory([{ x: info.point.x, y: info.point.y }]);
+  };
+
   const handleDragEnd = () => {
     if (hoveredPersonId && onDrop) {
       onDrop(person.id, hoveredPersonId);
     }
     setDraggingPersonId(null);
+    setDragCoordinates(null);
+    setDragStartCoords(null);
+    setDragHistory([]);
+    document.body.style.cursor = 'default';
+  };
+
+  const handleDrag = (event: any, info: any) => {
+    const current = { x: info.point.x, y: info.point.y };
+    setDragCoordinates(current);
+    
+    // Maintain a longer history for a slower-fading trail
+    setDragHistory([...dragHistory.slice(-50), current]);
   };
 
   return (
@@ -130,15 +156,17 @@ function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClic
       drag
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.05}
-      onDragStart={() => setDraggingPersonId(person.id)}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDrag={handleDrag}
       whileDrag={{ 
         scale: 1.05, 
         zIndex: 100,
-        boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+        boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+        cursor: "grabbing"
       }}
       className={cn(
-        "p-4 rounded-[1.5rem] border cursor-grab active:cursor-grabbing group transition-all",
+        "p-4 rounded-[1.5rem] border group transition-all cursor-pointer",
         theme.colors.surface,
         theme.colors.border,
         "hover:shadow-lg",
@@ -160,7 +188,11 @@ function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClic
         </div>
         <button 
           onClick={(e) => { e.stopPropagation(); /* Add logic to move to canvas */ }}
-          className={cn("p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity", theme.colors.bg, theme.colors.accentText)}
+          className={cn(
+            "p-2 rounded-lg group-hover:text-primary cursor-pointer transition-opacity", 
+            "opacity-0 group-hover:opacity-100", // Show icon when parent is hovered
+            theme.colors.textMuted
+          )}
         >
           <ChevronRight className="w-4 h-4" />
         </button>

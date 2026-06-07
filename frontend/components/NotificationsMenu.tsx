@@ -121,11 +121,32 @@ export default function NotificationsMenu() {
     }
   };
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // The bell button handles its own click, so we shouldn't close if that's clicked
+      // However, the overlay is meant for outside clicks.
+      if (open) {
+        setOpen(false);
+      }
+    };
+    
+    if (open) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [open]);
+
   return (
     <div className="relative">
       {/* Bell Icon Button */}
       <motion.button
-        onClick={() => setOpen(!open)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
         className="relative p-2 hover:bg-slate-100 rounded-lg transition-colors"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
