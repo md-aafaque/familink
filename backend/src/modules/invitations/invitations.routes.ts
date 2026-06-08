@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { generateInvitationSchema, createAdminInvitationSchema, rejectAccessRequestSchema } from '@shared/schemas/invitations';
+import { generateInvitationSchema, createAdminInvitationSchema, rejectAccessRequestSchema } from '../../shared/schemas/invitations';
 import { InvitationsService } from './invitations.service';
 import { InvitationsRepository } from './invitations.repository';
 import { verifyTreeAccess } from '../../middleware/tree-auth';

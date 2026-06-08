@@ -1,5 +1,5 @@
 import { getSession } from '../../core/database';
-import { RelationshipType } from '@shared/schemas/relationships';
+import { RelationshipType } from '../../shared/schemas/relationships';
 import { AppError } from '../../core/errors';
 
 export class RelationshipValidation {

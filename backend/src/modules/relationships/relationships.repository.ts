@@ -1,5 +1,5 @@
 import { getSession } from '../../core/database';
-import { CreateProposalInput, RelationshipProposal } from '@shared/schemas/relationships';
+import { CreateProposalInput, RelationshipProposal } from '../../shared/schemas/relationships';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors';
 import { normalizeNeo4jProperties } from '../../core/database-utils';

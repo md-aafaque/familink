@@ -1,6 +1,6 @@
 import { RelationshipRepository } from './relationships.repository';
 import { RelationshipValidation } from './relationships.validation';
-import { CreateProposalInput } from '@shared/schemas/relationships';
+import { CreateProposalInput } from '../../shared/schemas/relationships';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { AppError } from '../../core/errors';

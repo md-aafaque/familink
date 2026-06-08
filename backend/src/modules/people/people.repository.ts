@@ -1,5 +1,5 @@
 import { getSession } from '../../core/database';
-import { Person, CreatePersonInput, UpdatePersonInput } from '@shared/schemas/people';
+import { Person, CreatePersonInput, UpdatePersonInput } from '../../shared/schemas/people';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors';
 

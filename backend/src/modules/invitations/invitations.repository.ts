@@ -1,5 +1,5 @@
 import { getSession } from '../../core/database';
-import { AccessRole, AdminInvitation, PublicInvitationRole, TreeAccessRequest, TreeInvitation } from '@shared/schemas/invitations';
+import { AccessRole, AdminInvitation, PublicInvitationRole, TreeAccessRequest, TreeInvitation } from '../../shared/schemas/invitations';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors';
 
