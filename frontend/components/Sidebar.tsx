@@ -16,7 +16,8 @@ import {
   LogOut,
   Menu,
   X,
-  Activity
+  Activity,
+  Link as LinkIcon
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
@@ -87,10 +88,10 @@ export default function Sidebar() {
         <div className={cn("h-16 flex items-center px-6 border-b", theme.colors.sidebar.border)}>
           <Link href="/dashboard" className="flex items-center gap-2.5" onClick={closeSidebar}>
             <div className={cn("w-8 h-8 rounded flex items-center justify-center", theme.colors.primary)}>
-              <Activity className="w-5 h-5 text-white" />
+              <LinkIcon className="w-5 h-5 text-white" />
             </div>
             <span className={cn("text-lg font-bold tracking-tight", theme.colors.text)}>
-              Family<span className={theme.colors.accent}>Nexus</span>
+              Fami<span className={theme.colors.accent}>Link</span>
             </span>
           </Link>
         </div>
