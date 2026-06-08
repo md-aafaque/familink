@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createPersonSchema, updatePersonSchema, CreatePersonInput, UpdatePersonInput } from "@shared/schemas/people";
+import { createPersonSchema, updatePersonSchema, CreatePersonInput, UpdatePersonInput, Person } from "@shared/schemas/people";
 import { Loader2, Save, User as UserIcon, Shield, Globe, Lock } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
