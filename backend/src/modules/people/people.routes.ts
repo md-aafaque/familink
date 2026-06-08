@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { createPersonSchema, updatePersonSchema } from '@shared/schemas/people';
+import { createPersonSchema, updatePersonSchema } from '../../shared/schemas/people';
 import { PeopleService } from './people.service';
 import { PeopleRepository } from './people.repository';
 import { verifyTreeAccess } from '../../middleware/tree-auth';

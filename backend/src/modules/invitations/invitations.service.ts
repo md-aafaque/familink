@@ -1,5 +1,5 @@
 import { InvitationsRepository } from './invitations.repository';
-import { PublicInvitationRole } from '@shared/schemas/invitations';
+import { PublicInvitationRole } from '../../shared/schemas/invitations';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { AppError } from '../../core/errors';

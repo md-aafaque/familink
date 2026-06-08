@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { createProposalSchema, rejectProposalSchema } from '@shared/schemas/relationships';
+import { createProposalSchema, rejectProposalSchema } from '../../shared/schemas/relationships';
 import { RelationshipsService } from './relationships.service';
 import { verifyTreeAccess } from '../../middleware/tree-auth';
 import { getSession } from '../../core/database';

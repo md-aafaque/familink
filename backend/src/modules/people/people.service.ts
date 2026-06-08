@@ -1,5 +1,5 @@
 import { PeopleRepository } from './people.repository';
-import { CreatePersonInput, UpdatePersonInput, Person } from '@shared/schemas/people';
+import { CreatePersonInput, UpdatePersonInput, Person } from '../../shared/schemas/people';
 import { AppError } from '../../core/errors';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';

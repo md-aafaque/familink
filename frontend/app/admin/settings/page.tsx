@@ -37,7 +37,7 @@ export default function AdminSettings() {
             <label className={cn("block text-sm font-medium mb-2", theme.colors.text)}>System Name</label>
             <input
               type="text"
-              value="Family Nexus Application"
+              value="FamiLink Application"
               disabled
               className={cn("w-full input-field opacity-60", theme.colors.bg)}
             />

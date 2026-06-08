@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Trees, Users, Share2, Shield, ArrowRight, Activity } from 'lucide-react';
+import { Trees, Users, Share2, Shield, ArrowRight, Activity, Link as LinkIcon } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 export default function Home() {
@@ -43,10 +43,10 @@ export default function Home() {
       <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-            <Activity className="w-5 h-5 text-primary-foreground" />
+            <LinkIcon className="w-5 h-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold tracking-tight">
-            Family<span className="text-primary">Nexus</span>
+            Fami<span className="text-primary">Link</span>
           </span>
         </div>
         <div className="flex items-center gap-6">
@@ -153,12 +153,12 @@ export default function Home() {
         <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5 opacity-60 grayscale">
             <div className="w-6 h-6 bg-foreground rounded flex items-center justify-center">
-              <Activity className="w-4 h-4 text-background" />
+              <LinkIcon className="w-4 h-4 text-background" />
             </div>
-            <span className="text-sm font-bold tracking-tight">FamilyNexus</span>
+            <span className="text-sm font-bold tracking-tight">FamiLink</span>
           </div>
           <p className="text-xs text-muted-foreground font-medium">
-            © 2026 FamilyNexus. All rights reserved. Built for legacy.
+            © 2026 FamiLink. All rights reserved. Built for legacy.
           </p>
         </footer>
       </main>

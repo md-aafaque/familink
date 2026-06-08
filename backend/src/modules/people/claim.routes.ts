@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { claimProfileSchema } from '@shared/schemas/invitations';
+import { claimProfileSchema } from '../../shared/schemas/invitations';
 import { PeopleService } from './people.service';
 import { verifyTreeAccess } from '../../middleware/tree-auth';
 
