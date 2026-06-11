@@ -20,15 +20,15 @@ import {
   Link as LinkIcon,
   ImageIcon
 } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import { useSidebar } from "./providers/SidebarProvider";
 
 export default function Sidebar() {
   const { signOut, user } = useAuth();
   const { theme } = useAppTheme();
+  const { isOpen, close } = useSidebar();
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
 
   const { data: trees } = useQuery({
     queryKey: ["trees"],
@@ -41,11 +41,6 @@ export default function Sidebar() {
 
   const isAdmin = trees?.some((t: any) => t.role === 'admin');
 
-  const menuItems = [
-    { label: "My Family Trees", icon: Trees, href: "/dashboard", active: pathname === "/dashboard" },
-    { label: "Notifications", icon: Bell, href: "/notifications", active: pathname === "/notifications" },
-  ];
-
   const adminItems = [
     { label: "Access Requests", icon: Users, href: "/dashboard/manage/users", active: pathname === "/dashboard/manage/users" },
     { label: "Review Proposals", icon: GitPullRequest, href: "/dashboard/manage/proposals", active: pathname === "/dashboard/manage/proposals" },
@@ -53,28 +48,13 @@ export default function Sidebar() {
     { label: "Manage Invites", icon: ShieldCheck, href: "/dashboard/manage/invitations", active: pathname === "/dashboard/manage/invitations" },
   ];
 
-  const closeSidebar = () => setIsOpen(false);
-
   return (
     <>
-      {/* Mobile Toggle */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md border shadow-sm transition-colors",
-          theme.colors.surface,
-          theme.colors.border,
-          theme.colors.text
-        )}
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
-
       {/* Sidebar Overlay */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-slate-900/20 backdrop-blur-[2px] z-40 lg:hidden"
-          onClick={closeSidebar}
+          onClick={close}
         />
       )}
 
@@ -87,7 +67,7 @@ export default function Sidebar() {
       )}>
         {/* Logo Section */}
         <div className={cn("h-16 flex items-center px-6 border-b", theme.colors.sidebar.border)}>
-          <Link href="/dashboard" className="flex items-center gap-2.5" onClick={closeSidebar}>
+          <Link href="/dashboard" className="flex items-center gap-2.5" onClick={close}>
             <div className={cn("w-8 h-8 rounded flex items-center justify-center", theme.colors.primary)}>
               <LinkIcon className="w-5 h-5 text-white" />
             </div>
@@ -106,7 +86,7 @@ export default function Sidebar() {
             </h3>
             <Link
               href="/dashboard"
-              onClick={closeSidebar}
+              onClick={close}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 pathname === "/dashboard" 
@@ -119,7 +99,7 @@ export default function Sidebar() {
             </Link>
             <Link
               href="/dashboard/memories"
-              onClick={closeSidebar}
+              onClick={close}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 pathname === "/dashboard/memories" 
@@ -132,7 +112,7 @@ export default function Sidebar() {
             </Link>
             <Link
               href="/notifications"
-              onClick={closeSidebar}
+              onClick={close}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 pathname === "/notifications" 
@@ -155,7 +135,7 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={closeSidebar}
+                  onClick={close}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     item.active 
