@@ -1,70 +1,66 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { MemoriesRepository } from './memories.repository';
-import { CreateMemoryInput } from '../../shared/schemas/memories';
 import { getSession } from '../../core/database';
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Basic integration test script for Memories module.
- * Run this manually or via test runner if configured.
- */
-async function testMemories() {
+describe('MemoriesRepository Integration', () => {
   const treeId = '00000000-0000-0000-0000-000000000000'; // Mock/Test Tree ID
   const posterId = '00000000-0000-0000-0000-000000000001'; // Mock/Test User ID
-  
-  console.log('--- Starting Memories Integration Test ---');
+  let memoryId: string;
 
-  try {
-    // 1. Create a memory
-    const input: CreateMemoryInput = {
+  beforeAll(async () => {
+    const session = getSession();
+    try {
+        await session.run('CREATE (t:FamilyTree {id: $treeId, name: "Test Tree"})', { treeId });
+        await session.run('CREATE (u:User {id: $posterId, name: "Test User"})', { posterId });
+    } finally {
+        await session.close();
+    }
+  });
+
+  // Ensure test data cleanup after all tests
+  afterAll(async () => {
+    const session = getSession();
+    try {
+        await session.run('MATCH (m:Memory {treeId: $treeId}) DETACH DELETE m', { treeId });
+        await session.run('MATCH (t:FamilyTree {id: $treeId}) DETACH DELETE t', { treeId });
+        await session.run('MATCH (u:User {id: $posterId}) DETACH DELETE u', { posterId });
+    } finally {
+        await session.close();
+    }
+  });
+
+  it('should create a memory', async () => {
+    const input = {
       treeId,
-      type: 'milestone',
+      type: 'milestone' as const,
       title: 'Test Milestone',
       content: 'This is a test milestone description.',
       date: Date.now(),
       associatedPersonIds: []
     };
 
-    console.log('Testing create memory...');
     const memory = await MemoriesRepository.create(posterId, input);
-    console.log('✅ Created:', memory.id);
+    expect(memory).toBeDefined();
+    expect(memory.id).toBeDefined();
+    memoryId = memory.id;
+  });
 
-    // 2. Find by tree
-    console.log('Testing findByTreeId...');
+  it('should find the memory by tree ID', async () => {
     const treeMemories = await MemoriesRepository.findByTreeId(treeId);
-    if (treeMemories.some(m => m.id === memory.id)) {
-      console.log('✅ Found in tree feed');
-    } else {
-      console.error('❌ Not found in tree feed');
-    }
+    expect(treeMemories.some(m => m.id === memoryId)).toBe(true);
+  });
 
-    // 3. Update memory
-    console.log('Testing update memory...');
-    const updated = await MemoriesRepository.update(memory.id, treeId, {
+  it('should update the memory', async () => {
+    const updated = await MemoriesRepository.update(memoryId, treeId, {
       title: 'Updated Test Milestone'
     });
-    if (updated.title === 'Updated Test Milestone') {
-      console.log('✅ Update successful');
-    } else {
-      console.error('❌ Update failed');
-    }
+    expect(updated.title).toBe('Updated Test Milestone');
+  });
 
-    // 4. Soft delete
-    console.log('Testing soft delete...');
-    await MemoriesRepository.softDelete(memory.id, treeId, posterId);
-    const deleted = await MemoriesRepository.findById(memory.id, treeId);
-    if (!deleted) {
-      console.log('✅ Soft delete successful (not found in findById)');
-    } else {
-      console.error('❌ Soft delete failed');
-    }
-
-    console.log('--- Memories Integration Test Completed Successfully ---');
-  } catch (error) {
-    console.error('--- Memories Integration Test Failed ---');
-    console.error(error);
-  } finally {
-    const session = getSession();
-    await session.close();
-  }
-}
-
-// testMemories(); // Uncomment to run
+  it('should soft delete the memory', async () => {
+    await MemoriesRepository.softDelete(memoryId, treeId, posterId);
+    const deleted = await MemoriesRepository.findById(memoryId, treeId);
+    expect(deleted).toBeNull();
+  });
+});

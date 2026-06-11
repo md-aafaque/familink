@@ -160,7 +160,16 @@ export class MemoriesRepository {
 
       query += ` RETURN m`;
 
-      const result = await session.run(query, { ...rest, id, treeId, associatedPersonIds: associatedPersonIds || [] });
+      const result = await session.run(query, {
+        id: id,
+        treeId: treeId,
+        associatedPersonIds: associatedPersonIds || [],
+        type: rest.type,
+        title: rest.title,
+        content: rest.content,
+        imageUrl: rest.imageUrl,
+        date: rest.date
+      });
 
       if (result.records.length === 0) {
         throw new AppError('Memory not found', 404);
@@ -178,7 +187,7 @@ export class MemoriesRepository {
     try {
       await session.run(
         `MATCH (m:Memory {id: $id, treeId: $treeId}) SET m.deletedAt = timestamp(), m.deletedBy = $deletedBy`,
-        { id, treeId, deletedBy }
+        { id: id, treeId: treeId, deletedBy: deletedBy }
       );
     } finally {
       await session.close();
