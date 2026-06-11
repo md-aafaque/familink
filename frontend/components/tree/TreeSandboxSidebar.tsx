@@ -72,7 +72,7 @@ export default function TreeSandboxSidebar({ treeId, onSelectPerson, onAddNew, o
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-3 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-3">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
              <Loader2 className={cn("w-6 h-6 animate-spin", theme.colors.accent)} />

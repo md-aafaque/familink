@@ -107,7 +107,9 @@ export default function AdminSetupPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Full Name <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <User className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input
@@ -123,7 +125,9 @@ export default function AdminSetupPage() {
 
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Email Address <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input
@@ -142,7 +146,9 @@ export default function AdminSetupPage() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Password <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input
@@ -158,7 +164,9 @@ export default function AdminSetupPage() {
 
             {/* Confirm Password Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input

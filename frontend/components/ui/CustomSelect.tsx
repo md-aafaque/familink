@@ -78,9 +78,7 @@ export default function CustomSelect({
                     "w-full text-left px-6 py-3 transition-colors cursor-pointer",
                     value === option.value 
                       ? theme.colors.primaryMuted 
-                      : theme.isDark 
-                        ? "hover:bg-white/10" 
-                        : "hover:bg-orange-100/20",
+                      : "hover:bg-black/5 dark:hover:bg-white/5",
                     theme.colors.text
                   )}
                 >

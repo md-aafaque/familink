@@ -71,7 +71,9 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Name Fields */}
         <div className="space-y-1.5">
-          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>First Name</label>
+          <label className={cn("text-sm font-semibold", theme.colors.textMuted)}>
+            First Name <span className="text-red-500">*</span>
+          </label>
           <input
             {...register("firstName")}
             className={cn(

@@ -23,7 +23,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
   const { data: permissions, isLoading: isLoadingPerms } = useQuery({
     queryKey: ["person-permissions", personId],
     queryFn: async () => {
-      const res = await api.get(`/people/${personId}/permissions`);
+      const res = await api.get(`/trees/${treeId}/people/${personId}/permissions`);
       return (res as any).data;
     },
   });
@@ -38,7 +38,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
 
   const grantMutation = useMutation({
     mutationFn: async () => {
-      await api.post(`/people/${personId}/permissions`, {
+      await api.post(`/trees/${treeId}/people/${personId}/permissions`, {
         userId: selectedUserId,
         permission: permissionType,
       });
@@ -51,7 +51,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
 
   const revokeMutation = useMutation({
     mutationFn: async (targetUserId: string) => {
-      await api.delete(`/people/${personId}/permissions/${targetUserId}`);
+      await api.delete(`/trees/${treeId}/people/${personId}/permissions/${targetUserId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["person-permissions", personId] });
@@ -140,7 +140,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto pr-2">
               {filteredMembers?.map((m: any) => (
                 <button
                   key={m.id}

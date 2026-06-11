@@ -13,6 +13,7 @@ import notificationsRoutes from './modules/notifications/notifications.routes';
 import claimRoutes from './modules/people/claim.routes';
 import relationshipsRoutes from './modules/relationships/relationships.routes';
 import auditRoutes from './modules/audit/audit.routes';
+import memoryRoutes from './modules/memories/memories.routes';
 
 const server = Fastify({
   logger: true,
@@ -40,6 +41,7 @@ async function start() {
     await api.register(claimRoutes);
     await api.register(relationshipsRoutes);
     await api.register(auditRoutes);
+    await api.register(memoryRoutes);
   }, { prefix: '/api' });
 
   // Health check

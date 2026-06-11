@@ -21,7 +21,10 @@ export type AuditAction =
   | 'person_merged'
   | 'permission_granted'
   | 'permission_revoked'
-  | 'member_joined';
+  | 'member_joined'
+  | 'memory_created'
+  | 'memory_updated'
+  | 'memory_deleted';
 
 export class AuditService {
   static async log(

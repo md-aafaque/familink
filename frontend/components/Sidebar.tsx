@@ -17,7 +17,8 @@ import {
   Menu,
   X,
   Activity,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ImageIcon
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
@@ -103,22 +104,45 @@ export default function Sidebar() {
             <h3 className={cn("px-3 text-[10px] font-bold uppercase tracking-widest mb-2", theme.colors.textMuted)}>
               Navigation
             </h3>
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={closeSidebar}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  item.active 
-                    ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
-                    : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
-                )}
-              >
-                <item.icon className={cn("w-4 h-4", item.active ? theme.colors.accent : "opacity-60")} />
-                {item.label}
-              </Link>
-            ))}
+            <Link
+              href="/dashboard"
+              onClick={closeSidebar}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                pathname === "/dashboard" 
+                  ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
+                  : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
+              )}
+            >
+              <Trees className={cn("w-4 h-4", pathname === "/dashboard" ? theme.colors.accent : "opacity-60")} />
+              My Family Trees
+            </Link>
+            <Link
+              href="/dashboard/memories"
+              onClick={closeSidebar}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                pathname === "/dashboard/memories" 
+                  ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
+                  : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
+              )}
+            >
+              <ImageIcon className={cn("w-4 h-4", pathname === "/dashboard/memories" ? theme.colors.accent : "opacity-60")} />
+              Family Wall
+            </Link>
+            <Link
+              href="/notifications"
+              onClick={closeSidebar}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                pathname === "/notifications" 
+                  ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
+                  : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
+              )}
+            >
+              <Bell className={cn("w-4 h-4", pathname === "/notifications" ? theme.colors.accent : "opacity-60")} />
+              Notifications
+            </Link>
           </div>
 
           {/* Admin Tools */}

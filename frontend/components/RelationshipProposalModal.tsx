@@ -137,7 +137,7 @@ export default function RelationshipProposalModal({
           )}
 
           {/* FROM person */}
-          <Field label="Subject Person">
+          <Field label={<span>Subject Person <span className="text-red-500">*</span></span>}>
             <PersonSelect
               value={fromId}
               onChange={setFromId}
@@ -170,7 +170,7 @@ export default function RelationshipProposalModal({
           </Field>
 
           {/* TO person */}
-          <Field label="Of…">
+          <Field label={<span>Of… <span className="text-red-500">*</span></span>}>
             <PersonSelect
               value={toId}
               onChange={setToId}
