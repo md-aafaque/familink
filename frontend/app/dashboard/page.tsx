@@ -16,6 +16,8 @@ import {
   Clock,
   LayoutGrid,
   MoreVertical,
+  Trash2,
+  Edit,
 } from "lucide-react";
 
 import DataState from "../../components/shared/DataState";
@@ -222,7 +224,7 @@ export default function DashboardPage() {
                 <div
                   key={tree.id}
                   className={cn(
-                    "group p-5 rounded-lg border shadow-sm transition-all relative overflow-hidden",
+                    "group p-5 rounded-lg border shadow-sm transition-all relative",
                     theme.colors.surface,
                     theme.colors.border,
                     tree.status === 'pending' ? "opacity-60 cursor-not-allowed" : "hover:border-primary/50 hover:shadow-md"
@@ -269,14 +271,15 @@ export default function DashboardPage() {
                       </button>
                       
                       {menuOpenId === tree.id && (
-                        <div className={cn("absolute right-0 mt-2 w-32 rounded-xl border shadow-xl z-50 overflow-hidden", theme.colors.surface, theme.colors.border)}>
+                        <div className={cn("absolute right-8 top-0 w-32 rounded-xl border shadow-xl z-50 p-1", theme.colors.surface, theme.colors.border)}>
                            <button 
                              onClick={(e) => { 
                                e.stopPropagation(); 
                                setActiveModal({ type: 'rename', tree });
                                setMenuOpenId(null);
                              }}
-                             className={cn("w-full text-left px-4 py-2.5 text-xs font-bold transition-colors hover:bg-black/5 dark:hover:bg-white/5", theme.colors.text)}>
+                             className={cn("w-full flex items-center gap-2 text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:bg-slate-100 dark:hover:bg-slate-800", theme.colors.text)}>
+                             <Edit className="w-3.5 h-3.5" />
                              Rename
                            </button>
                            <button 
@@ -285,7 +288,8 @@ export default function DashboardPage() {
                                setActiveModal({ type: 'delete', tree });
                                setMenuOpenId(null);
                              }}
-                             className={cn("w-full text-left px-4 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20", theme.colors.text)}>
+                             className={cn("w-full flex items-center gap-2 text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20")}>
+                             <Trash2 className="w-3.5 h-3.5" />
                              Delete
                            </button>
                         </div>
