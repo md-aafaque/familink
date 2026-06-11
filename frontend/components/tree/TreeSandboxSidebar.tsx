@@ -72,7 +72,7 @@ export default function TreeSandboxSidebar({ treeId, onSelectPerson, onAddNew, o
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-3 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-3">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
              <Loader2 className={cn("w-6 h-6 animate-spin", theme.colors.accent)} />
@@ -177,6 +177,17 @@ function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClic
       <div className="flex items-center gap-4">
         <div className={cn("p-2 rounded-xl transition-colors duration-500", theme.colors.bg)}>
            <GripVertical className={cn("w-4 h-4 transition-colors duration-500", theme.colors.textMuted, "group-hover:" + theme.colors.accent)} />
+        </div>
+        <div className={cn(
+          "w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs overflow-hidden flex-shrink-0",
+          theme.colors.bg,
+          theme.colors.textMuted
+        )}>
+          {person.imageUrl ? (
+            <img src={person.imageUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            `${person.firstName[0]}${person.lastName?.[0] ?? ""}`.toUpperCase()
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <p className={cn("font-bold text-sm truncate transition-colors duration-500", theme.colors.text)}>

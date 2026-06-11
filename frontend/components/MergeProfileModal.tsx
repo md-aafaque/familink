@@ -128,7 +128,9 @@ export default function MergeProfileModal({
                 </div>
 
                 <div className="space-y-4">
-                  <label className={cn("text-sm font-black uppercase tracking-widest", theme.colors.text)}>Select Target Profile</label>
+                  <label className={cn("text-sm font-black uppercase tracking-widest", theme.colors.text)}>
+                    Select Target Profile <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-500", theme.colors.textMuted)} />
                     <input

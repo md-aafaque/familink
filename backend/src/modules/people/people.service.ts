@@ -5,9 +5,16 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { TreesRepository } from '../trees/trees.repository';
 
+import { getSignedUploadUrl } from '../../core/supabase';
+
 export class PeopleService {
-  static async createPerson(input: CreatePersonInput, userId: string) {
-    const person = await PeopleRepository.create({ ...input, createdBy: userId });
+  static async getUploadUrl(treeId: string, fileName: string) {
+    return getSignedUploadUrl(treeId, fileName);
+  }
+
+  static async createPerson(input: CreatePersonInput & { linkToId?: string }, userId: string) {
+    const { linkToId, ...createInput } = input;
+    const person = await PeopleRepository.create({ ...createInput, createdBy: userId });
     
     await AuditService.log(
       person.treeId,
@@ -17,6 +24,12 @@ export class PeopleService {
       person.id,
       { firstName: person.firstName, lastName: person.lastName }
     );
+
+    // If linkToId is provided, we automatically merge this new ghost profile into the existing one
+    // This is useful for "re-using" an existing profile in a new part of the tree creation flow
+    if (linkToId) {
+      await this.mergePeople(person.id, linkToId, userId, person.treeId);
+    }
 
     return person;
   }
@@ -40,6 +53,24 @@ export class PeopleService {
     if (person.emailVisibility !== 'tree') delete filtered.email;
     if (person.addressVisibility !== 'tree') delete filtered.address;
     if (person.birthDateVisibility !== 'tree') delete filtered.birthDate;
+
+    // Filter Occupation History
+    if (person.occupations) {
+      if (person.occupationSectionVisible === false) {
+        filtered.occupations = [];
+      } else {
+        filtered.occupations = person.occupations.filter(o => o.visibility === 'tree');
+      }
+    }
+
+    // Filter Education History
+    if (person.educations) {
+      if (person.educationSectionVisible === false) {
+        filtered.educations = [];
+      } else {
+        filtered.educations = person.educations.filter(e => e.visibility === 'tree');
+      }
+    }
 
     return filtered;
   }

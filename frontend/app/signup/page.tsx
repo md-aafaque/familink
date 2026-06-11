@@ -73,7 +73,9 @@ function SignupContent() {
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground/80 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
+              Full Name <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
@@ -88,7 +90,9 @@ function SignupContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground/80 mb-1">Email Address</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
+              Email Address <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
@@ -103,7 +107,9 @@ function SignupContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground/80 mb-1">Password</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
+              Password <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input

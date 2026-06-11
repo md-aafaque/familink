@@ -7,6 +7,7 @@ import { X, Loader2, Link2, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import CustomSelect from "./ui/CustomSelect";
 
 interface RelationshipProposalModalProps {
   treeId: string;
@@ -137,7 +138,7 @@ export default function RelationshipProposalModal({
           )}
 
           {/* FROM person */}
-          <Field label="Subject Person">
+          <Field label={<span>Subject Person <span className="text-red-500">*</span></span>}>
             <PersonSelect
               value={fromId}
               onChange={setFromId}
@@ -170,7 +171,7 @@ export default function RelationshipProposalModal({
           </Field>
 
           {/* TO person */}
-          <Field label="Of…">
+          <Field label={<span>Of… <span className="text-red-500">*</span></span>}>
             <PersonSelect
               value={toId}
               onChange={setToId}
@@ -243,7 +244,7 @@ export default function RelationshipProposalModal({
 // Sub-components
 // ─────────────────────────────────────────────
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
       <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
@@ -264,27 +265,19 @@ interface PersonSelectProps {
 }
 
 function PersonSelect({ value, onChange, people, excludeId, placeholder, theme }: PersonSelectProps) {
+  const options = people
+    .filter((p) => p.id !== excludeId)
+    .map((p) => ({
+      value: p.id,
+      label: `${p.firstName} ${p.lastName ?? ""}`.trim()
+    }));
+
   return (
-    <select
-      required
+    <CustomSelect
+      options={options}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={cn(
-        "w-full px-5 py-3.5 rounded-2xl border outline-none appearance-none font-semibold text-sm transition-all",
-        "focus:ring-4 focus:ring-primary/10 focus:border-primary/50",
-        theme.colors.bg,
-        theme.colors.border,
-        theme.colors.text
-      )}
-    >
-      <option value="">{placeholder}</option>
-      {people
-        .filter((p) => p.id !== excludeId)
-        .map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.firstName} {p.lastName ?? ""}
-          </option>
-        ))}
-    </select>
+      onChange={onChange}
+      placeholder={placeholder}
+    />
   );
 }

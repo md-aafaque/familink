@@ -64,7 +64,7 @@ export function SignupForm({
 
           {/* Name Field */}
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
             <Input
               id="name"
               type="text"
@@ -78,7 +78,7 @@ export function SignupForm({
 
           {/* Email Field */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
             <Input
               id="email"
               type="email"
@@ -92,7 +92,7 @@ export function SignupForm({
 
           {/* Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Password <span className="text-red-500">*</span></Label>
             <Input
               id="password"
               type="password"

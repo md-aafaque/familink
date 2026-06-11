@@ -171,24 +171,28 @@ export default function NotificationsMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[100]"
+            className={cn(
+              "fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 rounded-2xl shadow-2xl border overflow-hidden z-[100] backdrop-blur-xl",
+              theme.colors.surface,
+              theme.colors.border
+            )}
             onClick={(e) => e.stopPropagation()}
             style={{ 
               maxWidth: '400px',
             }}
           >
             {/* Header */}
-            <div className={cn("border-b border-slate-200 p-4 flex items-center justify-between", theme.colors.primaryMuted)}>
+            <div className={cn("border-b p-4 flex items-center justify-between", theme.colors.primaryMuted, theme.colors.border)}>
               <div>
-                <h3 className="font-semibold text-slate-900">Notifications</h3>
-                <p className="text-sm text-slate-600">{unreadCount} unread</p>
+                <h3 className={cn("font-semibold", theme.colors.text)}>Notifications</h3>
+                <p className={cn("text-sm", theme.colors.textMuted)}>{unreadCount} unread</p>
               </div>
               {notifications.length > 0 && (
                 <div className="flex gap-2">
                   {unreadCount > 0 && (
                     <button
                       onClick={() => markAllAsRead()}
-                      className={cn("p-1 hover:bg-white rounded text-slate-600 hover:text-primary transition-colors text-sm")}
+                      className={cn("p-1.5 rounded transition-colors", theme.colors.surface, theme.colors.textMuted, "hover:" + theme.colors.accent)}
                       title="Mark all as read"
                     >
                       <Check className="w-4 h-4" />
@@ -196,7 +200,7 @@ export default function NotificationsMenu() {
                   )}
                   <button
                     onClick={() => deleteAll()}
-                    className="p-1 hover:bg-white rounded text-slate-600 hover:text-red-600 transition-colors text-sm"
+                    className={cn("p-1.5 rounded transition-colors", theme.colors.surface, theme.colors.textMuted, "hover:text-red-500")}
                     title="Delete all"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -208,13 +212,17 @@ export default function NotificationsMenu() {
             {/* Notifications List */}
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="p-8 text-center">
-                  <Bell className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-600 font-medium">No notifications</p>
-                  <p className="text-sm text-slate-500">You're all caught up!</p>
+                <div className="p-12 text-center space-y-4">
+                  <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mx-auto", theme.colors.bg)}>
+                    <Bell className={cn("w-8 h-8 opacity-20", theme.colors.text)} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className={cn("font-bold", theme.colors.text)}>All caught up!</p>
+                    <p className={cn("text-sm", theme.colors.textMuted)}>No new notifications to show.</p>
+                  </div>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-200">
+                <div className={cn("divide-y", theme.colors.border)}>
                   {notifications.map((notif) => (
                     <motion.div
                       key={notif.id}
@@ -222,24 +230,24 @@ export default function NotificationsMenu() {
                       animate={{ opacity: 1, x: 0 }}
                       onClick={() => handleNotificationClick(notif)}
                       className={cn(
-                        "p-4 hover:bg-slate-50 transition-colors cursor-pointer",
-                        !notif.isRead && theme.colors.primaryMuted
+                        "p-4 transition-colors cursor-pointer",
+                        !notif.isRead ? theme.colors.primaryMuted : theme.colors.hover
                       )}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-slate-900 text-sm">
+                            <h4 className={cn("font-bold text-sm", theme.colors.text)}>
                               {notif.title}
                             </h4>
                             {!notif.isRead && (
                               <div className={cn("w-2 h-2 rounded-full", theme.colors.primary)} />
                             )}
                           </div>
-                          <p className="text-sm text-slate-600 mt-1 line-clamp-2">
+                          <p className={cn("text-sm mt-1 line-clamp-2", theme.colors.textMuted)}>
                             {notif.message}
                           </p>
-                          <p className="text-xs text-slate-500 mt-2">
+                          <p className={cn("text-[10px] font-black uppercase tracking-widest mt-2 opacity-40", theme.colors.text)}>
                             {formatDateTime(notif.createdAt)}
                           </p>
                         </div>
@@ -248,7 +256,7 @@ export default function NotificationsMenu() {
                           {!notif.isRead && (
                             <button
                               onClick={() => markAsRead(notif.id)}
-                              className={cn("p-1 hover:bg-white rounded text-slate-400 hover:text-primary transition-colors")}
+                              className={cn("p-1.5 rounded transition-colors", theme.colors.bg, theme.colors.textMuted, "hover:" + theme.colors.accent)}
                               title="Mark as read"
                             >
                               <Check className="w-4 h-4" />
@@ -256,7 +264,7 @@ export default function NotificationsMenu() {
                           )}
                           <button
                             onClick={() => deleteNotification(notif.id)}
-                            className="p-1 hover:bg-white rounded text-slate-400 hover:text-red-600 transition-colors"
+                            className={cn("p-1.5 rounded transition-colors", theme.colors.bg, theme.colors.textMuted, "hover:text-red-500")}
                             title="Delete"
                           >
                             <X className="w-4 h-4" />
@@ -271,10 +279,10 @@ export default function NotificationsMenu() {
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="bg-slate-50 border-t border-slate-200 p-3 text-center">
+              <div className={cn("p-3 text-center border-t", theme.colors.bg, theme.colors.border)}>
                 <a
                   href="/notifications"
-                  className={cn("text-sm font-medium hover:opacity-80 transition-colors", theme.colors.accent)}
+                  className={cn("text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-80 transition-colors", theme.colors.accent)}
                 >
                   View All Notifications
                 </a>

@@ -583,7 +583,7 @@ function PersonNode({
           {/* Avatar Container */}
           <div className="relative flex-shrink-0">
             <div className={cn(
-              "rounded-2xl flex items-center justify-center text-[13px] font-black text-white shadow-sm transition-transform duration-500 group-hover:scale-105",
+              "rounded-2xl flex items-center justify-center text-[13px] font-black text-white shadow-sm transition-transform duration-500 group-hover:scale-105 overflow-hidden",
               isDead ? "bg-slate-400/80" : ""
             )}
             style={{ 
@@ -591,7 +591,9 @@ function PersonNode({
               backgroundColor: isDead ? undefined : accentHex,
               boxShadow: isDead ? "none" : `0 4px 10px ${accentHex}40`
             }}>
-              {initials}
+              {(person as any).imageUrl ? (
+                <img src={(person as any).imageUrl} alt="" className="w-full h-full object-cover" />
+              ) : initials}
             </div>
             
             {/* Live/Status Indicator */}
@@ -951,10 +953,14 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
           <AnimatePresence>
             {searchOpen && searchResults.length > 0 && (
               <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
-                className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden", t.panel)}>
+                className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden shadow-2xl", t.panel)}>
                 {searchResults.map((p, i) => (
                   <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
-                    className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5", i && "border-t border-black/5")}>
+                    className={cn(
+                        "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5", 
+                        i && "border-t",
+                        themeKey === 'sepia' ? "border-stone-200/50" : (themeKey === 'forest' ? "border-emerald-100" : "border-slate-100/50")
+                    )}>
                     <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
                       style={{ backgroundColor: t.accent }}>
                       {p.firstName[0]}{p.lastName?.[0] ?? ""}

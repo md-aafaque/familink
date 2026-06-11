@@ -7,6 +7,7 @@ import notificationsRoutes from '../modules/notifications/notifications.routes';
 import invitationRoutes from '../modules/invitations/invitations.routes';
 import authRoutes from '../modules/users/users.routes';
 import adminRoutes from '../modules/audit/audit.routes';
+import memoryRoutes from '../modules/memories/memories.routes';
 
 export default async function routes(fastify: FastifyInstance) {
   // Authentication routes
@@ -20,4 +21,5 @@ export default async function routes(fastify: FastifyInstance) {
   await fastify.register(notificationsRoutes);
   await fastify.register(invitationRoutes);
   await fastify.register(adminRoutes);
+  await fastify.register(memoryRoutes);
 }

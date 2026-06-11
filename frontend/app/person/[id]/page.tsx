@@ -15,7 +15,13 @@ import {
   ShieldAlert,
   Sparkles,
   GitMerge,
-  Link2
+  Link2,
+  Briefcase,
+  GraduationCap,
+  MapPin,
+  Clock,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -153,8 +159,12 @@ export default function PersonProfilePage() {
             {/* Profile Header */}
             <div className={cn("p-10 rounded-[3.5rem] border shadow-2xl transition-all duration-500", theme.colors.surface, theme.colors.border)}>
               <div className="flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left">
-                <div className={cn("w-40 h-40 rounded-[3rem] flex items-center justify-center border-8 shadow-2xl transition-colors duration-500 shrink-0", theme.colors.primaryMuted, theme.colors.border)}>
-                  <UserIcon className={cn("w-20 h-20", theme.colors.accent)} />
+                <div className={cn("w-40 h-40 rounded-[3rem] flex items-center justify-center border-8 shadow-2xl transition-colors duration-500 shrink-0 overflow-hidden", theme.colors.primaryMuted, theme.colors.border)}>
+                  {data.imageUrl ? (
+                    <img src={data.imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserIcon className={cn("w-20 h-20", theme.colors.accent)} />
+                  )}
                 </div>
                 <div className="flex-1 space-y-6 pt-4">
                   <div className="space-y-3">
@@ -234,6 +244,99 @@ export default function PersonProfilePage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Education History */}
+                    {data.educations && data.educations.length > 0 && (
+                      <div className={cn("p-10 rounded-[3rem] border shadow-2xl space-y-8 transition-colors duration-500 relative", theme.colors.surface, theme.colors.border)}>
+                        <div className="flex items-center justify-between">
+                            <h3 className={cn("text-2xl font-black flex items-center gap-4 transition-colors duration-500", theme.colors.text)}>
+                                <GraduationCap className={cn("w-8 h-8", theme.colors.accent)} />
+                                Education
+                            </h3>
+                            <button 
+                                onClick={() => updateMutation.mutate({ educationSectionVisible: !data.educationSectionVisible })}
+                                className={cn("p-2 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5", data.educationSectionVisible ? "text-primary" : "text-red-500")}
+                                title={data.educationSectionVisible ? "Visible to family" : "Hidden from family"}
+                            >
+                                {data.educationSectionVisible ? <Eye className="w-6 h-6" /> : <EyeOff className="w-6 h-6" />}
+                            </button>
+                        </div>
+                        <div className="space-y-10">
+                            {[...data.educations].sort((a, b) => new Date(b.endDate || b.startDate).getTime() - new Date(a.endDate || a.startDate).getTime()).map((edu) => (
+                                <div key={edu.id} className="relative pl-12 before:absolute before:left-[15px] before:top-2 before:bottom-[-40px] last:before:hidden before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+                                    <div className={cn("absolute left-0 top-1 w-8 h-8 rounded-xl flex items-center justify-center border shadow-sm transition-colors", theme.colors.bg, theme.colors.border)}>
+                                        <GraduationCap className={cn("w-4 h-4", theme.isDark ? "text-slate-200" : theme.colors.textMuted)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h4 className={cn("text-xl font-bold leading-tight", theme.colors.text)}>{edu.school}</h4>
+                                        <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium", theme.isDark ? "text-slate-300" : "text-slate-500")}>
+                                            <span>{edu.degree}</span>
+                                            <span className="w-1 h-1 rounded-full bg-current opacity-30" />
+                                            <span className="flex items-center gap-1.5">
+                                                <Calendar className="w-3.5 h-3.5" />
+                                                {formatDate(edu.startDate)} - {edu.endDate ? formatDate(edu.endDate) : 'Present'}
+                                            </span>
+                                        </div>
+                                        {edu.description && (
+                                            <p className={cn("text-base leading-relaxed mt-4 max-w-2xl", theme.isDark ? "text-slate-300" : theme.colors.textMuted)}>{edu.description}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Occupation History */}
+                    {data.occupations && data.occupations.length > 0 && (
+                      <div className={cn("p-10 rounded-[3rem] border shadow-2xl space-y-8 transition-colors duration-500 relative", theme.colors.surface, theme.colors.border)}>
+                        <div className="flex items-center justify-between">
+                            <h3 className={cn("text-2xl font-black flex items-center gap-4 transition-colors duration-500", theme.colors.text)}>
+                                <Briefcase className={cn("w-8 h-8", theme.colors.accent)} />
+                                Occupation
+                            </h3>
+                            <button 
+                                onClick={() => updateMutation.mutate({ occupationSectionVisible: !data.occupationSectionVisible })}
+                                className={cn("p-2 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5", data.occupationSectionVisible ? "text-primary" : "text-red-500")}
+                                title={data.occupationSectionVisible ? "Visible to family" : "Hidden from family"}
+                            >
+                                {data.occupationSectionVisible ? <Eye className="w-6 h-6" /> : <EyeOff className="w-6 h-6" />}
+                            </button>
+                        </div>
+                        <div className="space-y-10">
+                            {[...data.occupations].sort((a, b) => {
+                                if (a.isCurrent && !b.isCurrent) return -1;
+                                if (!a.isCurrent && b.isCurrent) return 1;
+                                return new Date(b.endDate || b.startDate).getTime() - new Date(a.endDate || a.startDate).getTime();
+                            }).map((occ) => (
+                                <div key={occ.id} className="relative pl-12 before:absolute before:left-[15px] before:top-2 before:bottom-[-40px] last:before:hidden before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+                                    <div className={cn("absolute left-0 top-1 w-8 h-8 rounded-xl flex items-center justify-center border shadow-sm transition-colors", theme.colors.bg, theme.colors.border)}>
+                                        <Briefcase className={cn("w-4 h-4", theme.isDark ? "text-slate-200" : theme.colors.textMuted)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <h4 className={cn("text-xl font-bold leading-tight", theme.colors.text)}>{occ.title}</h4>
+                                            {occ.isCurrent && (
+                                                <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest border border-green-500/20">Current</span>
+                                            )}
+                                        </div>
+                                        <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium", theme.isDark ? "text-slate-300" : "text-slate-500")}>
+                                            <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {occ.company}</span>
+                                            <span className="w-1 h-1 rounded-full bg-current opacity-30" />
+                                            <span className="flex items-center gap-1.5">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                {formatDate(occ.startDate)} - {occ.isCurrent ? 'Present' : (occ.endDate ? formatDate(occ.endDate) : '')}
+                                            </span>
+                                        </div>
+                                        {occ.description && (
+                                            <p className={cn("text-base leading-relaxed mt-4 max-w-2xl", theme.isDark ? "text-slate-300" : theme.colors.textMuted)}>{occ.description}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className={cn("p-10 rounded-[3rem] border shadow-2xl space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
                       <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>Contact Details</h3>
@@ -340,7 +443,7 @@ export default function PersonProfilePage() {
               {showMergeModal && (
                 <MergeProfileModal
                   treeId={data.treeId}
-                  sourcePerson={{ id: data.id, firstName: data.firstName, lastName: data.lastName }}
+                  sourcePerson={{ id: data.id, firstName: data.firstName, lastName: data.lastName! }}
                   onClose={() => setShowMergeModal(false)}
                   onSuccess={() => {
                     // Success handling is managed in the modal

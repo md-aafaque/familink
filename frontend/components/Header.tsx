@@ -3,13 +3,15 @@
 import NotificationsMenu from "@/components/NotificationsMenu";
 import { usePathname } from "next/navigation";
 import { useAppTheme, AppThemeType } from "./providers/ThemeProvider";
-import { Maximize, Minimize, Moon, Sun } from "lucide-react";
+import { useSidebar } from "./providers/SidebarProvider";
+import { Maximize, Minimize, Moon, Sun, Menu } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useState } from "react";
 
 export default function Header() {
   const pathname = usePathname();
   const { themeType, setTheme, theme } = useAppTheme();
+  const { toggle } = useSidebar();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const getTitle = () => {
@@ -42,9 +44,17 @@ export default function Header() {
       theme.colors.header.border,
       "backdrop-blur-md"
     )}>
-      <div className="lg:hidden w-8"></div> {/* Spacer for sidebar toggle on mobile */}
-      
       <div className="flex items-center gap-4">
+        <button
+          onClick={toggle}
+          className={cn(
+            "lg:hidden p-2 rounded-md transition-colors",
+            theme.colors.hover,
+            theme.colors.text
+          )}
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <h1 className={cn("text-base font-bold tracking-tight", theme.colors.text)}>
           {getTitle()}
         </h1>

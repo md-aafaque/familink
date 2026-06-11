@@ -7,6 +7,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import CustomSelect from "./ui/CustomSelect";
 
 interface PersonPermissionsTabProps {
   personId: string;
@@ -23,7 +24,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
   const { data: permissions, isLoading: isLoadingPerms } = useQuery({
     queryKey: ["person-permissions", personId],
     queryFn: async () => {
-      const res = await api.get(`/people/${personId}/permissions`);
+      const res = await api.get(`/trees/${treeId}/people/${personId}/permissions`);
       return (res as any).data;
     },
   });
@@ -38,7 +39,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
 
   const grantMutation = useMutation({
     mutationFn: async () => {
-      await api.post(`/people/${personId}/permissions`, {
+      await api.post(`/trees/${treeId}/people/${personId}/permissions`, {
         userId: selectedUserId,
         permission: permissionType,
       });
@@ -51,7 +52,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
 
   const revokeMutation = useMutation({
     mutationFn: async (targetUserId: string) => {
-      await api.delete(`/people/${personId}/permissions/${targetUserId}`);
+      await api.delete(`/trees/${treeId}/people/${personId}/permissions/${targetUserId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["person-permissions", personId] });
@@ -140,7 +141,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-60 overflow-y-auto pr-2">
               {filteredMembers?.map((m: any) => (
                 <button
                   key={m.id}
@@ -164,19 +165,16 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <select
+              <CustomSelect
+                options={[
+                  { value: "editor", label: "Editor (Can edit fields)" },
+                  { value: "owner", label: "Owner (Full control)" }
+                ]}
                 value={permissionType}
-                onChange={(e) => setPermissionType(e.target.value as any)}
-                className={cn(
-                  "flex-1 px-6 py-5 rounded-[1.5rem] border outline-none font-black text-xs uppercase tracking-widest transition-all",
-                  theme.colors.bg,
-                  theme.colors.border,
-                  theme.colors.text
-                )}
-              >
-                <option value="editor">Editor (Can edit fields)</option>
-                <option value="owner">Owner (Full control)</option>
-              </select>
+                onChange={(val) => setPermissionType(val as any)}
+                className="flex-1"
+                size="lg"
+              />
               <button
                 disabled={!selectedUserId || grantMutation.isPending}
                 onClick={() => grantMutation.mutate()}

@@ -16,6 +16,8 @@ import {
   Clock,
   LayoutGrid,
   MoreVertical,
+  Trash2,
+  Edit,
 } from "lucide-react";
 
 import DataState from "../../components/shared/DataState";
@@ -23,8 +25,8 @@ import { motion } from "framer-motion";
 import Skeleton from "../../components/shared/Skeleton";
 import { cn } from "@/lib/cn";
 import { formatDate } from "../../lib/dateUtils";
-
 import { useAppTheme } from "../../components/providers/ThemeProvider";
+import MemoryCard from "@/components/memories/MemoryCard";
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -79,6 +81,17 @@ export default function DashboardPage() {
       const res = await api.get("/trees");
       return (res as any).data;
     },
+  });
+
+  // Fetch recent memories for the first active tree
+  const activeTree = trees?.find((t: any) => t.status === 'active');
+  const { data: recentMemories } = useQuery({
+    queryKey: ['memories', activeTree?.id],
+    queryFn: async () => {
+      const res = await api.get(`/trees/${activeTree?.id}/memories?limit=3`);
+      return (res as any).data;
+    },
+    enabled: !!activeTree,
   });
 
   const userName =
@@ -163,6 +176,21 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Recent Memories Section */}
+      {recentMemories && recentMemories.length > 0 && (
+        <section className="space-y-6">
+            <h2 className={cn("text-xl font-bold flex items-center gap-2.5", theme.colors.text)}>
+                <Clock className="w-5 h-5 opacity-50" />
+                Recent Memories
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {recentMemories.map((memory: any) => (
+                    <MemoryCard key={memory.id} memory={memory} />
+                ))}
+            </div>
+        </section>
+      )}
+
       {/* Trees Section */}
       <section className="space-y-6">
         <div className={cn("flex items-center justify-between border-b pb-4", theme.colors.border)}>
@@ -196,7 +224,7 @@ export default function DashboardPage() {
                 <div
                   key={tree.id}
                   className={cn(
-                    "group p-5 rounded-lg border shadow-sm transition-all relative overflow-hidden",
+                    "group p-5 rounded-lg border shadow-sm transition-all relative",
                     theme.colors.surface,
                     theme.colors.border,
                     tree.status === 'pending' ? "opacity-60 cursor-not-allowed" : "hover:border-primary/50 hover:shadow-md"
@@ -243,14 +271,15 @@ export default function DashboardPage() {
                       </button>
                       
                       {menuOpenId === tree.id && (
-                        <div className={cn("absolute right-0 mt-2 w-32 rounded-lg border shadow-lg z-50", theme.colors.surface, theme.colors.border)}>
+                        <div className={cn("absolute right-8 top-0 w-32 rounded-xl border shadow-xl z-50 p-1", theme.colors.surface, theme.colors.border)}>
                            <button 
                              onClick={(e) => { 
                                e.stopPropagation(); 
                                setActiveModal({ type: 'rename', tree });
                                setMenuOpenId(null);
                              }}
-                             className={cn("w-full text-left px-4 py-2 text-xs font-medium hover:bg-black/5", theme.colors.text)}>
+                             className={cn("w-full flex items-center gap-2 text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:bg-slate-100 dark:hover:bg-slate-800", theme.colors.text)}>
+                             <Edit className="w-3.5 h-3.5" />
                              Rename
                            </button>
                            <button 
@@ -259,7 +288,8 @@ export default function DashboardPage() {
                                setActiveModal({ type: 'delete', tree });
                                setMenuOpenId(null);
                              }}
-                             className={cn("w-full text-left px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50", theme.colors.text)}>
+                             className={cn("w-full flex items-center gap-2 text-left px-3 py-2 rounded-lg text-xs font-bold text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20")}>
+                             <Trash2 className="w-3.5 h-3.5" />
                              Delete
                            </button>
                         </div>

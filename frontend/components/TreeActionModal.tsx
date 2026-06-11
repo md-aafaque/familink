@@ -50,8 +50,8 @@ export default function TreeActionModal({ isOpen, onClose, type, treeName, onCon
 
           <p className={cn("text-sm mb-6", theme.colors.textMuted)}>
             {isDelete 
-              ? `Are you sure you want to delete "${treeName}"? This action cannot be undone. Please type the name of the tree to confirm:`
-              : `Enter a new name for your tree "${treeName}":`
+              ? <span>Are you sure you want to delete "{treeName}"? This action cannot be undone. Please type the name of the tree to confirm <span className="text-red-500">*</span>:</span>
+              : <span>Enter a new name for your tree "{treeName}" <span className="text-red-500">*</span>:</span>
             }
           </p>
 

@@ -3,12 +3,17 @@ export const formatDate = (value: unknown) => {
     return "Not provided";
   }
 
-  // Handle Neo4j Integer objects
-  const normalized =
-    typeof value === "object" && value !== null &&
-    typeof (value as { toNumber?: () => number }).toNumber === "function"
-      ? (value as { toNumber: () => number }).toNumber()
-      : value;
+  // Handle Neo4j Integer objects (both with toNumber() and raw {low, high})
+  let normalized: any = value;
+  if (typeof value === "object" && value !== null) {
+    if (typeof (value as any).toNumber === "function") {
+      normalized = (value as any).toNumber();
+    } else if ('low' in (value as any) && 'high' in (value as any)) {
+      const { low, high } = value as { low: number; high: number };
+      // Standard Neo4j Integer reconstruction
+      normalized = high * Math.pow(2, 32) + (low < 0 ? low + Math.pow(2, 32) : low);
+    }
+  }
 
   const date = new Date(normalized as string | number);
   
@@ -24,11 +29,15 @@ export const formatDateTime = (value: unknown) => {
     return "Not provided";
   }
 
-  const normalized =
-    typeof value === "object" && value !== null &&
-    typeof (value as { toNumber?: () => number }).toNumber === "function"
-      ? (value as { toNumber: () => number }).toNumber()
-      : value;
+  let normalized: any = value;
+  if (typeof value === "object" && value !== null) {
+    if (typeof (value as any).toNumber === "function") {
+      normalized = (value as any).toNumber();
+    } else if ('low' in (value as any) && 'high' in (value as any)) {
+      const { low, high } = value as { low: number; high: number };
+      normalized = high * Math.pow(2, 32) + (low < 0 ? low + Math.pow(2, 32) : low);
+    }
+  }
 
   const date = new Date(normalized as string | number);
   

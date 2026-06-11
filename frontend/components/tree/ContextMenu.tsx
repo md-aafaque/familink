@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, Edit3, Link2, Trash2, ShieldCheck, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useEffect, useState } from "react";
+import { useAppTheme } from "../providers/ThemeProvider";
 
 interface ContextMenuProps {
   x: number;
@@ -18,6 +19,7 @@ interface ContextMenuProps {
 }
 
 export default function ContextMenu({ x, y, onClose, items }: ContextMenuProps) {
+  const { theme } = useAppTheme();
   useEffect(() => {
     const handleScroll = () => onClose();
     window.addEventListener('scroll', handleScroll, true);
@@ -31,7 +33,11 @@ export default function ContextMenu({ x, y, onClose, items }: ContextMenuProps) 
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="fixed z-[70] min-w-[240px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-100 dark:border-slate-800 rounded-[2rem] shadow-2xl overflow-hidden p-3"
+        className={cn(
+            "fixed z-[70] min-w-[240px] backdrop-blur-xl border rounded-[2rem] shadow-2xl overflow-hidden p-3",
+            theme.colors.surface,
+            theme.colors.border
+        )}
         style={{ left: x, top: y }}
       >
         <div className="space-y-1">
@@ -47,12 +53,12 @@ export default function ContextMenu({ x, y, onClose, items }: ContextMenuProps) 
                 "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all group",
                 item.variant === 'danger' 
                   ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20" 
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                  : cn(theme.colors.textMuted, theme.colors.hover, "hover:" + theme.colors.text)
               )}
             >
               <div className={cn(
                 "p-2 rounded-xl transition-colors",
-                item.variant === 'danger' ? "bg-red-50 dark:bg-red-900/20" : "bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700"
+                item.variant === 'danger' ? "bg-red-50 dark:bg-red-900/20" : cn(theme.colors.bg, "group-hover:" + theme.colors.surface)
               )}>
                 <item.icon className="w-4 h-4" />
               </div>

@@ -17,17 +17,18 @@ import {
   Menu,
   X,
   Activity,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ImageIcon
 } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import { useSidebar } from "./providers/SidebarProvider";
 
 export default function Sidebar() {
   const { signOut, user } = useAuth();
   const { theme } = useAppTheme();
+  const { isOpen, close } = useSidebar();
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
 
   const { data: trees } = useQuery({
     queryKey: ["trees"],
@@ -40,11 +41,6 @@ export default function Sidebar() {
 
   const isAdmin = trees?.some((t: any) => t.role === 'admin');
 
-  const menuItems = [
-    { label: "My Family Trees", icon: Trees, href: "/dashboard", active: pathname === "/dashboard" },
-    { label: "Notifications", icon: Bell, href: "/notifications", active: pathname === "/notifications" },
-  ];
-
   const adminItems = [
     { label: "Access Requests", icon: Users, href: "/dashboard/manage/users", active: pathname === "/dashboard/manage/users" },
     { label: "Review Proposals", icon: GitPullRequest, href: "/dashboard/manage/proposals", active: pathname === "/dashboard/manage/proposals" },
@@ -52,28 +48,13 @@ export default function Sidebar() {
     { label: "Manage Invites", icon: ShieldCheck, href: "/dashboard/manage/invitations", active: pathname === "/dashboard/manage/invitations" },
   ];
 
-  const closeSidebar = () => setIsOpen(false);
-
   return (
     <>
-      {/* Mobile Toggle */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md border shadow-sm transition-colors",
-          theme.colors.surface,
-          theme.colors.border,
-          theme.colors.text
-        )}
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
-
       {/* Sidebar Overlay */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-slate-900/20 backdrop-blur-[2px] z-40 lg:hidden"
-          onClick={closeSidebar}
+          onClick={close}
         />
       )}
 
@@ -86,7 +67,7 @@ export default function Sidebar() {
       )}>
         {/* Logo Section */}
         <div className={cn("h-16 flex items-center px-6 border-b", theme.colors.sidebar.border)}>
-          <Link href="/dashboard" className="flex items-center gap-2.5" onClick={closeSidebar}>
+          <Link href="/dashboard" className="flex items-center gap-2.5" onClick={close}>
             <div className={cn("w-8 h-8 rounded flex items-center justify-center", theme.colors.primary)}>
               <LinkIcon className="w-5 h-5 text-white" />
             </div>
@@ -103,22 +84,45 @@ export default function Sidebar() {
             <h3 className={cn("px-3 text-[10px] font-bold uppercase tracking-widest mb-2", theme.colors.textMuted)}>
               Navigation
             </h3>
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={closeSidebar}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  item.active 
-                    ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
-                    : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
-                )}
-              >
-                <item.icon className={cn("w-4 h-4", item.active ? theme.colors.accent : "opacity-60")} />
-                {item.label}
-              </Link>
-            ))}
+            <Link
+              href="/dashboard"
+              onClick={close}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                pathname === "/dashboard" 
+                  ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
+                  : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
+              )}
+            >
+              <Trees className={cn("w-4 h-4", pathname === "/dashboard" ? theme.colors.accent : "opacity-60")} />
+              My Family Trees
+            </Link>
+            <Link
+              href="/dashboard/memories"
+              onClick={close}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                pathname === "/dashboard/memories" 
+                  ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
+                  : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
+              )}
+            >
+              <ImageIcon className={cn("w-4 h-4", pathname === "/dashboard/memories" ? theme.colors.accent : "opacity-60")} />
+              Family Wall
+            </Link>
+            <Link
+              href="/notifications"
+              onClick={close}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                pathname === "/notifications" 
+                  ? cn(theme.colors.sidebar.itemHover, theme.colors.sidebar.activeText)
+                  : cn(theme.colors.textMuted, theme.colors.sidebar.hoverText, theme.colors.sidebar.itemHover)
+              )}
+            >
+              <Bell className={cn("w-4 h-4", pathname === "/notifications" ? theme.colors.accent : "opacity-60")} />
+              Notifications
+            </Link>
           </div>
 
           {/* Admin Tools */}
@@ -131,7 +135,7 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={closeSidebar}
+                  onClick={close}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     item.active 

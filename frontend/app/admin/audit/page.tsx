@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { formatDateTime } from "@/lib/dateUtils";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 export default function AuditLogsPage() {
   const [selectedTreeId, setSelectedTreeId] = useState<string | null>(null);
@@ -72,25 +73,17 @@ export default function AuditLogsPage() {
               <h3 className="text-2xl font-black text-white">Select Family Tree</h3>
               <p className="text-slate-300 font-medium">Viewing history for the selected workspace</p>
             </div>
-            <div className="relative min-w-[300px]">
-              <select
+            <div className="min-w-[300px]">
+              <CustomSelect
+                options={trees?.map((tree: any) => ({ 
+                  value: tree.id, 
+                  label: `${tree.name} (${tree.role})` 
+                })) || []}
                 value={selectedTreeId ?? ""}
-                onChange={(e) => setSelectedTreeId(e.target.value || null)}
-                className={cn(
-                  "w-full pl-6 pr-12 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl font-bold text-white focus:ring-4 outline-none appearance-none transition-all cursor-pointer backdrop-blur-md",
-                  "focus:ring-primary/30"
-                )}
-              >
-                {!trees && <option className="text-slate-900">Loading trees...</option>}
-                {trees?.map((tree: any) => (
-                  <option key={tree.id} value={tree.id} className="text-slate-900">
-                    {tree.name} ({tree.role})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
-                <ChevronDown className="w-5 h-5" />
-              </div>
+                onChange={(val) => setSelectedTreeId(val || null)}
+                placeholder={!trees ? "Loading trees..." : "Select Family Tree"}
+                size="lg"
+              />
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ interface AppTheme {
   name: string;
   isDark: boolean;
   colors: {
+    borderAccent: string;
     bg: string;
     surface: string;
     border: string;
@@ -16,6 +17,7 @@ interface AppTheme {
     primary: string;
     primaryMuted: string;
     accent: string;
+    hover: string;
     sidebar: {
       bg: string;
       border: string;
@@ -43,11 +45,13 @@ const themes: Record<AppThemeType, AppTheme> = {
       bg: 'bg-white',
       surface: 'bg-white',
       border: 'border-slate-200',
+      borderAccent: 'border-orange-500',
       text: 'text-slate-900',
       textMuted: 'text-slate-500',
       primary: 'bg-orange-600',
       primaryMuted: 'bg-orange-50',
       accent: 'text-orange-600',
+      hover: 'hover:bg-orange-100',
       sidebar: {
         bg: 'bg-slate-50',
         border: 'border-slate-200',
@@ -73,11 +77,13 @@ const themes: Record<AppThemeType, AppTheme> = {
       bg: 'bg-slate-950',
       surface: 'bg-slate-900',
       border: 'border-slate-800',
+      borderAccent: 'border-indigo-500',
       text: 'text-slate-100',
       textMuted: 'text-slate-400',
       primary: 'bg-indigo-500',
       primaryMuted: 'bg-indigo-900/30',
       accent: 'text-indigo-400',
+      hover: 'hover:bg-white/5',
       sidebar: {
         bg: 'bg-slate-900',
         border: 'border-slate-800',
@@ -110,14 +116,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeType, setThemeType] = useState<AppThemeType>('light');
 
   useEffect(() => {
-    const saved = localStorage.getItem('app-theme') as AppThemeType;
-    if (saved && themes[saved]) {
-      setThemeType(saved);
-      if (themes[saved].isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    const saved = localStorage.getItem('app-theme') as AppThemeType || 'light';
+    setThemeType(saved);
+    if (themes[saved].isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 

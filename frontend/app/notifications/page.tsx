@@ -189,7 +189,7 @@ export default function NotificationsPage() {
                   "rounded-xl shadow-sm border transition-all p-6 flex items-start justify-between gap-4 hover:shadow-md cursor-pointer",
                   theme.colors.surface,
                   theme.colors.border,
-                  !notif.isRead && "border-indigo-500/50 bg-indigo-500/10"
+                  !notif.isRead && "border-orange-500/50 bg-orange-500/10 dark:border-indigo-500/50 dark:bg-indigo-500/10"
                 )}
               >
                 <div className="flex-1 min-w-0">
