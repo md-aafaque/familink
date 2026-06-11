@@ -243,7 +243,7 @@ export default function RelationshipProposalModal({
 // Sub-components
 // ─────────────────────────────────────────────
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
       <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
