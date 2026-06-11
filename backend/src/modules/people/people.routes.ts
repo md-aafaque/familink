@@ -164,4 +164,17 @@ export default async function peopleRoutes(fastify: FastifyInstance) {
     const result = await PeopleService.revokePermission(id, treeId, userId, user.id);
     return result;
   });
+
+  /**
+   * Get signed upload URL for profile pictures
+   */
+  fastify.post('/trees/:treeId/people/upload-url', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member'])]
+  }, async (request, reply) => {
+    const { treeId } = treeIdParamSchema.parse(request.params);
+    const { fileName } = z.object({ fileName: z.string() }).parse(request.body);
+
+    const data = await PeopleService.getUploadUrl(treeId, fileName);
+    return { success: true, data };
+  });
 }

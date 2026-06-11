@@ -4,10 +4,24 @@ import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors';
 
 export class PeopleRepository {
+  private static serializeArray(arr: any[]): string {
+    return JSON.stringify(arr || []);
+  }
+
+  private static parseArray(str: string | undefined): any[] {
+    try {
+      return str ? JSON.parse(str) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   static async create(input: CreatePersonInput & { createdBy: string }): Promise<Person> {
     const session = getSession();
     try {
       const id = uuidv4();
+      const { occupations, educations, ...rest } = input;
+      
       const result = await session.run(
         `
         MATCH (t:FamilyTree {id: $treeId})
@@ -26,16 +40,31 @@ export class PeopleRepository {
           emailVisibility: $emailVisibility,
           address: $address,
           addressVisibility: $addressVisibility,
+          occupations: $occupations,
+          occupationSectionVisible: $occupationSectionVisible,
+          educations: $educations,
+          educationSectionVisible: $educationSectionVisible,
           birthDateVisibility: $birthDateVisibility,
+          imageUrl: $imageUrl,
           createdBy: $createdBy,
           createdAt: timestamp()
         })
         CREATE (p)-[:BELONGS_TO_TREE]->(t)
         RETURN p
         `,
-        { ...input, id }
+        { 
+          ...rest, 
+          id, 
+          occupations: this.serializeArray(occupations), 
+          educations: this.serializeArray(educations) 
+        }
       );
-      return result.records[0].get('p').properties;
+      const props = result.records[0].get('p').properties;
+      return {
+        ...props,
+        occupations: this.parseArray(props.occupations),
+        educations: this.parseArray(props.educations)
+      };
     } finally {
       await session.close();
     }
@@ -49,7 +78,12 @@ export class PeopleRepository {
         { id, treeId }
       );
       if (result.records.length === 0) return null;
-      return result.records[0].get('p').properties;
+      const props = result.records[0].get('p').properties;
+      return {
+        ...props,
+        occupations: this.parseArray(props.occupations),
+        educations: this.parseArray(props.educations)
+      };
     } finally {
       await session.close();
     }
@@ -67,7 +101,12 @@ export class PeopleRepository {
         { id }
       );
       if (result.records.length === 0) return null;
-      return result.records[0].get('p').properties;
+      const props = result.records[0].get('p').properties;
+      return {
+        ...props,
+        occupations: this.parseArray(props.occupations),
+        educations: this.parseArray(props.educations)
+      };
     } finally {
       await session.close();
     }
@@ -83,8 +122,13 @@ export class PeopleRepository {
 
     const session = getSession();
     try {
+      const params: any = { ...input, id, treeId };
+      if (input.occupations) params.occupations = this.serializeArray(input.occupations);
+      if (input.educations) params.educations = this.serializeArray(input.educations);
+
       // Build the SET clause dynamically but safely using parameters
-      const setters = keys
+      const setters = Object.keys(params)
+        .filter(key => !['id', 'treeId'].includes(key))
         .map(key => `p.${key} = $${key}`)
         .join(', ');
       
@@ -93,14 +137,19 @@ export class PeopleRepository {
          WHERE p.deletedAt IS NULL
          SET ${setters} 
          RETURN p`,
-        { ...input, id, treeId }
+        params
       );
 
       if (result.records.length === 0) {
         throw new AppError('Person not found or already deleted', 404);
       }
 
-      return result.records[0].get('p').properties;
+      const props = result.records[0].get('p').properties;
+      return {
+        ...props,
+        occupations: this.parseArray(props.occupations),
+        educations: this.parseArray(props.educations)
+      };
     } finally {
       await session.close();
     }

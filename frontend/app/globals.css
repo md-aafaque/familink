@@ -129,6 +129,11 @@
     scrollbar-width: thin;
     scrollbar-color: var(--primary) transparent;
   }
+
+  /* Fix Date Picker Icon in Dark Mode */
+  .dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
 }
 
 @layer components {

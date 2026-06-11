@@ -88,6 +88,7 @@ export default function ManageClaimsPage() {
                 onChange={setSelectedTreeId}
                 options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
                 placeholder="Choose a tree..."
+                className="w-full md:min-w-[300px]"
               />
             </div>
           </div>

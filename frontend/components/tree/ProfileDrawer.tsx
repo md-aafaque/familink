@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Heart, Edit3, Link2, FileText, Plus, Calendar, Quote, ImageIcon, Loader2 } from "lucide-react";
+import { X, User, Heart, Edit3, Link2, FileText, Plus, Calendar, Quote, ImageIcon, Loader2, Briefcase, GraduationCap, Mail, Phone, MapPin } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "../providers/ThemeProvider";
 import { useState } from "react";
@@ -191,8 +191,10 @@ export default function ProfileDrawer({
               <div className="p-4 space-y-6">
                 {activeTab === 'core' && (
                   <div className="space-y-4">
+                    {/* 1. Birth Information */}
                     <div>
-                      <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2", theme.colors.textMuted)}>
+                      <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
+                        <Calendar className="w-3 h-3" />
                         Birth Information
                       </h3>
                       <div className={cn("p-3 rounded-lg border", theme.colors.border)}>
@@ -201,19 +203,120 @@ export default function ProfileDrawer({
                             {format(new Date(person.birthDate), 'MMMM d, yyyy')}
                           </p>
                         ) : (
-                          <p className={cn("text-sm italic", theme.colors.textMuted)}>Not provided</p>
+                          <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>Not provided</p>
                         )}
                       </div>
                     </div>
 
+                    {/* 1b. Gender (New Position) */}
                     <div>
                       <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2", theme.colors.textMuted)}>
                         Gender
                       </h3>
-                      <div className={cn("p-3 rounded-lg border capitalize", theme.colors.border)}>
-                        <p className={cn("text-sm", theme.colors.text)}>
+                      <div className={cn("p-3 rounded-lg border capitalize transition-colors", theme.colors.border)}>
+                        <p className={cn("text-sm font-bold", theme.colors.text)}>
                           {person.gender || 'Not specified'}
                         </p>
+                      </div>
+                    </div>
+
+                    {/* 2. Education */}
+                    {(() => {
+                        const educations = typeof person.educations === 'string' ? JSON.parse(person.educations) : (Array.isArray(person.educations) ? person.educations : []);
+                        const visibleEntries = educations.filter((e: any) => e.visibility === 'tree');
+                        
+                        if (visibleEntries.length === 0 || person.educationSectionVisible === false) return null;
+
+                        const latest = [...visibleEntries].sort((a, b) => {
+                            const dateA = new Date(a.endDate || a.startDate).getTime();
+                            const dateB = new Date(b.endDate || b.startDate).getTime();
+                            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+                        })[0];
+                        
+                        const startYear = latest.startDate ? (isNaN(new Date(latest.startDate).getTime()) ? '' : format(new Date(latest.startDate), 'yyyy')) : '';
+                        const endYear = latest.endDate ? (isNaN(new Date(latest.endDate).getTime()) ? '' : format(new Date(latest.endDate), 'yyyy')) : 'Present';
+
+                        return (
+                            <div>
+                                <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center justify-between gap-2", theme.colors.textMuted)}>
+                                    <div className="flex items-center gap-2">
+                                        <GraduationCap className={cn("w-3.5 h-3.5", theme.isDark ? "text-indigo-400" : "text-slate-400")} />
+                                        Education
+                                    </div>
+                                </h3>
+                                <div className={cn("p-3 rounded-lg border transition-colors", theme.colors.border)}>
+                                    <div className="space-y-1">
+                                        <p className={cn("text-sm font-black leading-tight", theme.colors.text)}>{latest.school}</p>
+                                        {latest.degree && <p className={cn("text-xs font-medium", theme.isDark ? "text-slate-300" : "text-slate-600")}>{latest.degree}</p>}
+                                        <p className={cn("text-[10px] opacity-60 uppercase font-black", theme.colors.textMuted)}>
+                                        {startYear}{endYear ? ` - ${endYear}` : ''}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* 3. Occupation */}
+                    {(() => {
+                        const occupations = typeof person.occupations === 'string' ? JSON.parse(person.occupations) : (Array.isArray(person.occupations) ? person.occupations : []);
+                        const visibleEntries = occupations.filter((o: any) => o.visibility === 'tree');
+                        
+                        if (visibleEntries.length === 0 || person.occupationSectionVisible === false) return null;
+
+                        const current = visibleEntries.find((o: any) => o.isCurrent);
+                        const latest = current || [...visibleEntries].sort((a, b) => {
+                            const dateA = new Date(a.endDate || a.startDate).getTime();
+                            const dateB = new Date(b.endDate || b.startDate).getTime();
+                            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+                        })[0];
+
+                        const startYear = latest.startDate ? (isNaN(new Date(latest.startDate).getTime()) ? '' : format(new Date(latest.startDate), 'yyyy')) : '';
+                        const endYear = latest.isCurrent ? 'Present' : (latest.endDate ? (isNaN(new Date(latest.endDate).getTime()) ? '' : format(new Date(latest.endDate), 'yyyy')) : '');
+
+                        return (
+                            <div>
+                                <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center justify-between gap-2", theme.colors.textMuted)}>
+                                    <div className="flex items-center gap-2">
+                                        <Briefcase className={cn("w-3.5 h-3.5", theme.isDark ? "text-indigo-400" : "text-slate-400")} />
+                                        Occupation
+                                    </div>
+                                </h3>
+                                <div className={cn("p-3 rounded-lg border transition-colors", theme.colors.border)}>
+                                    <div className="space-y-1">
+                                        <p className={cn("text-sm font-black leading-tight", theme.colors.text)}>{latest.title}</p>
+                                        <p className={cn("text-xs font-medium", theme.isDark ? "text-slate-300" : "text-slate-600")}>{latest.company}</p>
+                                        <p className={cn("text-[10px] opacity-60 uppercase font-black", theme.colors.textMuted)}>
+                                        {startYear}{endYear ? ` - ${endYear}` : ''}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* 4. Contact Information */}
+                    <div>
+                      <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
+                        <Mail className="w-3 h-3" />
+                        Contact Info
+                      </h3>
+                      <div className={cn("p-3 rounded-lg border space-y-3", theme.colors.border)}>
+                        {person.email && (
+                            <div className="flex items-center gap-3">
+                                <Mail className={cn("w-3.5 h-3.5 opacity-40", theme.colors.text)} />
+                                <span className={cn("text-xs font-medium truncate", theme.colors.text)}>{person.email}</span>
+                            </div>
+                        )}
+                        {person.phone && (
+                            <div className="flex items-center gap-3">
+                                <Phone className={cn("w-3.5 h-3.5 opacity-40", theme.colors.text)} />
+                                <span className={cn("text-xs font-medium", theme.colors.text)}>{person.phone}</span>
+                            </div>
+                        )}
+                        {!person.email && !person.phone && (
+                            <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>No contact info shared</p>
+                        )}
                       </div>
                     </div>
 

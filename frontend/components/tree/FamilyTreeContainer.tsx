@@ -583,7 +583,7 @@ function PersonNode({
           {/* Avatar Container */}
           <div className="relative flex-shrink-0">
             <div className={cn(
-              "rounded-2xl flex items-center justify-center text-[13px] font-black text-white shadow-sm transition-transform duration-500 group-hover:scale-105",
+              "rounded-2xl flex items-center justify-center text-[13px] font-black text-white shadow-sm transition-transform duration-500 group-hover:scale-105 overflow-hidden",
               isDead ? "bg-slate-400/80" : ""
             )}
             style={{ 
@@ -591,7 +591,9 @@ function PersonNode({
               backgroundColor: isDead ? undefined : accentHex,
               boxShadow: isDead ? "none" : `0 4px 10px ${accentHex}40`
             }}>
-              {initials}
+              {(person as any).imageUrl ? (
+                <img src={(person as any).imageUrl} alt="" className="w-full h-full object-cover" />
+              ) : initials}
             </div>
             
             {/* Live/Status Indicator */}

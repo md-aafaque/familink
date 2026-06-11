@@ -18,6 +18,7 @@ import MemoryModal from '@/components/memories/MemoryModal';
 import { Memory } from '@/lib/shared/schemas/memories';
 import { useAuth } from '@/components/providers/AuthProvider';
 import DataState from '@/components/shared/DataState';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function FamilyWallPage() {
   const { theme } = useAppTheme();
@@ -123,23 +124,14 @@ export default function FamilyWallPage() {
       )}>
         <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
           {/* Tree Selector */}
-          <div className="relative min-w-[200px]">
-            <select
-              value={selectedTreeId || ''}
-              onChange={(e) => setSelectedTreeId(e.target.value)}
-              className={cn(
-                "w-full appearance-none px-4 py-2 pr-10 rounded-xl border outline-none font-bold text-xs uppercase tracking-widest transition-all",
-                theme.colors.bg,
-                theme.colors.border,
-                theme.colors.text
-              )}
-            >
-              {trees?.map((tree: any) => (
-                <option key={tree.id} value={tree.id}>{tree.name}</option>
-              ))}
-              {treesLoading && <option>Loading trees...</option>}
-            </select>
-            <ChevronDown className={cn("absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none opacity-50", theme.colors.text)} />
+          <div className="min-w-[200px]">
+            <CustomSelect
+                options={trees?.map((tree: any) => ({ value: tree.id, label: tree.name })) || []}
+                value={selectedTreeId || ''}
+                onChange={(val) => setSelectedTreeId(val)}
+                placeholder={treesLoading ? "Loading trees..." : "Select Tree"}
+                size="sm"
+            />
           </div>
 
           {/* Search */}

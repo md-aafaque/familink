@@ -7,6 +7,7 @@ import { X, Loader2, Link2, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import CustomSelect from "./ui/CustomSelect";
 
 interface RelationshipProposalModalProps {
   treeId: string;
@@ -264,27 +265,19 @@ interface PersonSelectProps {
 }
 
 function PersonSelect({ value, onChange, people, excludeId, placeholder, theme }: PersonSelectProps) {
+  const options = people
+    .filter((p) => p.id !== excludeId)
+    .map((p) => ({
+      value: p.id,
+      label: `${p.firstName} ${p.lastName ?? ""}`.trim()
+    }));
+
   return (
-    <select
-      required
+    <CustomSelect
+      options={options}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={cn(
-        "w-full px-5 py-3.5 rounded-2xl border outline-none appearance-none font-semibold text-sm transition-all",
-        "focus:ring-4 focus:ring-primary/10 focus:border-primary/50",
-        theme.colors.bg,
-        theme.colors.border,
-        theme.colors.text
-      )}
-    >
-      <option value="">{placeholder}</option>
-      {people
-        .filter((p) => p.id !== excludeId)
-        .map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.firstName} {p.lastName ?? ""}
-          </option>
-        ))}
-    </select>
+      onChange={onChange}
+      placeholder={placeholder}
+    />
   );
 }

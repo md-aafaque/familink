@@ -82,14 +82,18 @@ const TreeCard = memo(({
           {/* Avatar Area */}
           <div className="relative">
             <div className={cn(
-              "w-24 h-24 rounded-[2rem] flex items-center justify-center transition-all duration-700 shadow-inner border-4",
+              "w-24 h-24 rounded-[2rem] flex items-center justify-center transition-all duration-700 shadow-inner border-4 overflow-hidden",
               isFocus
                 ? "rotate-6 border-primary/20 bg-primary/5"
                 : "group-hover:-rotate-3 border-transparent bg-slate-100 dark:bg-slate-800"
             )}>
-              <span className={cn("text-2xl font-black transition-colors duration-500", isFocus ? "text-primary" : "text-slate-400")}>
-                {getInitials(person.firstName, person.lastName)}
-              </span>
+              {person.imageUrl ? (
+                <img src={person.imageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className={cn("text-2xl font-black transition-colors duration-500", isFocus ? "text-primary" : "text-slate-400")}>
+                  {getInitials(person.firstName, person.lastName)}
+                </span>
+              )}
             </div>
             
             {/* Live Status Indicator */}
