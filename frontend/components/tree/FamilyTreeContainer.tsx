@@ -74,6 +74,7 @@ const SPOUSE_GAP   = 56;
 const COUPLE_W     = CARD_W + SPOUSE_GAP + CARD_W;
 const PADDING      = 300; 
 const SIDEBAR_W    = 320;
+const SIDEBAR_COLLAPSED_W = 64;
 const INITIAL_SCALE = 0.6;
 
 // Unit width used as the d3 nodeSize base and the separation denominator.
@@ -682,6 +683,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     setThemeKey(appTheme.isDark ? "dark" : "light");
   }, [appTheme.isDark]);
   const [showSandbox, setShowSandbox]       = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullScreen, setIsFullScreen]     = useState(false);
   const [focusId, setFocusId]               = useState<string | null>(null);
   const [collapsedSet, setCollapsedSet]     = useState<Set<string>>(new Set());
@@ -853,7 +855,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     const contentCY = (cMinY + cMaxY) / 2;
 
     // Viewport = the flex-1 canvas div (not full window width)
-    const vpW = canvasDivRef.current?.clientWidth  ?? window.innerWidth - (showSandbox ? SIDEBAR_W : 0);
+    const currentSidebarW = showSandbox ? (isSidebarCollapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_W) : 0;
+    const vpW = canvasDivRef.current?.clientWidth  ?? window.innerWidth - currentSidebarW;
     const vpH = canvasDivRef.current?.clientHeight ?? window.innerHeight;
 
     // Scale to fill ~88% of the viewport, capped at INITIAL_SCALE (don't zoom in)
@@ -870,7 +873,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       fitScale,
       centeredRef.current ? 300 : 0, // animate re-centers; snap on first load
     );
-  }, [layout, showSandbox]);
+  }, [layout, showSandbox, isSidebarCollapsed]);
 
   useEffect(() => {
     if (!layout) return; // ← KEY FIX: don't attempt to center before data loads
@@ -881,7 +884,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     centeredRef.current = true;
     const timer = setTimeout(centerTree, delay);
     return () => clearTimeout(timer);
-  }, [layout, showSandbox, centerTree]); // ← layout in deps fixes the "always top-left" bug
+  }, [layout, showSandbox, isSidebarCollapsed, centerTree]); // ← layout in deps fixes the "always top-left" bug
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCardClick = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
@@ -983,13 +986,23 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       <AnimatePresence>
         {showSandbox && (
           <motion.div
-            initial={{ x: -SIDEBAR_W }} animate={{ x: 0 }} exit={{ x: -SIDEBAR_W }}
+            initial={{ x: -SIDEBAR_W }} 
+            animate={{ 
+              x: 0,
+              width: isSidebarCollapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_W 
+            }} 
+            exit={{ x: -SIDEBAR_W }}
             transition={{ type: "spring", stiffness: 340, damping: 34 }}
-            className="h-full flex-shrink-0 relative z-40" style={{ width: SIDEBAR_W }}>
-                <TreeSandboxSidebar treeId={treeId}
+            className="h-full flex-shrink-0 relative z-40 overflow-hidden"
+          >
+            <TreeSandboxSidebar 
+              treeId={treeId}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               onAddNew={() => setShowCreateModal(true)}
               onSelectPerson={handleCardClick}
-              onDrop={handleDrop} />
+              onDrop={handleDrop} 
+            />
           </motion.div>
         )}
       </AnimatePresence>
