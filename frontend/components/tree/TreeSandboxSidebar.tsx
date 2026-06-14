@@ -2,21 +2,30 @@
 
 import { useQuery } from "@tanstack/react-query";
 import api from "../../lib/api";
-import { Search, UserPlus, Info, GripVertical, Loader2, ChevronRight } from "lucide-react";
+import { Search, UserPlus, Info, GripVertical, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
-import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppTheme } from "../providers/ThemeProvider";
 import { cn } from "@/lib/cn";
 import { useTreeInteraction } from "./TreeInteractionProvider";
 
 interface TreeSandboxSidebarProps {
   treeId: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
   onSelectPerson?: (id: string) => void;
   onAddNew?: () => void;
   onDrop?: (srcId: string, tgtId: string) => void;
 }
 
-export default function TreeSandboxSidebar({ treeId, onSelectPerson, onAddNew, onDrop }: TreeSandboxSidebarProps) {
+export default function TreeSandboxSidebar({ 
+  treeId, 
+  isCollapsed = false, 
+  onToggleCollapse, 
+  onSelectPerson, 
+  onAddNew, 
+  onDrop 
+}: TreeSandboxSidebarProps) {
   const [search, setSearch] = useState("");
   const { theme } = useAppTheme();
 
@@ -36,60 +45,75 @@ export default function TreeSandboxSidebar({ treeId, onSelectPerson, onAddNew, o
   );
 
   return (
-    <div className={cn(
-      "w-80 h-full flex flex-col border-r transition-colors duration-500",
-      theme.colors.sidebar.bg,
-      theme.colors.sidebar.border,
-      "backdrop-blur-xl z-40"
-    )}>
-      <div className="p-6 space-y-6">
-        <header>
-          <div className="flex items-center gap-2 mb-1">
+    <div 
+      className={cn(
+        "h-full flex flex-col transition-colors duration-500",
+        theme.colors.sidebar.bg,
+        "backdrop-blur-xl z-40 border-r",
+        theme.colors.sidebar.border
+      )}
+    >
+      <div className={cn("p-6 space-y-6 flex-shrink-0", isCollapsed && "px-3 p-4")}>
+        <header className="flex items-center justify-between">
+          <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
             <div className={cn("w-2 h-2 rounded-full animate-pulse", theme.colors.primary)} />
             <h2 className={cn("text-xs font-black uppercase tracking-[0.2em]", theme.colors.sidebar.activeText)}>
               Sandbox
             </h2>
           </div>
-          <h1 className={cn("text-xl font-black tracking-tight transition-colors duration-500", theme.colors.text)}>
-            Unlinked Members
-          </h1>
+          <button 
+            onClick={onToggleCollapse}
+            className={cn("p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5", theme.colors.textMuted)}
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </header>
 
-        <div className="relative group">
-          <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-500", theme.colors.textMuted, "group-focus-within:" + theme.colors.accent)} />
-          <input
-            type="text"
-            placeholder="Search sandbox..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={cn(
-              "w-full pl-10 pr-4 py-3 rounded-2xl text-sm font-medium outline-none transition-all border focus:ring-4 focus:ring-primary/10 focus:border-primary/50",
-              theme.colors.bg,
-              theme.colors.border,
-              theme.colors.text
-            )}
-          />
-        </div>
+        {!isCollapsed && (
+          <>
+            <h1 className={cn("text-xl font-black tracking-tight transition-colors duration-500", theme.colors.text)}>
+              Unlinked Members
+            </h1>
+            <div className="relative group">
+              <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-500", theme.colors.textMuted, "group-focus-within:" + theme.colors.accent)} />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={cn(
+                  "w-full pl-10 pr-4 py-3 rounded-2xl text-sm font-medium outline-none transition-all border focus:ring-4 focus:ring-primary/10 focus:border-primary/50",
+                  theme.colors.bg,
+                  theme.colors.border,
+                  theme.colors.text
+                )}
+              />
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-3">
+      <div className={cn("flex-1 overflow-y-auto pb-8 space-y-3", isCollapsed ? "px-2" : "px-4")}>
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
              <Loader2 className={cn("w-6 h-6 animate-spin", theme.colors.accent)} />
-             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Members</p>
+             {!isCollapsed && <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading</p>}
           </div>
         ) : unlinkedPeople?.length === 0 ? (
-          <div className="py-12 px-6 text-center space-y-4">
-            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mx-auto transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-              <Info className={cn("w-5 h-5 transition-colors duration-500", theme.colors.textMuted)} />
+          !isCollapsed && (
+            <div className="py-12 px-6 text-center space-y-4">
+              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mx-auto transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
+                <Info className={cn("w-5 h-5 transition-colors duration-500", theme.colors.textMuted)} />
+              </div>
+              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>All members are linked.</p>
             </div>
-            <p className={cn("text-sm font-medium", theme.colors.textMuted)}>All members are currently linked to the tree.</p>
-          </div>
+          )
         ) : (
           unlinkedPeople?.map((person) => (
             <DraggableSandboxItem 
               key={person.id} 
               person={person} 
+              isCollapsed={isCollapsed}
               onClick={() => onSelectPerson?.(person.id)} 
               onDrop={onDrop}
             />
@@ -97,23 +121,25 @@ export default function TreeSandboxSidebar({ treeId, onSelectPerson, onAddNew, o
         )}
       </div>
 
-      <div className={cn("p-4 border-t transition-colors duration-500", theme.colors.border)}>
+      <div className={cn("p-4 border-t transition-colors duration-500 flex-shrink-0", theme.colors.border, isCollapsed && "px-2")}>
          <button 
            onClick={onAddNew}
+           title="Add New Relative"
            className={cn(
            "w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl",
            theme.colors.primary,
-           "text-white"
+           "text-white",
+           isCollapsed && "py-3 px-0"
          )}>
             <UserPlus className="w-4 h-4" />
-            Add New Relative
+            {!isCollapsed && "Add New Relative"}
          </button>
       </div>
     </div>
   );
 }
 
-function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClick: () => void, onDrop?: (src: string, tgt: string) => void }) {
+function DraggableSandboxItem({ person, isCollapsed, onClick, onDrop }: { person: any, isCollapsed: boolean, onClick: () => void, onDrop?: (src: string, tgt: string) => void }) {
   const { theme } = useAppTheme();
   const { 
     setDraggingPersonId, 
@@ -166,22 +192,25 @@ function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClic
         cursor: "grabbing"
       }}
       className={cn(
-        "p-4 rounded-[1.5rem] border group transition-all cursor-pointer",
+        "rounded-[1.5rem] border group transition-all cursor-pointer",
         theme.colors.surface,
         theme.colors.border,
-        "hover:shadow-lg",
-        "hover:border-primary/50"
+        "hover:shadow-lg hover:border-primary/50",
+        isCollapsed ? "p-2" : "p-4"
       )}
       onClick={onClick}
     >
-      <div className="flex items-center gap-4">
-        <div className={cn("p-2 rounded-xl transition-colors duration-500", theme.colors.bg)}>
-           <GripVertical className={cn("w-4 h-4 transition-colors duration-500", theme.colors.textMuted, "group-hover:" + theme.colors.accent)} />
-        </div>
+      <div className={cn("flex items-center gap-4", isCollapsed && "flex-col gap-2")}>
+        {!isCollapsed && (
+          <div className={cn("p-2 rounded-xl transition-colors duration-500", theme.colors.bg)}>
+            <GripVertical className={cn("w-4 h-4 transition-colors duration-500", theme.colors.textMuted, "group-hover:" + theme.colors.accent)} />
+          </div>
+        )}
         <div className={cn(
-          "w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs overflow-hidden flex-shrink-0",
+          "rounded-xl flex items-center justify-center font-black text-xs overflow-hidden flex-shrink-0",
           theme.colors.bg,
-          theme.colors.textMuted
+          theme.colors.textMuted,
+          isCollapsed ? "w-10 h-10" : "w-10 h-10"
         )}>
           {person.imageUrl ? (
             <img src={person.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -189,24 +218,28 @@ function DraggableSandboxItem({ person, onClick, onDrop }: { person: any, onClic
             `${person.firstName[0]}${person.lastName?.[0] ?? ""}`.toUpperCase()
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className={cn("font-bold text-sm truncate transition-colors duration-500", theme.colors.text)}>
-            {person.firstName} {person.lastName}
-          </p>
-          <p className={cn("text-[10px] font-black uppercase tracking-tighter transition-colors duration-500", theme.colors.textMuted)}>
-            {person.status} • Unlinked
-          </p>
-        </div>
-        <button 
-          onClick={(e) => { e.stopPropagation(); /* Add logic to move to canvas */ }}
-          className={cn(
-            "p-2 rounded-lg group-hover:text-primary cursor-pointer transition-opacity", 
-            "opacity-0 group-hover:opacity-100", // Show icon when parent is hovered
-            theme.colors.textMuted
-          )}
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        {!isCollapsed && (
+          <>
+            <div className="flex-1 min-w-0">
+              <p className={cn("font-bold text-sm truncate transition-colors duration-500", theme.colors.text)}>
+                {person.firstName} {person.lastName}
+              </p>
+              <p className={cn("text-[10px] font-black uppercase tracking-tighter transition-colors duration-500", theme.colors.textMuted)}>
+                {person.status} • Unlinked
+              </p>
+            </div>
+            <button 
+              // onClick={(e) => { e.stopPropagation(); /* Add logic to move to canvas */ }}
+              className={cn(
+                "p-2 rounded-lg group-hover:text-primary cursor-pointer transition-opacity", 
+                "opacity-0 group-hover:opacity-100", // Show icon when parent is hovered
+                theme.colors.textMuted
+              )}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
       </div>
     </motion.div>
   );
