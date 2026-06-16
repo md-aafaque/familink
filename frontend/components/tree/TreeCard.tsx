@@ -125,7 +125,7 @@ const TreeCard = memo(({
               "text-[12px] font-black tracking-widest opacity-30 uppercase",
               theme.colors.textMuted
             )} style={{ color: treeTheme?.accent }}>
-              {new Date(person.birthDate).getFullYear()} — {person.deathDate ? new Date(person.deathDate).getFullYear() : "Present"}
+              {person.birthDate.substring(0, 4)} — {person.deathDate ? person.deathDate.substring(0, 4) : (person.status === 'deceased' ? "" : "Present")}
             </p>
           )}
         </div>

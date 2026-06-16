@@ -4,7 +4,7 @@ import { Memory } from '@/lib/shared/schemas/memories';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
 import { Calendar, Quote, ImageIcon, MapPin, Users, MoreVertical, Trash2, Edit } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/dateUtils';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemoryDetailsModal from './MemoryDetailsModal';
@@ -70,8 +70,8 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
                 )}>
                   {getTypeIcon()}
                 </span>
-                <span className={cn("text-[10px] font-black uppercase tracking-widest", theme.colors.textMuted)}>
-                  {format(new Date(memory.date), 'MMMM d, yyyy')}
+                <span className={cn("text-[10px] font-bold uppercase tracking-widest", theme.colors.textMuted)}>
+                  {formatDate(memory.date)}
                 </span>
               </div>
               <h3 className={cn("text-lg font-black leading-tight", theme.colors.text)}>

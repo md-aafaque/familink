@@ -22,6 +22,31 @@ export class PeopleRepository {
       const id = uuidv4();
       const { occupations, educations, ...rest } = input;
       
+      // Ensure all fields used in the query are present in params, even if null
+      const params = {
+        id,
+        treeId: rest.treeId,
+        firstName: rest.firstName,
+        lastName: rest.lastName || null,
+        gender: rest.gender || 'unknown',
+        birthDate: rest.birthDate || null,
+        deathDate: rest.deathDate || null,
+        status: rest.status || 'ghost',
+        phone: rest.phone || null,
+        phoneVisibility: rest.phoneVisibility || 'tree',
+        email: rest.email || null,
+        emailVisibility: rest.emailVisibility || 'tree',
+        address: rest.address || null,
+        addressVisibility: rest.addressVisibility || 'tree',
+        occupations: this.serializeArray(occupations),
+        occupationSectionVisible: rest.occupationSectionVisible ?? true,
+        educations: this.serializeArray(educations),
+        educationSectionVisible: rest.educationSectionVisible ?? true,
+        birthDateVisibility: rest.birthDateVisibility || 'tree',
+        imageUrl: rest.imageUrl || null,
+        createdBy: rest.createdBy
+      };
+
       const result = await session.run(
         `
         MATCH (t:FamilyTree {id: $treeId})
@@ -52,12 +77,7 @@ export class PeopleRepository {
         CREATE (p)-[:BELONGS_TO_TREE]->(t)
         RETURN p
         `,
-        { 
-          ...rest, 
-          id, 
-          occupations: this.serializeArray(occupations), 
-          educations: this.serializeArray(educations) 
-        }
+        params
       );
       const props = result.records[0].get('p').properties;
       return {

@@ -1,13 +1,13 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Heart, Edit3, Link2, FileText, Plus, Calendar, Quote, ImageIcon, Loader2, Briefcase, GraduationCap, Mail, Phone, MapPin } from "lucide-react";
+import { X, User, Heart, Edit3, Link2, FileText, Plus, Calendar, Quote, ImageIcon, Loader2, Briefcase, GraduationCap, Mail, Phone, MapPin, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "../providers/ThemeProvider";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import MemoryModal from "../memories/MemoryModal";
 
 interface ProfileDrawerProps {
@@ -16,6 +16,7 @@ interface ProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit?: () => void;
+  onDelete?: (id: string) => Promise<void>;
   onProposeRelationship?: () => void;
   treeId: string;
 }
@@ -26,12 +27,15 @@ export default function ProfileDrawer({
   isOpen,
   onClose,
   onEdit,
+  onDelete,
   onProposeRelationship,
   treeId
 }: ProfileDrawerProps) {
   const { theme } = useAppTheme();
   const [activeTab, setActiveTab] = useState<'core' | 'family' | 'timeline'>('core');
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch personal memories
   const { data: memories, isLoading: memoriesLoading } = useQuery({
@@ -96,12 +100,12 @@ export default function ProfileDrawer({
                     </h2>
                     {person.birthDate && (
                       <p className={cn("text-sm", theme.colors.textMuted)}>
-                        b. {format(new Date(person.birthDate), 'MMM d, yyyy')}
+                        b. {formatDate(person.birthDate)}
                       </p>
                     )}
                     {person.deathDate && (
                       <p className={cn("text-sm", theme.colors.textMuted)}>
-                        d. {format(new Date(person.deathDate), 'MMM d, yyyy')}
+                        d. {formatDate(person.deathDate)}
                       </p>
                     )}
                   </div>
@@ -117,29 +121,74 @@ export default function ProfileDrawer({
                 </button>
               </div>
 
-              {/* Status Badges */}
-              <div className="flex flex-wrap gap-2 p-4">
-                {person.status === 'active' && (
-                  <span className={cn(
-                    "px-3 py-1 rounded-full text-xs font-bold uppercase",
-                    theme.colors.primaryMuted,
-                    theme.colors.accent
-                  )}>
-                    Verified
-                  </span>
-                )}
-                {person.status === 'ghost' && (
-                  <span className={cn(
-                    "px-3 py-1 rounded-full text-xs font-bold uppercase border",
-                    theme.isDark ? "bg-slate-800/50 text-slate-400 border-slate-700" : "bg-slate-100 text-slate-600 border-slate-300"
-                  )}>
-                    Ghost Profile
-                  </span>
-                )}
-                {person.deathDate && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-300 border border-zinc-700">
-                    Deceased
-                  </span>
+              {/* Status Badges & Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-2 p-4">
+                <div className="flex flex-wrap gap-2">
+                  {person.status === 'active' && (
+                    <span className={cn(
+                      "px-3 py-1 rounded-full text-xs font-bold uppercase",
+                      theme.colors.primaryMuted,
+                      theme.colors.accent
+                    )}>
+                      Verified
+                    </span>
+                  )}
+                  {person.status === 'ghost' && (
+                    <span className={cn(
+                      "px-3 py-1 rounded-full text-xs font-bold uppercase border",
+                      theme.isDark ? "bg-slate-800/50 text-slate-400 border-slate-700" : "bg-slate-100 text-slate-600 border-slate-300"
+                    )}>
+                      Ghost Profile
+                    </span>
+                  )}
+                  {person.deathDate && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-300 border border-zinc-700">
+                      Deceased
+                    </span>
+                  )}
+                </div>
+
+                {!isConfirmingDelete ? (
+                  <button
+                    onClick={() => setIsConfirmingDelete(true)}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors group relative",
+                      theme.isDark ? "hover:bg-red-500/10 text-slate-500 hover:text-red-400" : "hover:bg-red-50 text-slate-400 hover:text-red-500"
+                    )}
+                    title="Delete Person"
+                  >
+                    <Trash2 className="w-4.5 h-4.5" />
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2 duration-300">
+                    <button
+                      disabled={isDeleting}
+                      onClick={async () => {
+                        setIsDeleting(true);
+                        try {
+                          await onDelete?.(person.id);
+                        } finally {
+                          setIsDeleting(false);
+                          setIsConfirmingDelete(false);
+                        }
+                      }}
+                      className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors flex items-center gap-1.5"
+                    >
+                      {isDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <AlertTriangle className="w-3 h-3" />}
+                      Confirm
+                    </button>
+                    <button
+                      disabled={isDeleting}
+                      onClick={() => setIsConfirmingDelete(false)}
+                      className={cn(
+                        "p-1.5 rounded-lg transition-colors",
+                        theme.colors.hover,
+                        theme.colors.textMuted
+                      )}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -200,7 +249,7 @@ export default function ProfileDrawer({
                       <div className={cn("p-3 rounded-lg border", theme.colors.border)}>
                         {person.birthDate ? (
                           <p className={cn("text-sm", theme.colors.text)}>
-                            {format(new Date(person.birthDate), 'MMMM d, yyyy')}
+                            {formatDate(person.birthDate)}
                           </p>
                         ) : (
                           <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>Not provided</p>
@@ -228,13 +277,15 @@ export default function ProfileDrawer({
                         if (visibleEntries.length === 0 || person.educationSectionVisible === false) return null;
 
                         const latest = [...visibleEntries].sort((a, b) => {
-                            const dateA = new Date(a.endDate || a.startDate).getTime();
-                            const dateB = new Date(b.endDate || b.startDate).getTime();
-                            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+                            const dateA = a.endDate || a.startDate;
+                            const dateB = b.endDate || b.startDate;
+                            if (!dateA) return 1;
+                            if (!dateB) return -1;
+                            return dateB.localeCompare(dateA);
                         })[0];
                         
-                        const startYear = latest.startDate ? (isNaN(new Date(latest.startDate).getTime()) ? '' : format(new Date(latest.startDate), 'yyyy')) : '';
-                        const endYear = latest.endDate ? (isNaN(new Date(latest.endDate).getTime()) ? '' : format(new Date(latest.endDate), 'yyyy')) : 'Present';
+                        const startYear = latest.startDate ? latest.startDate.split('-')[0] : '';
+                        const endYear = latest.endDate ? latest.endDate.split('-')[0] : 'Present';
 
                         return (
                             <div>
@@ -266,13 +317,15 @@ export default function ProfileDrawer({
 
                         const current = visibleEntries.find((o: any) => o.isCurrent);
                         const latest = current || [...visibleEntries].sort((a, b) => {
-                            const dateA = new Date(a.endDate || a.startDate).getTime();
-                            const dateB = new Date(b.endDate || b.startDate).getTime();
-                            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+                            const dateA = a.endDate || a.startDate;
+                            const dateB = b.endDate || b.startDate;
+                            if (!dateA) return 1;
+                            if (!dateB) return -1;
+                            return dateB.localeCompare(dateA);
                         })[0];
 
-                        const startYear = latest.startDate ? (isNaN(new Date(latest.startDate).getTime()) ? '' : format(new Date(latest.startDate), 'yyyy')) : '';
-                        const endYear = latest.isCurrent ? 'Present' : (latest.endDate ? (isNaN(new Date(latest.endDate).getTime()) ? '' : format(new Date(latest.endDate), 'yyyy')) : '');
+                        const startYear = latest.startDate ? latest.startDate.split('-')[0] : '';
+                        const endYear = latest.isCurrent ? 'Present' : (latest.endDate ? latest.endDate.split('-')[0] : '');
 
                         return (
                             <div>
@@ -327,7 +380,7 @@ export default function ProfileDrawer({
                         </h3>
                         <div className={cn("p-3 rounded-lg border", theme.colors.border)}>
                           <p className={cn("text-sm", theme.colors.text)}>
-                            {format(new Date(person.deathDate), 'MMMM d, yyyy')}
+                            {formatDate(person.deathDate)}
                           </p>
                         </div>
                       </div>
@@ -458,7 +511,7 @@ export default function ProfileDrawer({
                                     <div className={cn("p-3 rounded-xl border transition-all hover:shadow-md", theme.colors.surface, theme.colors.border)}>
                                         <div className="flex items-center justify-between mb-1">
                                             <span className={cn("text-[9px] font-bold uppercase tracking-widest", theme.colors.textMuted)}>
-                                                {format(new Date(m.date), 'MMM d, yyyy')}
+                                                {formatDate(m.date)}
                                             </span>
                                             <span className={cn("p-1 rounded bg-slate-100 dark:bg-slate-800", theme.colors.textMuted)}>
                                                 {m.type === 'milestone' && <Calendar className="w-3 h-3" />}

@@ -164,11 +164,11 @@ export class MemoriesRepository {
         id: id,
         treeId: treeId,
         associatedPersonIds: associatedPersonIds || [],
-        type: rest.type,
-        title: rest.title,
-        content: rest.content,
-        imageUrl: rest.imageUrl,
-        date: rest.date
+        type: rest.type || null,
+        title: rest.title || null,
+        content: rest.content || null,
+        imageUrl: rest.imageUrl || null,
+        date: rest.date || null
       });
 
       if (result.records.length === 0) {
@@ -199,11 +199,20 @@ export class MemoriesRepository {
       throw new Error('Memory record not found');
     }
     const props = node.properties;
+    
+    // Robust date handling (could be string, number, or Neo4j Integer)
+    let dateValue = props.date;
+    if (typeof dateValue === 'object' && dateValue !== null && 'toNumber' in dateValue) {
+      dateValue = (dateValue as any).toNumber().toString();
+    } else {
+      dateValue = String(dateValue || '');
+    }
+
     return {
       ...props,
-      date: typeof props.date === 'object' ? props.date.toNumber() : props.date,
-      createdAt: typeof props.createdAt === 'object' ? props.createdAt.toNumber() : props.createdAt,
-      deletedAt: props.deletedAt ? (typeof props.deletedAt === 'object' ? props.deletedAt.toNumber() : props.deletedAt) : undefined,
+      date: dateValue,
+      createdAt: typeof props.createdAt === 'object' && props.createdAt !== null ? (props.createdAt as any).toNumber() : props.createdAt,
+      deletedAt: props.deletedAt ? (typeof props.deletedAt === 'object' && props.deletedAt !== null ? (props.deletedAt as any).toNumber() : props.deletedAt) : undefined,
     };
   }
 }
