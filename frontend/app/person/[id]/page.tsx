@@ -390,7 +390,7 @@ export default function PersonProfilePage() {
             {/* Tabs */}
             <div className={cn("flex gap-12 border-b transition-colors duration-500", theme.colors.border)}>
               {(["about", "permissions"] as const)
-                .filter(tab => tab !== 'permissions' || data.userPermission === 'owner')
+                .filter(tab => tab !== 'permissions' || data.userPermission === 'owner' || data.userPermission === 'editor')
                 .map((tab) => (
                 <button
                   key={tab}

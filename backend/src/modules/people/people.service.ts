@@ -453,16 +453,16 @@ export class PeopleService {
 
   static async getPermissions(personId: string, treeId: string, userId: string) {
     const permission = await PeopleRepository.checkPermission(personId, userId);
-    if (permission !== 'owner') {
-      throw new AppError('Only owners and tree admins can view detailed permissions', 403);
+    if (permission !== 'owner' && permission !== 'editor') {
+      throw new AppError('You do not have permission to view detailed permissions', 403);
     }
     return PeopleRepository.getPermissions(personId);
   }
 
   static async grantPermission(personId: string, treeId: string, targetUserId: string, permissionType: 'owner' | 'editor', adminId: string) {
     const permission = await PeopleRepository.checkPermission(personId, adminId);
-    if (permission !== 'owner') {
-      throw new AppError('Only owners and tree admins can grant permissions', 403);
+    if (permission !== 'owner' && permission !== 'editor') {
+      throw new AppError('Only owners, editors, and tree admins can grant permissions', 403);
     }
 
     await PeopleRepository.grantPermission(personId, targetUserId, permissionType);
