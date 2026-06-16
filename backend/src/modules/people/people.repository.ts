@@ -218,11 +218,11 @@ export class PeopleRepository {
     }
   }
 
-  static async createClaimRequest(personId: string, userId: string, treeId: string): Promise<void> {
+  static async createClaimRequest(personId: string, userId: string, treeId: string): Promise<any> {
     const session = getSession();
     try {
       const id = uuidv4();
-      await session.run(
+      const result = await session.run(
         `
         MATCH (p:Person {id: $personId, treeId: $treeId})
         MATCH (u:User {id: $userId})
@@ -236,9 +236,11 @@ export class PeopleRepository {
         })
         CREATE (cr)-[:REQUESTS_CLAIM_ON]->(p)
         CREATE (u)-[:INITIATED_CLAIM]->(cr)
+        RETURN cr
         `,
         { id, personId, userId, treeId }
       );
+      return result.records[0].get('cr').properties;
     } finally {
       await session.close();
     }
@@ -380,6 +382,169 @@ export class PeopleRepository {
         name: r.get('name'),
         email: r.get('email'),
         permission: r.get('permission')
+      }));
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async createDeletionProposal(personId: string, treeId: string, proposerId: string, reason?: string): Promise<any> {
+    const session = getSession();
+    try {
+      const id = uuidv4();
+      const result = await session.run(
+        `
+        MATCH (p:Person {id: $personId, treeId: $treeId})
+        MATCH (u:User {id: $proposerId})
+        CREATE (dp:DeletionProposal {
+          id: $id,
+          personId: $personId,
+          treeId: $treeId,
+          proposerId: $proposerId,
+          reason: $reason,
+          status: 'pending',
+          createdAt: timestamp()
+        })
+        CREATE (u)-[:PROPOSED_DELETION]->(dp)
+        CREATE (dp)-[:TARGETS_PERSON]->(p)
+        RETURN dp
+        `,
+        { id, personId, treeId, proposerId, reason: reason || null }
+      );
+      return result.records[0].get('dp').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findDeletionProposalById(id: string): Promise<any | null> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (dp:DeletionProposal {id: $id}) RETURN dp`,
+        { id }
+      );
+      if (result.records.length === 0) return null;
+      return result.records[0].get('dp').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async updateDeletionProposalStatus(id: string, status: 'approved' | 'rejected'): Promise<void> {
+    const session = getSession();
+    try {
+      await session.run(
+        `MATCH (dp:DeletionProposal {id: $id}) SET dp.status = $status, dp.processedAt = timestamp()`,
+        { id, status }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getPendingDeletionProposals(treeId: string): Promise<any[]> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `
+        MATCH (dp:DeletionProposal {treeId: $treeId, status: 'pending'})
+        MATCH (p:Person {id: dp.personId})
+        MATCH (u:User {id: dp.proposerId})
+        RETURN dp, p, u.email as proposerEmail, u.name as proposerName
+        ORDER BY dp.createdAt DESC
+        `,
+        { treeId }
+      );
+      return result.records.map(r => ({
+        ...r.get('dp').properties,
+        person: r.get('p').properties,
+        proposerEmail: r.get('proposerEmail'),
+        proposerName: r.get('proposerName')
+      }));
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async createMergeProposal(sourceId: string, targetId: string, treeId: string, proposerId: string, reason?: string): Promise<any> {
+    const session = getSession();
+    try {
+      const id = uuidv4();
+      const result = await session.run(
+        `
+        MATCH (s:Person {id: $sourceId, treeId: $treeId})
+        MATCH (t:Person {id: $targetId, treeId: $treeId})
+        MATCH (u:User {id: $proposerId})
+        CREATE (mp:MergeProposal {
+          id: $id,
+          sourceId: $sourceId,
+          targetId: $targetId,
+          treeId: $treeId,
+          proposerId: $proposerId,
+          reason: $reason,
+          status: 'pending',
+          createdAt: timestamp()
+        })
+        CREATE (u)-[:PROPOSED_MERGE]->(mp)
+        CREATE (mp)-[:TARGETS_SOURCE]->(s)
+        CREATE (mp)-[:TARGETS_TARGET]->(t)
+        RETURN mp
+        `,
+        { id, sourceId, targetId, treeId, proposerId, reason: reason || null }
+      );
+      return result.records[0].get('mp').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async findMergeProposalById(id: string): Promise<any | null> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (mp:MergeProposal {id: $id}) RETURN mp`,
+        { id }
+      );
+      if (result.records.length === 0) return null;
+      return result.records[0].get('mp').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async updateMergeProposalStatus(id: string, status: 'approved' | 'rejected'): Promise<void> {
+    const session = getSession();
+    try {
+      await session.run(
+        `MATCH (mp:MergeProposal {id: $id}) SET mp.status = $status, mp.processedAt = timestamp()`,
+        { id, status }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getPendingMergeProposals(treeId: string): Promise<any[]> {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `
+        MATCH (mp:MergeProposal {treeId: $treeId, status: 'pending'})
+        MATCH (s:Person {id: mp.sourceId})
+        MATCH (t:Person {id: mp.targetId})
+        MATCH (u:User {id: mp.proposerId})
+        RETURN mp, s, t, u.email as proposerEmail, u.name as proposerName
+        ORDER BY mp.createdAt DESC
+        `,
+        { treeId }
+      );
+      return result.records.map(r => ({
+        ...r.get('mp').properties,
+        sourcePerson: r.get('s').properties,
+        targetPerson: r.get('t').properties,
+        proposerEmail: r.get('proposerEmail'),
+        proposerName: r.get('proposerName')
       }));
     } finally {
       await session.close();

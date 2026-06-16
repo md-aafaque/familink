@@ -87,6 +87,16 @@ export const createPersonSchema = personSchema.extend({
 
 export const updatePersonSchema = personSchema.partial();
 
+export const deletionProposalSchema = z.object({
+  reason: z.string().optional(),
+});
+
+export const mergeProposalSchema = z.object({
+  sourceId: z.string().uuid(),
+  targetId: z.string().uuid(),
+  reason: z.string().optional(),
+});
+
 export type Person = z.infer<typeof personSchema> & {
   id: string;
   treeId: string;
@@ -97,3 +107,24 @@ export type Person = z.infer<typeof personSchema> & {
 
 export type CreatePersonInput = z.infer<typeof createPersonSchema>;
 export type UpdatePersonInput = z.infer<typeof updatePersonSchema>;
+
+export interface DeletionProposal {
+  id: string;
+  treeId: string;
+  personId: string;
+  proposerId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reason?: string;
+  createdAt: number;
+}
+
+export interface MergeProposal {
+  id: string;
+  treeId: string;
+  sourceId: string;
+  targetId: string;
+  proposerId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reason?: string;
+  createdAt: number;
+}

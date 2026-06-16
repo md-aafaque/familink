@@ -699,12 +699,18 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const t = THEMES[themeKey];
 
   // ── Data ───────────────────────────────────────────────────────────────────
+  const { data: tree } = useQuery({
+    queryKey: ["tree", treeId],
+    queryFn: async () => (await api.get(`/trees/${treeId}`)).data as any,
+  });
+
   const { data: rawPeople, isLoading } = useQuery({
     queryKey: ["tree-visual", treeId],
     queryFn:  async () => (await api.get(`/trees/${treeId}/visual`)).data as Person[],
   });
 
   const queryClient = useQueryClient();
+  const userRole = tree?.role;
 
   // ── Fullscreen ─────────────────────────────────────────────────────────────
   const toggleFS = useCallback(() =>
@@ -894,17 +900,26 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const toggleCollapse  = useCallback((id: string) =>
     setCollapsedSet(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
 
-  const handleDeletePerson = useCallback(async (personId: string) => {
+  const handleDeletePerson = useCallback(async (personId: string, reason?: string) => {
     try {
-      await api.delete(`/trees/${treeId}/people/${personId}`);
+      if (userRole === 'admin') {
+        // Direct deletion for admins
+        await api.delete(`/trees/${treeId}/people/${personId}`);
+        alert("Person deleted successfully.");
+      } else {
+        // Proposal for others
+        await api.post(`/trees/${treeId}/people/${personId}/propose-deletion`, { reason });
+        alert("Deletion proposal submitted for admin review.");
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["tree-visual", treeId] });
       queryClient.invalidateQueries({ queryKey: ["tree-people-sandbox", treeId] });
       setDrawerPersonId(null);
     } catch (err) {
-      console.error("Failed to delete person:", err);
-      alert("Failed to delete person. Please try again.");
+      console.error("Failed to process deletion:", err);
+      alert("Failed to process deletion. Please try again.");
     }
-  }, [treeId, queryClient]);
+  }, [treeId, queryClient, userRole]);
 
   // ── Export ─────────────────────────────────────────────────────────────────
   const doExport = useCallback(async (format: "png" | "pdf") => {

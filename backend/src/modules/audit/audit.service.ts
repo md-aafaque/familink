@@ -24,7 +24,13 @@ export type AuditAction =
   | 'member_joined'
   | 'memory_created'
   | 'memory_updated'
-  | 'memory_deleted';
+  | 'memory_deleted'
+  | 'deletion_proposed'
+  | 'deletion_approved'
+  | 'deletion_rejected'
+  | 'merge_proposed'
+  | 'merge_approved'
+  | 'merge_rejected';
 
 export class AuditService {
   static async log(

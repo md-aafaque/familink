@@ -16,7 +16,8 @@ interface ProfileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit?: () => void;
-  onDelete?: (id: string) => Promise<void>;
+  onDelete?: (id: string, reason?: string) => Promise<void>;
+  userRole?: string;
   onProposeRelationship?: () => void;
   treeId: string;
 }
@@ -28,6 +29,7 @@ export default function ProfileDrawer({
   onClose,
   onEdit,
   onDelete,
+  userRole,
   onProposeRelationship,
   treeId
 }: ProfileDrawerProps) {
@@ -36,6 +38,9 @@ export default function ProfileDrawer({
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+
+  const isAdmin = userRole === 'admin';
 
   // Fetch personal memories
   const { data: memories, isLoading: memoriesLoading } = useQuery({
@@ -122,72 +127,107 @@ export default function ProfileDrawer({
               </div>
 
               {/* Status Badges & Actions */}
-              <div className="flex flex-wrap items-center justify-between gap-2 p-4">
-                <div className="flex flex-wrap gap-2">
-                  {person.status === 'active' && (
-                    <span className={cn(
-                      "px-3 py-1 rounded-full text-xs font-bold uppercase",
-                      theme.colors.primaryMuted,
-                      theme.colors.accent
-                    )}>
-                      Verified
-                    </span>
-                  )}
-                  {person.status === 'ghost' && (
-                    <span className={cn(
-                      "px-3 py-1 rounded-full text-xs font-bold uppercase border",
-                      theme.isDark ? "bg-slate-800/50 text-slate-400 border-slate-700" : "bg-slate-100 text-slate-600 border-slate-300"
-                    )}>
-                      Ghost Profile
-                    </span>
-                  )}
-                  {person.deathDate && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-300 border border-zinc-700">
-                      Deceased
-                    </span>
+              <div className="flex flex-col gap-4 p-4 border-b" style={{ borderColor: theme.colors.border }}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    {person.status === 'active' && (
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-bold uppercase",
+                        theme.colors.primaryMuted,
+                        theme.colors.accent
+                      )}>
+                        Verified
+                      </span>
+                    )}
+                    {person.status === 'ghost' && (
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-bold uppercase border",
+                        theme.isDark ? "bg-slate-800/50 text-slate-400 border-slate-700" : "bg-slate-100 text-slate-600 border-slate-300"
+                      )}>
+                        Ghost Profile
+                      </span>
+                    )}
+                    {person.deathDate && (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-300 border border-zinc-700">
+                        Deceased
+                      </span>
+                    )}
+                  </div>
+
+                  {!isConfirmingDelete && (
+                    <button
+                      onClick={() => setIsConfirmingDelete(true)}
+                      className={cn(
+                        "p-2 rounded-lg transition-colors group relative",
+                        theme.isDark ? "hover:bg-red-500/10 text-slate-500 hover:text-red-400" : "hover:bg-red-50 text-slate-400 hover:text-red-500"
+                      )}
+                      title={isAdmin ? "Delete Profile" : "Request Deletion"}
+                    >
+                      <Trash2 className="w-4.5 h-4.5" />
+                    </button>
                   )}
                 </div>
 
-                {!isConfirmingDelete ? (
-                  <button
-                    onClick={() => setIsConfirmingDelete(true)}
-                    className={cn(
-                      "p-2 rounded-lg transition-colors group relative",
-                      theme.isDark ? "hover:bg-red-500/10 text-slate-500 hover:text-red-400" : "hover:bg-red-50 text-slate-400 hover:text-red-500"
+                {isConfirmingDelete && (
+                  <div className={cn(
+                    "flex flex-col gap-3 p-4 rounded-2xl border animate-in zoom-in-95 duration-200",
+                    theme.isDark ? "bg-red-500/5 border-red-500/20" : "bg-red-50 border-red-100"
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-500" />
+                      <p className={cn("text-xs font-black uppercase tracking-tight", theme.isDark ? "text-red-400" : "text-red-600")}>
+                        {isAdmin ? "Confirm Direct Deletion" : "Propose Deletion"}
+                      </p>
+                    </div>
+                    
+                    {!isAdmin && (
+                      <textarea
+                        value={deleteReason}
+                        onChange={(e) => setDeleteReason(e.target.value)}
+                        placeholder="Why should this profile be removed? (Optional)"
+                        className={cn(
+                          "w-full p-3 rounded-xl border text-xs outline-none resize-none h-20 transition-all focus:ring-2 focus:ring-red-500/20",
+                          theme.colors.bg,
+                          theme.colors.border,
+                          theme.colors.text
+                        )}
+                      />
                     )}
-                    title="Delete Person"
-                  >
-                    <Trash2 className="w-4.5 h-4.5" />
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2 duration-300">
-                    <button
-                      disabled={isDeleting}
-                      onClick={async () => {
-                        setIsDeleting(true);
-                        try {
-                          await onDelete?.(person.id);
-                        } finally {
-                          setIsDeleting(false);
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        disabled={isDeleting}
+                        onClick={async () => {
+                          setIsDeleting(true);
+                          try {
+                            await onDelete?.(person.id, deleteReason);
+                          } finally {
+                            setIsDeleting(false);
+                            setIsConfirmingDelete(false);
+                            setDeleteReason("");
+                          }
+                        }}
+                        className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                      >
+                        {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (isAdmin ? <Trash2 className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />)}
+                        {isAdmin ? "Delete Now" : "Submit Request"}
+                      </button>
+                      <button
+                        disabled={isDeleting}
+                        onClick={() => {
                           setIsConfirmingDelete(false);
-                        }
-                      }}
-                      className="px-3 py-1 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors flex items-center gap-1.5"
-                    >
-                      {isDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <AlertTriangle className="w-3 h-3" />}
-                      Confirm
-                    </button>
-                    <button
-                      disabled={isDeleting}
-                      onClick={() => setIsConfirmingDelete(false)}
-                      className={cn(
-                        "p-1.5 rounded-lg transition-colors",
-                        theme.colors.hover,
-                        theme.colors.textMuted
-                      )}
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                          setDeleteReason("");
+                        }}
+                        className={cn(
+                          "px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-colors",
+                          theme.colors.border,
+                          theme.colors.text,
+                          "hover:bg-black/5 dark:hover:bg-white/5"
+                        )}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

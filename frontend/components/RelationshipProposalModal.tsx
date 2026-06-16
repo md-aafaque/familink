@@ -44,16 +44,24 @@ export default function RelationshipProposalModal({
   const { theme } = useAppTheme();
 
   // ── Data ──────────────────────────────────────────────────────────────
+  const { data: tree } = useQuery({
+    queryKey: ["tree", treeId],
+    queryFn: async () => (await api.get(`/trees/${treeId}`)).data as any,
+  });
+
   const { data: people = [] } = useQuery<{ id: string; firstName: string; lastName?: string }[]>({
     queryKey: ["people", treeId],
     queryFn: () => api.get(`/trees/${treeId}/people`).then((res) => res.data),
   });
+
+  const isAdmin = tree?.role === 'admin';
 
   const proposalMutation = useMutation({
     mutationFn: (payload: { fromPersonId: string; toPersonId: string; relationshipType: RelType }) =>
       api.post(`/trees/${treeId}/relationship-proposals`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["relationships", treeId] });
+      queryClient.invalidateQueries({ queryKey: ["tree-visual", treeId] });
       onClose();
     },
   });
@@ -104,10 +112,10 @@ export default function RelationshipProposalModal({
             </div>
             <div>
               <h2 className={cn("text-xl font-black leading-tight", theme.colors.text)}>
-                Propose Relationship
+                {isAdmin ? "Create Relationship" : "Propose Relationship"}
               </h2>
               <p className={cn("text-xs font-medium mt-0.5", theme.colors.textMuted)}>
-                Link two family members together
+                {isAdmin ? "Directly link family members" : "Link two family members together"}
               </p>
             </div>
           </div>
@@ -229,7 +237,7 @@ export default function RelationshipProposalModal({
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                Submit Proposal
+                {isAdmin ? "Create Now" : "Submit Proposal"}
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
