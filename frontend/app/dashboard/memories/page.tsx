@@ -206,11 +206,7 @@ export default function FamilyWallPage() {
                 memory={memory} 
                 isOwner={memory.posterId === user?.id}
                 onEdit={handleEdit}
-                onDelete={(id) => {
-                    if (window.confirm('Are you sure you want to delete this memory?')) {
-                        deleteMutation.mutate(id);
-                    }
-                }}
+                onDelete={(id) => deleteMutation.mutate(id)}
               />
             ))}
           </div>

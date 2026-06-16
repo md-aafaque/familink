@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import DataState from "@/components/shared/DataState";
-import { Check, X, User, ArrowRight, Calendar, GitPullRequest, ChevronDown, Trash2, AlertTriangle, MessageSquare, Link2, Merge } from "lucide-react";
+import { Check, X, User, ArrowRight, Calendar, GitPullRequest, ChevronDown, Trash2, AlertTriangle, MessageSquare, Link2, Merge, Fingerprint } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -149,7 +149,7 @@ export default function ManageProposalsPage() {
         {[
           { id: 'relationships', label: 'Relationships', icon: GitPullRequest },
           { id: 'merges', label: 'Merges', icon: Merge },
-          { id: 'claims', label: 'Claims', icon: Link2 },
+          { id: 'claims', label: 'Claims', icon: Fingerprint },
           { id: 'deletions', label: 'Deletions', icon: Trash2 },
         ].map(tab => (
           <button
@@ -158,7 +158,7 @@ export default function ManageProposalsPage() {
             className={cn(
               "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
               activeType === tab.id 
-                ? "bg-white dark:bg-slate-700 shadow-sm text-primary" 
+                ? "bg-white dark:bg-slate-200 shadow-sm text-primary" 
                 : "text-slate-500 hover:text-slate-700"
             )}
           >
@@ -328,6 +328,6 @@ function IconForType({ type, theme }: any) {
   if (type === 'relationships') return <GitPullRequest className={cn("w-10 h-10", theme.colors.textMuted)} />;
   if (type === 'deletions') return <Trash2 className={cn("w-10 h-10", theme.colors.textMuted)} />;
   if (type === 'merges') return <Merge className={cn("w-10 h-10", theme.colors.textMuted)} />;
-  if (type === 'claims') return <Link2 className={cn("w-10 h-10", theme.colors.textMuted)} />;
+  if (type === 'claims') return <Fingerprint className={cn("w-10 h-10", theme.colors.textMuted)} />;
   return null;
 }

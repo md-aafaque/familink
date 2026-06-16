@@ -103,6 +103,7 @@ export type Person = z.infer<typeof personSchema> & {
   createdBy: string;
   createdAt: number;
   deletedAt?: number | null;
+  userPermission?: 'owner' | 'editor' | 'viewer';
 };
 
 export type CreatePersonInput = z.infer<typeof createPersonSchema>;

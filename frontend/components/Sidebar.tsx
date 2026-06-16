@@ -19,7 +19,8 @@ import {
   Activity,
   Link as LinkIcon,
   ImageIcon,
-  Trash2
+  Trash2,
+  Merge
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
@@ -46,7 +47,7 @@ export default function Sidebar() {
   const adminItems = [
     { label: "Access Requests", icon: Users, href: "/dashboard/manage/users", active: pathname === "/dashboard/manage/users" },
     { label: "Review Proposals", icon: GitPullRequest, href: "/dashboard/manage/proposals?tab=relationships", active: pathname === "/dashboard/manage/proposals" && (searchParams.get('tab') === 'relationships' || !searchParams.get('tab')) },
-    { label: "Merge Requests", icon: Activity, href: "/dashboard/manage/proposals?tab=merges", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'merges' },
+    { label: "Merge Requests", icon: Merge, href: "/dashboard/manage/proposals?tab=merges", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'merges' },
     { label: "Profile Claims", icon: Fingerprint, href: "/dashboard/manage/proposals?tab=claims", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'claims' },
     { label: "Deletion Requests", icon: Trash2, href: "/dashboard/manage/proposals?tab=deletions", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'deletions' },
     { label: "Manage Invites", icon: ShieldCheck, href: "/dashboard/manage/invitations", active: pathname === "/dashboard/manage/invitations" },

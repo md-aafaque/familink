@@ -905,11 +905,9 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       if (userRole === 'admin') {
         // Direct deletion for admins
         await api.delete(`/trees/${treeId}/people/${personId}`);
-        alert("Person deleted successfully.");
       } else {
         // Proposal for others
         await api.post(`/trees/${treeId}/people/${personId}/propose-deletion`, { reason });
-        alert("Deletion proposal submitted for admin review.");
       }
       
       queryClient.invalidateQueries({ queryKey: ["tree-visual", treeId] });
@@ -917,7 +915,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       setDrawerPersonId(null);
     } catch (err) {
       console.error("Failed to process deletion:", err);
-      alert("Failed to process deletion. Please try again.");
     }
   }, [treeId, queryClient, userRole]);
 
@@ -1222,6 +1219,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         onClose={() => setDrawerPersonId(null)}
         onEdit={() => { if (drawerPersonId) router.push(`/person/${drawerPersonId}`); }}
         onDelete={handleDeletePerson}
+        userRole={userRole}
         onProposeRelationship={() => { if (drawerPersonId) { setProposalSrc(drawerPersonId); setProposalTgt(""); } }}
         treeId={treeId}
       />

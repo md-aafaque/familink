@@ -639,6 +639,10 @@ export class PeopleRepository {
           DELETE oldRel
           CREATE (u)-[:REPRESENTS]->(pNew)
           SET pNew.status = 'active', pNew.accountId = $userId
+          
+          // Grant owner permission
+          MERGE (u)-[pr:HAS_PERMISSION]->(pNew)
+          SET pr.permission = 'owner'
           `,
           { userId, oldId: currentPerson.id, newId: personId }
         );
@@ -648,6 +652,10 @@ export class PeopleRepository {
           MATCH (u:User {id: $userId}), (p:Person {id: $personId})
           CREATE (u)-[:REPRESENTS]->(p)
           SET p.status = 'active', p.accountId = $userId
+          
+          // Grant owner permission
+          MERGE (u)-[pr:HAS_PERMISSION]->(p)
+          SET pr.permission = 'owner'
           `,
           { userId, personId }
         );

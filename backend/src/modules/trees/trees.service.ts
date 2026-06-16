@@ -28,8 +28,8 @@ export class TreesService {
     return tree;
   }
 
-  static async getVisualData(treeId: string) {
-    return TreesRepository.getVisualData(treeId);
+  static async getVisualData(treeId: string, userId: string) {
+    return TreesRepository.getVisualData(treeId, userId);
   }
 
   static async getMembers(treeId: string) {

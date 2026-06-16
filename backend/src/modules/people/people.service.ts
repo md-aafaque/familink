@@ -43,11 +43,11 @@ export class PeopleService {
 
     // If owner or editor, return full profile
     if (permission === 'owner' || permission === 'editor') {
-      return person;
+      return { ...person, userPermission: permission };
     }
 
     // Otherwise, filter based on privacy settings
-    const filtered: Partial<Person> = { ...person };
+    const filtered: any = { ...person, userPermission: permission };
     
     if (person.phoneVisibility !== 'tree') delete filtered.phone;
     if (person.emailVisibility !== 'tree') delete filtered.email;

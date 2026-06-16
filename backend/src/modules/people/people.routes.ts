@@ -26,10 +26,20 @@ export default async function peopleRoutes(fastify: FastifyInstance) {
    * Global person lookup (no tree isolation)
    */
   fastify.get('/people/:id/global', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const user = request.user!;
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
     const person = await PeopleRepository.findByIdGlobal(id);
     if (!person) throw new AppError('Profile not found', 404);
-    return { success: true, data: person };
+
+    const permission = await PeopleRepository.checkPermission(id, user.id);
+
+    return { 
+      success: true, 
+      data: {
+        ...person,
+        userPermission: permission
+      } 
+    };
   });
 
   /**

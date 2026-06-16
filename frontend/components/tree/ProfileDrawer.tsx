@@ -1,11 +1,11 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Heart, Edit3, Link2, FileText, Plus, Calendar, Quote, ImageIcon, Loader2, Briefcase, GraduationCap, Mail, Phone, MapPin, Trash2, AlertTriangle } from "lucide-react";
+import { X, User, Heart, Edit3, Link2, FileText, Plus, Calendar, Quote, ImageIcon, Loader2, Briefcase, GraduationCap, Mail, Phone, MapPin, Trash2, AlertTriangle, ExternalLink, CheckCircle2, UserPlus, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "../providers/ThemeProvider";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { formatDate } from "@/lib/dateUtils";
 import MemoryModal from "../memories/MemoryModal";
@@ -34,11 +34,15 @@ export default function ProfileDrawer({
   treeId
 }: ProfileDrawerProps) {
   const { theme } = useAppTheme();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'core' | 'family' | 'timeline'>('core');
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isConfirmingClaim, setIsConfirmingClaim] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   const isAdmin = userRole === 'admin';
 
@@ -56,6 +60,24 @@ export default function ProfileDrawer({
   const getPersonName = (id: string) => {
     const p = peopleMap?.get(id);
     return p ? `${p.firstName} ${p.lastName ?? ""}`.trim() : id;
+  };
+
+  const handleClaim = async () => {
+    setIsClaiming(true);
+    setStatusMessage(null);
+    try {
+      const res = await api.post(`/people/${person.id}/claim`);
+      setStatusMessage({ 
+        text: (res as any).message || "Claim request submitted for review.", 
+        type: 'success' 
+      });
+      setIsConfirmingClaim(false);
+      queryClient.invalidateQueries({ queryKey: ["tree-visual", treeId] });
+    } catch (err) {
+      setStatusMessage({ text: "Failed to submit claim request. Please try again.", type: 'error' });
+    } finally {
+      setIsClaiming(false);
+    }
   };
 
   if (!person) return null;
@@ -127,7 +149,7 @@ export default function ProfileDrawer({
               </div>
 
               {/* Status Badges & Actions */}
-              <div className="flex flex-col gap-4 p-4 border-b" style={{ borderColor: theme.colors.border }}>
+              <div className="flex flex-col gap-4 p-4 border-b border-b-slate-200 dark:border-b-slate-800">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap gap-2">
                     {person.status === 'active' && (
@@ -176,7 +198,7 @@ export default function ProfileDrawer({
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-red-500" />
                       <p className={cn("text-xs font-black uppercase tracking-tight", theme.isDark ? "text-red-400" : "text-red-600")}>
-                        {isAdmin ? "Confirm Direct Deletion" : "Propose Deletion"}
+                        {isAdmin ? "Confirm Permanent Deletion" : "Propose Profile Removal"}
                       </p>
                     </div>
                     
@@ -219,7 +241,7 @@ export default function ProfileDrawer({
                           setDeleteReason("");
                         }}
                         className={cn(
-                          "px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-colors",
+                          "px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
                           theme.colors.border,
                           theme.colors.text,
                           "hover:bg-black/5 dark:hover:bg-white/5"
@@ -233,32 +255,106 @@ export default function ProfileDrawer({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-2 px-4 py-3 border-b" style={{ borderColor: theme.colors.border }}>
-                <button
-                  onClick={onEdit}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-bold text-xs uppercase transition-colors",
-                    theme.colors.primaryMuted,
-                    theme.colors.accent,
-                    "hover:opacity-80"
-                  )}
-                >
-                  <Edit3 className="w-4 h-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={onProposeRelationship}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border font-bold text-xs uppercase transition-colors",
-                    "border-rose-400 text-rose-500 hover:bg-rose-400/10"
-                  )}
-                >
-                  <Link2 className="w-4 h-4" />
-                  Link
-                </button>
+              <div className="flex flex-col gap-2 px-4 py-3 border-b border-b-slate-200 dark:border-b-slate-800">
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={onEdit}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-bold text-xs uppercase transition-all shadow-sm",
+                      theme.colors.primaryMuted, theme.colors.accent, "hover:opacity-80"
+                    )}
+                    title="View Detailed Profile"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    View Profile
+                  </button>
+                  <button
+                    onClick={onProposeRelationship}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border font-bold text-xs uppercase transition-colors shadow-sm",
+                      theme.colors.primaryMuted, theme.colors.accent, "hover:opacity-80"
+                    )}
+                    title="Link family members"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    Link
+                  </button>
+                </div>
+
+                {person.status === 'ghost' && (isAdmin || (person.userPermission !== 'owner' && person.userPermission !== 'editor')) && !isConfirmingClaim && (
+                  <button
+                    disabled={isClaiming}
+                    onClick={() => setIsConfirmingClaim(true)}
+                    className={cn(
+                      "w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all shadow-lg",
+                      theme.colors.primary,
+                      "text-white hover:opacity-90 active:scale-[0.98]"
+                    )}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Claim This Profile
+                  </button>
+                )}
+
+                {isConfirmingClaim && (
+                  <div className={cn(
+                    "flex flex-col gap-3 p-4 rounded-2xl border animate-in zoom-in-95 duration-200 mt-2",
+                    theme.isDark ? "bg-indigo-500/5 border-indigo-500/20" : "bg-orange-50 border-orange-100"
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <UserPlus className={cn("w-4 h-4", theme.colors.accent)} />
+                      <p className={cn("text-xs font-black uppercase tracking-tight", theme.colors.accent)}>
+                        {isAdmin ? "Confirm Profile Link" : "Propose Profile Claim"}
+                      </p>
+                    </div>
+                    
+                    <p className={cn("text-[10px] font-medium leading-relaxed", theme.colors.textMuted)}>
+                      {isAdmin 
+                        ? "As an administrator, this profile will be instantly linked to your account."
+                        : "Establishing a link to this profile requires administrative approval."}
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        disabled={isClaiming}
+                        onClick={handleClaim}
+                        className={cn(
+                          "flex-1 px-4 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg",
+                          theme.colors.primary,
+                          "hover:opacity-90 active:scale-[0.95]"
+                        )}
+                      >
+                        {isClaiming ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                        {isAdmin ? "Confirm Now" : "Submit Request"}
+                      </button>
+                      <button
+                        disabled={isClaiming}
+                        onClick={() => setIsConfirmingClaim(false)}
+                        className={cn(
+                          "px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
+                          theme.colors.border,
+                          theme.colors.text,
+                          "hover:bg-black/5 dark:hover:bg-white/5"
+                        )}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {statusMessage && (
+                  <div className={cn(
+                    "mt-2 p-3 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 animate-in fade-in slide-in-from-top-1",
+                    statusMessage.type === 'success' ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"
+                  )}>
+                    {statusMessage.type === 'success' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                    {statusMessage.text}
+                  </div>
+                )}
               </div>
 
-              {/* Tab Navigation */}
+              {/* Tab Navigation */ }
               <div className={cn("flex gap-1 p-4 border-b", theme.colors.border)}>
                 {(['core', 'family', 'timeline'] as const).map(tab => (
                   <button
