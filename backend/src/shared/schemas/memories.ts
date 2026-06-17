@@ -2,13 +2,15 @@ import { z } from 'zod';
 
 export const MemoryTypeSchema = z.enum(['milestone', 'story', 'photo']);
 
+const partialDateSchema = z.string().regex(/^\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?)?$/, "Invalid date format. Use YYYY, YYYY-MM, or YYYY-MM-DD");
+
 const BaseMemorySchema = z.object({
   treeId: z.string().uuid(),
   type: MemoryTypeSchema,
   title: z.string().min(1).max(255),
   content: z.string().optional(),
   imageUrl: z.string().url().optional(),
-  date: z.number().int(), // Timestamp of when the memory occurred
+  date: partialDateSchema, // String format: YYYY, YYYY-MM, or YYYY-MM-DD
   associatedPersonIds: z.array(z.string().uuid()).optional(),
 });
 
@@ -42,7 +44,7 @@ export interface Memory {
   title: string;
   content?: string;
   imageUrl?: string;
-  date: number;
+  date: string;
   posterId: string;
   createdAt: number;
   deletedAt?: number;

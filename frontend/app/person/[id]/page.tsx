@@ -21,9 +21,14 @@ import {
   MapPin,
   Clock,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertTriangle,
+  Loader2,
+  X,
+  CheckCircle2,
+  UserPlus
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dateUtils";
@@ -45,29 +50,37 @@ export default function PersonProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"about" | "permissions">("about");
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isConfirmingClaim, setIsConfirmingClaim] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [statusMessage, setStatusMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const { theme } = useAppTheme();
 
   const { data, isLoading, isError, error } = useQuery<Person>({
     queryKey: ["person", id],
     queryFn: async () => {
-      // Temporary solution: We need treeId to call the new API.
-      // If we don't have it, we'll need a global lookup or the frontend navigation needs to be updated.
-      // For now, I'll call a hypothetical 'global' endpoint to get the person (and their treeId).
       const res = await api.get<any, ApiResponse<Person>>(`/people/${id}/global`);
       return res.data;
     },
     enabled: !!id,
   });
 
+  const { data: tree } = useQuery({
+    queryKey: ["tree", data?.treeId],
+    queryFn: async () => (await api.get(`/trees/${data?.treeId}`)).data as any,
+    enabled: !!data?.treeId,
+  });
+
   const { data: suggestions } = useQuery<any>({
     queryKey: ["person-suggestions", id, data?.treeId],
     queryFn: async () => {
-      // Suggestion API also needs treeId now because of tree isolation
       const res = await api.get<any, ApiResponse<any>>(`/trees/${data?.treeId}/people/${id}/suggestions`);
       return res.data;
     },
     enabled: !!id && !!data?.treeId,
   });
+
+  const isAdmin = tree?.role === 'admin';
 
   const updateMutation = useMutation({
     mutationFn: async (input: any) => {
@@ -77,35 +90,62 @@ export default function PersonProfilePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["person", id] });
       setIsEditing(false);
+      setStatusMessage({ text: "Profile updated successfully.", type: 'success' });
     },
+    onError: () => {
+        setStatusMessage({ text: "Failed to update profile.", type: 'error' });
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await api.delete(`/trees/${data?.treeId}/people/${id}`);
+      if (isAdmin) {
+        await api.delete(`/trees/${data?.treeId}/people/${id}`);
+      } else {
+        await api.post(`/trees/${data?.treeId}/people/${id}/propose-deletion`, { reason: deleteReason });
+      }
     },
     onSuccess: () => {
-      router.back();
+      if (isAdmin) {
+        router.back();
+      } else {
+        setIsConfirmingDelete(false);
+        setDeleteReason("");
+        setStatusMessage({ text: "Deletion proposal submitted for review.", type: 'success' });
+        queryClient.invalidateQueries({ queryKey: ["person", id] });
+      }
     },
-  });
-
-  const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this profile? This action is reversible by an admin.")) {
-      deleteMutation.mutate();
+    onError: () => {
+        setStatusMessage({ text: "Failed to process deletion.", type: 'error' });
     }
-  };
+  });
 
   const claimMutation = useMutation({
     mutationFn: async () => {
-      await api.post(`/people/${id}/claim`);
+      const res = await api.post(`/people/${id}/claim`);
+      return res as any;
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
+      setStatusMessage({ text: res?.message || "Claim request submitted.", type: 'success' });
+      setIsConfirmingClaim(false);
       queryClient.invalidateQueries({ queryKey: ["person", id] });
+      queryClient.invalidateQueries({ queryKey: ["tree-visual", data?.treeId] });
     },
+    onError: () => {
+        setStatusMessage({ text: "Failed to claim profile.", type: 'error' });
+    }
   });
 
+  // Auto-hide status messages after 5 seconds
+  useEffect(() => {
+    if (statusMessage) {
+      const timer = setTimeout(() => setStatusMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [statusMessage]);
+
   return (
-    <div className="max-w-5xl mx-auto space-y-10 transition-colors duration-500 pb-20">
+    <div className="max-w-5xl mx-auto space-y-10 transition-colors duration-500 pb-20 px-6">
       <div className="flex items-center justify-between">
         <button
           onClick={() => router.back()}
@@ -118,28 +158,40 @@ export default function PersonProfilePage() {
         <div className="flex items-center gap-4">
           {!isEditing && (
             <>
-              {data?.status === 'ghost' && (
+              {data?.status === 'ghost' && data.userPermission !== 'owner' && !isConfirmingClaim && (
                 <button
-                  onClick={() => claimMutation.mutate()}
-                  disabled={claimMutation.isPending}
+                  onClick={() => setIsConfirmingClaim(true)}
                   className={cn("px-6 py-2.5 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-xl shadow-indigo-500/10", theme.colors.primary)}
                 >
                   <Sparkles className="w-4 h-4" />
-                  {claimMutation.isPending ? "Claiming..." : "Claim Profile"}
+                  Claim Profile
                 </button>
               )}
               <button
                 onClick={() => setIsEditing(true)}
-                className={cn("px-6 py-2.5 border rounded-2xl text-sm font-black uppercase tracking-widest transition-all", theme.colors.surface, theme.colors.border, theme.colors.text, "hover:opacity-80")}
+                disabled={data?.userPermission !== 'owner' && data?.userPermission !== 'editor'}
+                className={cn(
+                    "px-6 py-2.5 border rounded-2xl text-sm font-black uppercase tracking-widest transition-all",
+                    data?.userPermission === 'owner' || data?.userPermission === 'editor'
+                        ? cn(theme.colors.surface, theme.colors.border, theme.colors.text, "hover:opacity-80 shadow-sm")
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-transparent opacity-50"
+                )}
+                title={data?.userPermission === 'owner' || data?.userPermission === 'editor' ? "Edit Profile" : "You do not have permission to edit this profile"}
               >
                 Edit
               </button>
-              <button
-                onClick={handleDelete}
-                className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              
+              {!isConfirmingDelete && (
+                <button
+                  onClick={() => setIsConfirmingDelete(true)}
+                  className={cn(
+                      "p-3 rounded-2xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  )}
+                  title={isAdmin ? "Delete Profile" : "Request Removal"}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
             </>
           )}
           {isEditing && (
@@ -152,6 +204,156 @@ export default function PersonProfilePage() {
           )}
         </div>
       </div>
+
+      <AnimatePresence>
+        {statusMessage && (
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-6"
+          >
+            <div className={cn(
+              "p-4 rounded-2xl border shadow-2xl flex items-center justify-between gap-4",
+              statusMessage.type === 'success' ? "bg-white dark:bg-slate-900 border-green-500/20 shadow-green-500/10" : "bg-white dark:bg-slate-900 border-red-500/20 shadow-red-500/10"
+            )}>
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                    "p-2 rounded-xl",
+                    statusMessage.type === 'success' ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                )}>
+                    {statusMessage.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                </div>
+                <p className={cn("text-sm font-bold", theme.colors.text)}>{statusMessage.text}</p>
+              </div>
+              <button onClick={() => setStatusMessage(null)} className={cn("p-1 hover:bg-black/5 rounded-lg", theme.colors.textMuted)}>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isConfirmingDelete && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className={cn(
+              "p-8 rounded-[2.5rem] border flex flex-col gap-6 shadow-xl",
+              theme.isDark ? "bg-red-500/5 border-red-500/20" : "bg-red-50 border-red-100"
+            )}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-500 text-white">
+                   <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className={cn("text-xl font-black uppercase tracking-tight", theme.isDark ? "text-red-400" : "text-red-600")}>
+                    {isAdmin ? "Confirm Permanent Deletion" : "Propose Profile Removal"}
+                  </h3>
+                  <p className={cn("text-sm font-medium", theme.isDark ? "text-red-400/60" : "text-red-600/60")}>
+                    {isAdmin ? "This action cannot be undone. All relationships and data for this profile will be purged." : "A request will be sent to tree administrators for review."}
+                  </p>
+                </div>
+              </div>
+
+              {!isAdmin && (
+                <textarea
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Optional: Why should this profile be removed?"
+                  className={cn(
+                    "w-full p-4 rounded-2xl border text-sm outline-none resize-none h-24 transition-all focus:ring-4 focus:ring-red-500/10",
+                    theme.colors.bg,
+                    theme.colors.border,
+                    theme.colors.text
+                  )}
+                />
+              )}
+
+              <div className="flex items-center gap-3">
+                <button
+                  disabled={deleteMutation.isPending}
+                  onClick={() => deleteMutation.mutate()}
+                  className="flex-1 py-4 rounded-2xl bg-red-500 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl shadow-red-500/20 flex items-center justify-center gap-2"
+                >
+                  {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (isAdmin ? <Trash2 className="w-4 h-4" /> : <X className="w-4 h-4" />)}
+                  {isAdmin ? "Delete Permanently" : "Submit Removal Request"}
+                </button>
+                <button
+                  disabled={deleteMutation.isPending}
+                  onClick={() => { setIsConfirmingDelete(false); setDeleteReason(""); }}
+                  className={cn(
+                    "px-8 py-4 rounded-2xl border font-black text-xs uppercase tracking-[0.2em] transition-all",
+                    theme.colors.border,
+                    theme.colors.text,
+                    "hover:bg-black/5"
+                  )}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {isConfirmingClaim && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mb-6"
+          >
+            <div className={cn(
+              "p-8 rounded-[2.5rem] border flex flex-col gap-6 shadow-xl",
+              theme.isDark ? "bg-indigo-500/5 border-indigo-500/20" : "bg-orange-50 border-orange-100"
+            )}>
+              <div className="flex items-center gap-3">
+                <div className={cn("p-2 rounded-xl text-white", theme.colors.primary)}>
+                   <UserPlus className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className={cn("text-xl font-black uppercase tracking-tight", theme.isDark ? "text-indigo-400" : "text-orange-600")}>
+                    {isAdmin ? "Claim This Profile" : "Request Profile Claim"}
+                  </h3>
+                  <p className={cn("text-sm font-medium", theme.isDark ? "text-indigo-400/60" : "text-orange-600/60")}>
+                    {isAdmin ? "As an administrator, your claim will be automatically approved." : "This will establish you as the representative of this profile. Admin approval required."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  disabled={claimMutation.isPending}
+                  onClick={() => claimMutation.mutate()}
+                  className={cn(
+                    "flex-1 py-4 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-xl flex items-center justify-center gap-2",
+                    theme.colors.primary
+                  )}
+                >
+                  {claimMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {isAdmin ? "Confirm Claim" : "Submit Claim Request"}
+                </button>
+                <button
+                  disabled={claimMutation.isPending}
+                  onClick={() => setIsConfirmingClaim(false)}
+                  className={cn(
+                    "px-8 py-4 rounded-2xl border font-black text-xs uppercase tracking-[0.2em] transition-all",
+                    theme.colors.border,
+                    theme.colors.text,
+                    "hover:bg-black/5"
+                  )}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <DataState isLoading={isLoading} isError={isError} error={error as Error}>
         {data && (
@@ -187,7 +389,9 @@ export default function PersonProfilePage() {
 
             {/* Tabs */}
             <div className={cn("flex gap-12 border-b transition-colors duration-500", theme.colors.border)}>
-              {(["about", "permissions"] as const).map((tab) => (
+              {(["about", "permissions"] as const)
+                .filter(tab => tab !== 'permissions' || data.userPermission === 'owner' || data.userPermission === 'editor')
+                .map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -419,7 +623,14 @@ export default function PersonProfilePage() {
                       <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>Administration</h3>
                       <button
                         onClick={() => setShowMergeModal(true)}
-                        className={cn("w-full flex items-center gap-4 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all border group", theme.colors.primaryMuted, theme.colors.accent, theme.colors.border.replace('border-', 'border-'), "hover:opacity-80 shadow-sm")}
+                        disabled={data.userPermission !== 'owner' && data.userPermission !== 'editor'}
+                        className={cn(
+                            "w-full flex items-center gap-4 p-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all border group",
+                            data.userPermission === 'owner' || data.userPermission === 'editor'
+                                ? cn(theme.colors.primaryMuted, theme.colors.accent, "hover:opacity-80 shadow-sm")
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-transparent opacity-50"
+                        )}
+                        title={data.userPermission === 'owner' || data.userPermission === 'editor' ? "Merge Profile" : "You do not have permission to initiate profile merges"}
                       >
                         <GitMerge className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                         Merge Profile

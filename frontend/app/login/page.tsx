@@ -15,7 +15,7 @@ function LoginFormContent() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
   const message = searchParams.get('message');
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -25,6 +25,7 @@ function LoginFormContent() {
     setError(null);
 
     try {
+      console.log("[Login] Attempting sign in for:", email);
       const { data, error: signInError } =
         await supabase.auth.signInWithPassword({
           email,
@@ -32,26 +33,27 @@ function LoginFormContent() {
         });
 
       if (signInError) {
+        console.error("[Login] Auth error:", signInError.message);
         setError(signInError.message);
         return;
       }
 
-      // Wait for session to be available
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      if (data.session) {
+        console.log("[Login] Success, triggering navigation to:", redirectTo);
 
-      // console.log("SESSION:", session);
-
-      if (session) {
-        router.replace(redirect);
-        router.refresh();
+        // Safety: Ensure we only redirect to internal paths
+        const safeRedirect = redirectTo.startsWith('/') ? redirectTo : '/dashboard';
+        
+        // Next.js router.replace is usually enough, 
+        // but router.push or window.location might be more definitive in some cases.
+        router.replace(safeRedirect);
       } else {
+        console.warn("[Login] Success but no session returned");
         setError("Login succeeded but session was not created.");
       }
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong during login.");
+    } catch (err: any) {
+      console.error("[Login] Unexpected error:", err);
+      setError(err.message || "Something went wrong during login.");
     } finally {
       setLoading(false);
     }
@@ -61,19 +63,20 @@ function LoginFormContent() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}${redirect}`,
+        redirectTo: `${window.location.origin}${redirectTo}`,
       },
     });
     if (error) setError(error.message);
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 px-4">
-      <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to your family tree</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="max-w-md w-full">
+        <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
+            <p className="text-muted-foreground mt-2">Sign in to your family tree</p>
+          </div>
 
         {message && (
           <div className="bg-primary/10 border border-primary/20 text-primary px-4 py-3 rounded-lg mb-6 text-sm">
@@ -150,12 +153,13 @@ function LoginFormContent() {
 
         <p className="text-center text-muted-foreground mt-8 text-sm">
           Don't have an account?{' '}
-          <Link href={`/signup?redirect=${encodeURIComponent(redirect)}`} className="text-primary font-semibold hover:opacity-80">
+          <Link href={`/signup?redirectTo=${encodeURIComponent(redirectTo)}`} className="text-primary font-semibold hover:opacity-80">
             Sign Up
           </Link>
         </p>
       </div>
     </div>
+  </div>
   );
 }
 

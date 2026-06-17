@@ -33,7 +33,12 @@ export default function ManageInvitationsPage() {
     queryKey: ["trees"],
     queryFn: async () => {
       const res = await api.get("/trees");
-      return (res as any).data;
+      const data = (res as any).data;
+      const adminTrees = data?.filter((t: any) => t.role === 'admin') || [];
+      if (adminTrees.length > 0 && !selectedTreeId) {
+        setSelectedTreeId(adminTrees[0].id);
+      }
+      return adminTrees;
     },
   });
 

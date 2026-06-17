@@ -61,14 +61,14 @@ export default async function treeRoutes(fastify: FastifyInstance) {
   /**
    * Visual Tree Data
    */
-  fastify.get('/trees/:treeId/visual', { 
-    preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member', 'viewer'])] 
+  fastify.get('/trees/:treeId/visual', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member', 'viewer'])]
   }, async (request, reply) => {
     const { treeId } = treeIdParamSchema.parse(request.params);
-    const people = await TreesService.getVisualData(treeId);
+    const user = request.user!;
+    const people = await TreesService.getVisualData(treeId, user.id);
     return { success: true, data: people };
   });
-
   /**
    * Get all members (users) of a tree
    */

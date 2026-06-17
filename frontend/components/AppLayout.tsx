@@ -3,30 +3,74 @@
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { useAuth } from "./providers/AuthProvider";
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { Loader2, ShieldAlert } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAppTheme } from "./providers/ThemeProvider";
 import { cn } from "@/lib/cn";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-
-  const { user, isLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const { theme } = useAppTheme();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Fetch trees to check for admin status
+  const { data: trees, isLoading: treesLoading } = useQuery({
+    queryKey: ["trees"],
+    queryFn: async () => {
+      const res = await api.get("/trees");
+      return (res as any).data;
+    },
+    enabled: !!user,
+  });
+
+  const isAdmin = trees?.some((t: any) => t.role === 'admin');
+  const isManagementRoute = pathname.startsWith('/dashboard/manage');
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace("/login");
+    // 1. Auth Protection
+    if (!authLoading && !user) {
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+      router.replace(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+      return;
     }
-  }, [user, isLoading, router]);
 
-  if (isLoading) {
+    // 2. Admin Protection (RBAC)
+    if (!authLoading && !treesLoading && user && isManagementRoute && !isAdmin) {
+      console.warn("[RBAC] Unauthorized access to management route. Redirecting...");
+      setIsRedirecting(true);
+      router.replace("/dashboard");
+    }
+
+    // 3. Reset redirect state if we've moved away from management routes
+    if (!isManagementRoute && isRedirecting) {
+      setIsRedirecting(false);
+    }
+  }, [user, authLoading, treesLoading, isAdmin, isManagementRoute, router, isRedirecting]);
+
+  // Loading State
+  if (authLoading || (isManagementRoute && treesLoading) || isRedirecting) {
     return (
       <div className={cn("flex items-center justify-center h-screen", theme.colors.bg)}>
-        <div className="text-center space-y-3">
-          <Loader2 className={cn("w-10 h-10 animate-spin mx-auto", theme.colors.accent)} />
-          <p className={cn("text-sm font-medium", theme.colors.textMuted)}>Loading your workspace...</p>
+        <div className="text-center space-y-4">
+          {isRedirecting ? (
+            <>
+              <ShieldAlert className="w-12 h-12 text-amber-500 mx-auto animate-pulse" />
+              <div className="space-y-1">
+                <p className={cn("text-lg font-black uppercase tracking-tighter", theme.colors.text)}>Access Restricted</p>
+                <p className={cn("text-sm font-medium", theme.colors.textMuted)}>You don't have permission to view this page.</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <Loader2 className={cn("w-10 h-10 animate-spin mx-auto", theme.colors.accent)} />
+              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>Loading your workspace...</p>
+            </>
+          )}
         </div>
       </div>
     );

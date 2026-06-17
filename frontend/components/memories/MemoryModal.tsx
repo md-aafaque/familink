@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import StoryEditor from './StoryEditor';
 import { supabase } from '@/lib/supabaseClient';
 import { CreateMemoryInput, UpdateMemoryInput, MemoryType } from '@/lib/shared/schemas/memories';
+import PartialDateInput from '../ui/PartialDateInput';
 
 interface MemoryModalProps {
   treeId: string;
@@ -28,7 +29,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
   const [title, setTitle] = useState(initialMemory?.title || '');
   const [date, setDate] = useState(
     initialMemory?.date 
-      ? new Date(initialMemory.date).toISOString().split('T')[0] 
+      ? (typeof initialMemory.date === 'string' ? initialMemory.date : new Date(initialMemory.date).toISOString().split('T')[0])
       : new Date().toISOString().split('T')[0]
   );
   const [content, setContent] = useState(initialMemory?.content || '');
@@ -38,6 +39,10 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
     initialMemory?.associatedPeople?.map((p: any) => p.id) || (initialPersonId ? [initialPersonId] : [])
   );
   const [personSearch, setPersonSearch] = useState('');
+  
+  // Validation state
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Reset form when initialMemory changes or modal opens
   useEffect(() => {
@@ -46,7 +51,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
         setTitle(initialMemory?.title || '');
         setDate(
             initialMemory?.date 
-              ? new Date(initialMemory.date).toISOString().split('T')[0] 
+              ? (typeof initialMemory.date === 'string' ? initialMemory.date : new Date(initialMemory.date).toISOString().split('T')[0])
               : new Date().toISOString().split('T')[0]
         );
         setContent(initialMemory?.content || '');
@@ -56,6 +61,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
             initialMemory?.associatedPeople?.map((p: any) => p.id) || (initialPersonId ? [initialPersonId] : [])
         );
         setPersonSearch('');
+        setFormErrors({});
     }
   }, [isOpen, initialMemory, initialPersonId]);
 
@@ -70,12 +76,10 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
   });
 
   const uploadImage = async (file: File): Promise<string> => {
-    // 1. Get signed URL
     const { data: { signedUrl, path } } = await api.post(`/trees/${treeId}/memories/upload-url`, {
       fileName: file.name
     }) as any;
 
-    // 2. Upload to Supabase Storage directly
     const uploadRes = await fetch(signedUrl, {
       method: 'PUT',
       body: file,
@@ -85,14 +89,39 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
     });
 
     if (!uploadRes.ok) throw new Error('Failed to upload image');
-
-    // 3. Return the public URL
     const { data } = supabase.storage.from('memories').getPublicUrl(path);
     return data.publicUrl;
   };
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    if (!title.trim()) errors.title = "Memory title is required";
+    if (!date) errors.date = "Date is required";
+    if (type === 'story' && (!content || content === '<p></p>' || content.trim() === '')) {
+      errors.content = "Story content is required";
+    }
+    if (type === 'photo' && !imagePreview) {
+      errors.image = "Photo is required";
+    }
+    
+    setFormErrors(errors);
+    
+    // Scroll to first error
+    const firstError = Object.keys(errors)[0];
+    if (firstError) {
+      const element = formRef.current?.querySelector(`[data-error-id="${firstError}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return false;
+    }
+    return true;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!validateForm()) return;
+
       let imageUrl = imagePreview || undefined;
       if (image) {
         imageUrl = await uploadImage(image);
@@ -103,7 +132,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
             type,
             title,
             content: type === 'story' ? content : (type === 'milestone' ? content : undefined),
-            date: new Date(date).getTime(),
+            date,
             imageUrl,
             associatedPersonIds,
         };
@@ -114,32 +143,22 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
             type,
             title,
             content: type === 'story' ? content : (type === 'milestone' ? content : undefined),
-            date: new Date(date).getTime(),
+            date,
             imageUrl,
             associatedPersonIds,
         };
         return api.post(`/trees/${treeId}/memories`, payload);
       }
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
+      if (!res) return; // Validation failed
       queryClient.invalidateQueries({ queryKey: ['memories', treeId] });
       if (initialPersonId || initialMemory?.associatedPeople?.some((p: any) => p.id === initialPersonId)) {
         queryClient.invalidateQueries({ queryKey: ['person-memories', treeId, initialPersonId || initialMemory?.associatedPeople?.[0]?.id] });
       }
       onClose();
-      resetForm();
     },
   });
-
-  const resetForm = () => {
-    setType('milestone');
-    setTitle('');
-    setDate(new Date().toISOString().split('T')[0]);
-    setContent('');
-    setImage(null);
-    setImagePreview(null);
-    setAssociatedPersonIds(initialPersonId ? [initialPersonId] : []);
-  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -150,6 +169,9 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      if (formErrors.image) {
+        setFormErrors(prev => { const n = {...prev}; delete n.image; return n; });
+      }
     }
   };
 
@@ -158,10 +180,11 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
     (`${p.firstName} ${p.lastName}`.toLowerCase().includes(personSearch.toLowerCase()))
   );
 
-  const isSaveDisabled = saveMutation.isPending || 
-    !title || 
-    (type === 'story' && (!content || content === '<p></p>')) || 
-    (type === 'photo' && !imagePreview);
+  const labelClass = (isRequired = false) => cn(
+    "text-[10px] font-black uppercase tracking-widest px-1",
+    theme.colors.textMuted,
+    isRequired && "flex items-center gap-1"
+  );
 
   return (
     <AnimatePresence>
@@ -184,6 +207,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               theme.colors.surface,
               theme.colors.border
             )}
+            ref={formRef}
           >
           {/* Header */}
           <div className={cn("p-6 border-b sticky top-0 z-10 flex items-center justify-between", theme.colors.surface, theme.colors.border)}>
@@ -227,35 +251,48 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
             <div className="space-y-6">
               {/* Title & Date */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 space-y-2">
-                  <label className={cn("text-[10px] font-black uppercase tracking-widest px-1", theme.colors.textMuted)}>
+                <div className="md:col-span-2 space-y-2" data-error-id="title">
+                  <label className={labelClass(true)}>
                     Memory Title <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (formErrors.title) setFormErrors(prev => { const n = {...prev}; delete n.title; return n; });
+                    }}
                     placeholder="E.g., Great Grandpa's 90th Birthday"
-                    className={cn("w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all", theme.colors.bg, theme.colors.border, theme.colors.text)}
+                    className={cn(
+                      "w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all",
+                      theme.colors.bg,
+                      formErrors.title ? "border-red-500 focus:ring-red-500/20" : theme.colors.border,
+                      theme.colors.text
+                    )}
                   />
+                  {formErrors.title && <p className="text-[10px] text-red-500 font-bold ml-1">{formErrors.title}</p>}
                 </div>
-                <div className="space-y-2">
-                  <label className={cn("text-[10px] font-black uppercase tracking-widest px-1", theme.colors.textMuted)}>
+                <div className="space-y-2" data-error-id="date">
+                  <label className={labelClass(true)}>
                     Date <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="date"
+                  <PartialDateInput
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className={cn("w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all", theme.colors.bg, theme.colors.border, theme.colors.text)}
+                    onChange={(val) => {
+                      setDate(val);
+                      if (formErrors.date) setFormErrors(prev => { const n = {...prev}; delete n.date; return n; });
+                    }}
+                    className="w-full"
+                    error={!!formErrors.date}
                   />
+                  {formErrors.date && <p className="text-[10px] text-red-500 font-bold ml-1">{formErrors.date}</p>}
                 </div>
               </div>
 
               {/* Photo Upload */}
               {(type === 'photo' || type === 'milestone') && (
-                <div className="space-y-2">
-                  <label className={cn("text-[10px] font-black uppercase tracking-widest px-1", theme.colors.textMuted)}>
+                <div className="space-y-2" data-error-id="image">
+                  <label className={labelClass(type === 'photo')}>
                     {type === 'photo' ? 'Select Photo' : 'Featured Image (Optional)'} 
                     {type === 'photo' && <span className="text-red-500"> *</span>}
                   </label>
@@ -263,8 +300,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                     onClick={() => document.getElementById('memory-image')?.click()}
                     className={cn(
                       "relative h-48 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary/50 hover:bg-primary/5",
-                      theme.colors.border,
-                      type === 'photo' && !imagePreview && "border-red-200 dark:border-red-900/30"
+                      formErrors.image ? "border-red-500 bg-red-500/5" : theme.colors.border
                     )}
                   >
                     {imagePreview ? (
@@ -283,32 +319,47 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                     )}
                     <input id="memory-image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   </div>
+                  {formErrors.image && <p className="text-[10px] text-red-500 font-bold ml-1">{formErrors.image}</p>}
                 </div>
               )}
 
               {/* Story Content */}
               {type !== 'photo' && (
-                <div className="space-y-2">
-                  <label className={cn("text-[10px] font-black uppercase tracking-widest px-1", theme.colors.textMuted)}>
+                <div className="space-y-2" data-error-id="content">
+                  <label className={labelClass(type === 'story')}>
                     {type === 'story' ? 'The Story' : 'Description'}
                     {type === 'story' && <span className="text-red-500"> *</span>}
                   </label>
                   {type === 'story' ? (
-                    <StoryEditor content={content} onChange={setContent} />
+                    <div className={cn("rounded-xl border transition-all overflow-hidden", formErrors.content ? "border-red-500" : theme.colors.border)}>
+                      <StoryEditor content={content} onChange={(val) => {
+                        setContent(val);
+                        if (formErrors.content) setFormErrors(prev => { const n = {...prev}; delete n.content; return n; });
+                      }} />
+                    </div>
                   ) : (
                     <textarea
                       value={content}
-                      onChange={(e) => setContent(e.target.value)}
+                      onChange={(e) => {
+                        setContent(e.target.value);
+                        if (formErrors.content) setFormErrors(prev => { const n = {...prev}; delete n.content; return n; });
+                      }}
                       placeholder="Share some details about this milestone..."
-                      className={cn("w-full h-32 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none", theme.colors.bg, theme.colors.border, theme.colors.text)}
+                      className={cn(
+                        "w-full h-32 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none",
+                        theme.colors.bg,
+                        formErrors.content ? "border-red-500 focus:ring-red-500/20" : theme.colors.border,
+                        theme.colors.text
+                      )}
                     />
                   )}
+                  {formErrors.content && <p className="text-[10px] text-red-500 font-bold ml-1">{formErrors.content}</p>}
                 </div>
               )}
 
               {/* Associated People */}
               <div className="space-y-2">
-                <label className={cn("text-[10px] font-black uppercase tracking-widest px-1", theme.colors.textMuted)}>Link to Family Members</label>
+                <label className={labelClass()}>Link to Family Members</label>
                 <div className="flex flex-wrap gap-2">
                   {associatedPersonIds.map(id => {
                     const p = people?.find((per: any) => per.id === id);
@@ -369,12 +420,12 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               Cancel
             </button>
             <button
-              disabled={isSaveDisabled}
+              disabled={saveMutation.isPending}
               onClick={() => saveMutation.mutate()}
               className={cn(
                 "px-8 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all flex items-center gap-2",
                 "hover:opacity-90 active:scale-[0.98]",
-                isSaveDisabled && "opacity-50 cursor-not-allowed"
+                saveMutation.isPending && "opacity-50 cursor-not-allowed"
               )}
             >
               {saveMutation.isPending ? (

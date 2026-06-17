@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { createPersonSchema, updatePersonSchema } from '../../shared/schemas/people';
+import { createPersonSchema, updatePersonSchema, deletionProposalSchema } from '../../shared/schemas/people';
 import { PeopleService } from './people.service';
 import { PeopleRepository } from './people.repository';
 import { verifyTreeAccess } from '../../middleware/tree-auth';
@@ -26,10 +26,20 @@ export default async function peopleRoutes(fastify: FastifyInstance) {
    * Global person lookup (no tree isolation)
    */
   fastify.get('/people/:id/global', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const user = request.user!;
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
     const person = await PeopleRepository.findByIdGlobal(id);
     if (!person) throw new AppError('Profile not found', 404);
-    return { success: true, data: person };
+
+    const permission = await PeopleRepository.checkPermission(id, user.id);
+
+    return { 
+      success: true, 
+      data: {
+        ...person,
+        userPermission: permission
+      } 
+    };
   });
 
   /**
@@ -48,15 +58,56 @@ export default async function peopleRoutes(fastify: FastifyInstance) {
 
   /**
    * Merge two profiles
-   * Access: Admin
+   * Access: Admin or Member (Members create proposals)
    */
   fastify.post('/trees/:treeId/people/:sourceId/merge-into/:targetId', {
-    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member'])]
   }, async (request, reply) => {
     const user = request.user!;
     const { treeId, sourceId, targetId } = mergeParamsSchema.parse(request.params);
+    const { reason } = z.object({ reason: z.string().optional() }).parse(request.body);
     
-    const result = await PeopleService.mergePeople(sourceId, targetId, user.id, treeId);
+    const result = await PeopleService.mergePeople(sourceId, targetId, user.id, treeId, reason);
+    return result;
+  });
+
+  /**
+   * Get all pending merge proposals for a tree
+   * Access: Admin
+   */
+  fastify.get('/trees/:treeId/merge-proposals', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
+  }, async (request, reply) => {
+    const { treeId } = treeIdParamSchema.parse(request.params);
+    const proposals = await PeopleService.getPendingMergeProposals(treeId);
+    return { success: true, data: proposals };
+  });
+
+  /**
+   * Approve merge proposal
+   * Access: Admin
+   */
+  fastify.post('/trees/:treeId/merge-proposals/:proposalId/approve', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
+  }, async (request, reply) => {
+    const user = request.user!;
+    const { proposalId } = z.object({ proposalId: z.string().uuid() }).parse(request.params);
+    
+    const result = await PeopleService.approveMergeProposal(proposalId, user.id);
+    return result;
+  });
+
+  /**
+   * Reject merge proposal
+   * Access: Admin
+   */
+  fastify.post('/trees/:treeId/merge-proposals/:proposalId/reject', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
+  }, async (request, reply) => {
+    const user = request.user!;
+    const { proposalId } = z.object({ proposalId: z.string().uuid() }).parse(request.params);
+    
+    const result = await PeopleService.rejectMergeProposal(proposalId, user.id);
     return result;
   });
 
@@ -122,6 +173,60 @@ export default async function peopleRoutes(fastify: FastifyInstance) {
     
     await PeopleService.deletePerson(id, treeId, user.id);
     return { success: true, message: 'Person deleted successfully' };
+  });
+
+  /**
+   * Propose person deletion
+   */
+  fastify.post('/trees/:treeId/people/:id/propose-deletion', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin', 'member'])]
+  }, async (request, reply) => {
+    const user = request.user!;
+    const { treeId, id } = personIdParamSchema.parse(request.params);
+    const { reason } = deletionProposalSchema.parse(request.body);
+
+    const proposal = await PeopleService.proposeDeletion(id, treeId, user.id, reason);
+    return { success: true, data: proposal };
+  });
+
+  /**
+   * Get all pending deletion proposals for a tree
+   * Access: Admin
+   */
+  fastify.get('/trees/:treeId/deletion-proposals', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
+  }, async (request, reply) => {
+    const { treeId } = treeIdParamSchema.parse(request.params);
+    const proposals = await PeopleService.getPendingDeletionProposals(treeId);
+    return { success: true, data: proposals };
+  });
+
+  /**
+   * Approve deletion proposal
+   * Access: Admin
+   */
+  fastify.post('/trees/:treeId/deletion-proposals/:proposalId/approve', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
+  }, async (request, reply) => {
+    const user = request.user!;
+    const { proposalId } = z.object({ proposalId: z.string().uuid() }).parse(request.params);
+    
+    const result = await PeopleService.approveDeletionProposal(proposalId, user.id);
+    return result;
+  });
+
+  /**
+   * Reject deletion proposal
+   * Access: Admin
+   */
+  fastify.post('/trees/:treeId/deletion-proposals/:proposalId/reject', {
+    preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
+  }, async (request, reply) => {
+    const user = request.user!;
+    const { proposalId } = z.object({ proposalId: z.string().uuid() }).parse(request.params);
+    
+    const result = await PeopleService.rejectDeletionProposal(proposalId, user.id);
+    return result;
   });
 
   /**

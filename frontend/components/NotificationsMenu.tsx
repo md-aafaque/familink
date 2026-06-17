@@ -104,13 +104,23 @@ export default function NotificationsMenu() {
         case 'relationship_rejected':
         case 'claim_request_approved':
         case 'claim_request_rejected':
+        case 'deletion_approved':
+        case 'deletion_rejected':
+        case 'merge_approved':
+        case 'merge_rejected':
           if (data.treeId) router.push(`/tree/${data.treeId}`);
           break;
         case 'relationship_pending':
-          router.push('/dashboard/manage/proposals');
+          router.push('/dashboard/manage/proposals?tab=relationships');
           break;
         case 'claim_request_pending':
-          router.push('/dashboard/manage/claims');
+          router.push('/dashboard/manage/proposals?tab=claims');
+          break;
+        case 'deletion_proposal_pending':
+          router.push('/dashboard/manage/proposals?tab=deletions');
+          break;
+        case 'merge_proposal_pending':
+          router.push('/dashboard/manage/proposals?tab=merges');
           break;
         default:
           router.push('/notifications');

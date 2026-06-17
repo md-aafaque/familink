@@ -9,14 +9,17 @@ import { TreesRepository } from '../trees/trees.repository';
 
 export class RelationshipsService {
   static async proposeRelationship(input: CreateProposalInput, proposerId: string) {
-    // 1. Authorization: User must have editor/owner permission on at least one person
-    // or be a tree admin (tree admin check is handled by middleware verifyTreeAccess usually,
-    // but here we check granular permission too)
-    const permFrom = await PeopleRepository.checkPermission(input.fromPersonId, proposerId);
-    const permTo = await PeopleRepository.checkPermission(input.toPersonId, proposerId);
+    // 1. Authorization & Role Check
+    const isAdmin = await TreesRepository.isAdmin(input.treeId, proposerId);
+    
+    // Non-admins need editor/owner permission on at least one involved person
+    if (!isAdmin) {
+      const permFrom = await PeopleRepository.checkPermission(input.fromPersonId, proposerId);
+      const permTo = await PeopleRepository.checkPermission(input.toPersonId, proposerId);
 
-    if (permFrom !== 'owner' && permFrom !== 'editor' && permTo !== 'owner' && permTo !== 'editor') {
-      throw new AppError('You must have edit permission on at least one person to propose a relationship', 403);
+      if (permFrom !== 'owner' && permFrom !== 'editor' && permTo !== 'owner' && permTo !== 'editor') {
+        throw new AppError('You must have edit permission on at least one person to propose a relationship', 403);
+      }
     }
 
     // 2. Validate
@@ -27,10 +30,33 @@ export class RelationshipsService {
       input.relationshipType
     );
 
-    // 2. Create Proposal
+    if (isAdmin) {
+      // 3a. Direct Approval for Admins
+      await RelationshipRepository.createOfficialRelationship(
+        input.treeId,
+        input.fromPersonId,
+        input.toPersonId,
+        input.relationshipType,
+        proposerId,
+        proposerId
+      );
+
+      await AuditService.log(
+        input.treeId,
+        proposerId,
+        'relationship_approved', // Or 'relationship_created'
+        'Relationship',
+        `${input.fromPersonId}_${input.toPersonId}`,
+        { type: input.relationshipType, from: input.fromPersonId, to: input.toPersonId, autoApproved: true }
+      );
+
+      return { success: true, message: 'Relationship created successfully' };
+    }
+
+    // 3b. Create Proposal for Members
     const proposal = await RelationshipRepository.createProposal({ ...input, proposerId });
 
-    // 3. Log Audit
+    // 4. Log Audit
     await AuditService.log(
       input.treeId,
       proposerId,
@@ -40,7 +66,7 @@ export class RelationshipsService {
       { type: input.relationshipType, from: input.fromPersonId, to: input.toPersonId }
     );
 
-    // 4. Notify Admins
+    // 5. Notify Admins
     const adminIds = await TreesRepository.getAdmins(input.treeId);
     for (const adminId of adminIds) {
       await NotificationsService.createNotification(

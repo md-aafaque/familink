@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, forwardRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
@@ -9,26 +9,34 @@ import { useAppTheme } from "@/components/providers/ThemeProvider";
 
 interface CustomSelectProps {
   options: { label: string; value: string }[];
-  value: string | undefined;
+  value: string | null | undefined;
   onChange: (value: string) => void;
+  onBlur?: () => void;
+  name?: string;
+  id?: string;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  error?: boolean;
 }
 
-export default function CustomSelect({
+const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(({
   options,
   value,
   onChange,
+  onBlur,
+  name,
+  id,
   placeholder = "Select an option",
   className,
   disabled,
-  size = 'md'
-}: CustomSelectProps) {
+  size = 'md',
+  error
+}, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const internalRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { theme } = useAppTheme();
   const [mounted, setMounted] = useState(false);
@@ -39,8 +47,9 @@ export default function CustomSelect({
   }, []);
 
   const updateCoords = () => {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
+    const el = internalRef.current;
+    if (el) {
+      const rect = el.getBoundingClientRect();
       setCoords({
         top: rect.bottom + window.scrollY,
         left: rect.left + window.scrollX,
@@ -64,7 +73,7 @@ export default function CustomSelect({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        triggerRef.current && !triggerRef.current.contains(event.target as Node) &&
+        internalRef.current && !internalRef.current.contains(event.target as Node) &&
         dropdownRef.current && !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
@@ -136,15 +145,23 @@ export default function CustomSelect({
   return (
     <div className={cn("relative", className)}>
       <button
-        ref={triggerRef}
+        ref={(node) => {
+          // Combine internal ref and forwarded ref
+          (internalRef as any).current = node;
+          if (typeof ref === 'function') ref(node);
+          else if (ref) (ref as any).current = node;
+        }}
+        name={name}
+        id={id}
         type="button"
         disabled={disabled}
+        onBlur={onBlur}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "w-full flex items-center justify-between font-bold border outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
           sizeClasses[size],
           theme.colors.bg,
-          theme.colors.border,
+          error ? "border-red-500 ring-red-500/20" : theme.colors.border,
           theme.colors.text,
           isOpen ? "ring-2 ring-primary/20 border-primary" : "hover:border-primary/50"
         )}
@@ -156,4 +173,8 @@ export default function CustomSelect({
       {mounted && createPortal(dropdown, document.body)}
     </div>
   );
-}
+});
+
+CustomSelect.displayName = "CustomSelect";
+
+export default CustomSelect;

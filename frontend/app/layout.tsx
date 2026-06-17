@@ -13,7 +13,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased font-sans text-slate-900 transition-colors duration-500">
+      <body className="antialiased font-sans transition-colors duration-500">
         <GlobalErrorBoundary>
           <QueryProvider>
             <AuthProvider>

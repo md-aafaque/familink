@@ -3,8 +3,8 @@
 import { Memory } from '@/lib/shared/schemas/memories';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
-import { Calendar, Quote, ImageIcon, MapPin, Users, MoreVertical, Trash2, Edit } from 'lucide-react';
-import { format } from 'date-fns';
+import { Calendar, Quote, ImageIcon, MapPin, Users, MoreVertical, Trash2, Edit, X, AlertTriangle } from 'lucide-react';
+import { formatDate } from '@/lib/dateUtils';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemoryDetailsModal from './MemoryDetailsModal';
@@ -20,6 +20,7 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
   const { theme } = useAppTheme();
   const [showActions, setShowActions] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const getTypeIcon = () => {
     switch (memory.type) {
@@ -38,11 +39,12 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
         exit={{ opacity: 0, scale: 0.95 }}
         whileHover={{ y: -4 }}
         transition={{ duration: 0.3 }}
-        onClick={() => setIsDetailsOpen(true)}
+        onClick={() => !isConfirmingDelete && setIsDetailsOpen(true)}
         className={cn(
           "group relative flex flex-col rounded-2xl border overflow-hidden transition-all hover:shadow-xl cursor-pointer",
           theme.colors.surface,
-          theme.colors.border
+          theme.colors.border,
+          isConfirmingDelete && "ring-2 ring-red-500/50 shadow-lg shadow-red-500/10"
         )}
       >
         {/* Image Section */}
@@ -70,8 +72,8 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
                 )}>
                   {getTypeIcon()}
                 </span>
-                <span className={cn("text-[10px] font-black uppercase tracking-widest", theme.colors.textMuted)}>
-                  {format(new Date(memory.date), 'MMMM d, yyyy')}
+                <span className={cn("text-[10px] font-bold uppercase tracking-widest", theme.colors.textMuted)}>
+                  {formatDate(memory.date)}
                 </span>
               </div>
               <h3 className={cn("text-lg font-black leading-tight", theme.colors.text)}>
@@ -79,7 +81,7 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
               </h3>
             </div>
 
-            {isOwner && (
+            {isOwner && !isConfirmingDelete && (
               <div className="relative" onClick={(e) => e.stopPropagation()}>
                 <button 
                   onClick={() => setShowActions(!showActions)}
@@ -101,12 +103,12 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
                     >
                       <button 
                         onClick={() => { onEdit?.(memory); setShowActions(false); }}
-                        className={cn("w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors", "hover:bg-slate-100 dark:hover:bg-slate-800", theme.colors.text)}
+                        className={cn("w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors", "hover:bg-black/5", theme.colors.text)}
                       >
                         <Edit className="w-3.5 h-3.5" /> Edit
                       </button>
                       <button 
-                        onClick={() => { onDelete?.(memory.id); setShowActions(false); }}
+                        onClick={() => { setIsConfirmingDelete(true); setShowActions(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -117,6 +119,39 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
               </div>
             )}
           </div>
+
+          {/* Deletion Confirmation Overlay */}
+          <AnimatePresence>
+            {isConfirmingDelete && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-red-600/95 flex flex-col items-center justify-center p-6 text-center z-20"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <AlertTriangle className="w-10 h-10 text-white mb-4" />
+                <h4 className="text-white font-black text-lg mb-2 uppercase tracking-tight">Delete Memory?</h4>
+                <p className="text-red-100 text-xs font-medium mb-6 leading-relaxed">
+                  This memory will be permanently removed. This action cannot be undone.
+                </p>
+                <div className="flex flex-col gap-2 w-full max-w-[160px]">
+                  <button 
+                    onClick={() => { onDelete?.(memory.id); setIsConfirmingDelete(false); }}
+                    className="w-full py-2.5 bg-white text-red-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                  >
+                    Confirm Delete
+                  </button>
+                  <button 
+                    onClick={() => setIsConfirmingDelete(false)}
+                    className="w-full py-2.5 bg-red-700/50 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-800/50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Body */}
           {memory.content && (

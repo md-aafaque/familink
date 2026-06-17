@@ -95,22 +95,45 @@ export class TreesRepository {
     }
   }
 
-  static async getVisualData(treeId: string) {
+  static async getVisualData(treeId: string, userId: string) {
     const session = getSession();
     try {
       const res = await session.run(
         `MATCH (p:Person {treeId: $treeId})
          WHERE p.deletedAt IS NULL
+         
+         // Calculate Permission for current user
+         OPTIONAL MATCH (u:User {id: $userId})
+         OPTIONAL MATCH (u)-[tr:MEMBER_OF]->(t:FamilyTree {id: $treeId})
+         OPTIONAL MATCH (u)-[pr:HAS_PERMISSION]->(p)
+         
+         WITH p, tr, pr, u
+         
+         // Permission Logic
+         // 1. Tree Admin or Person Creator or Profile Owner = 'owner'
+         // 2. Explicit 'editor' permission = 'editor'
+         // 3. Tree Member = 'viewer'
+         // 4. Otherwise null (shouldn't happen due to tree isolation)
+         
+         WITH p, 
+              CASE 
+                WHEN tr.role = 'admin' OR p.createdBy = $userId OR pr.permission = 'owner' THEN 'owner'
+                WHEN pr.permission = 'editor' THEN 'editor'
+                WHEN tr.role IS NOT NULL THEN 'viewer'
+                ELSE null 
+              END as userPermission
+         
          OPTIONAL MATCH (p)-[r:FAMILY_RELATIONSHIP]-(n:Person)
          WHERE n.deletedAt IS NULL AND r.treeId = $treeId AND r.deletedAt IS NULL
-         RETURN p, collect({rel: r, target: n, sourceId: id(startNode(r))}) as relationships`,
-        { treeId }
+         RETURN p, userPermission, collect({rel: r, target: n, sourceId: id(startNode(r))}) as relationships`,
+        { treeId, userId }
       );
 
       return res.records.map(r => {
         const pNode = r.get('p');
         const pProps = pNode.properties;
         const pInternalId = pNode.identity;
+        const userPermission = r.get('userPermission');
         const rawRels = r.get('relationships');
         
         const relationshipsMap = new Map<string, string>();
@@ -125,18 +148,12 @@ export class TreesRepository {
             let type = relProps.type;
             const isSource = sourceId.equals(pInternalId);
             
-            // Standardizing Directions:
-            // 'parent' edge: [Parent] -> [Child]
-            // If I am SOURCE of 'parent' edge -> target is my CHILD
-            // If I am TARGET of 'parent' edge -> source is my PARENT
             if (type === 'parent' || type === 'adopted_child') {
               type = isSource ? 'child' : 'parent';
             } else if (type === 'child') {
               type = isSource ? 'parent' : 'child';
             }
-            // 'spouse' and 'sibling' are symmetric
             
-            // Deduplicate: multiple edges might exist (though shouldn't)
             relationshipsMap.set(`${type}-${targetProps.id}`, targetProps.id);
           });
 
@@ -147,6 +164,7 @@ export class TreesRepository {
 
         return {
           ...normalizeNeo4jProperties(pProps),
+          userPermission,
           relationships
         };
       });

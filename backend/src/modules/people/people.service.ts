@@ -43,11 +43,11 @@ export class PeopleService {
 
     // If owner or editor, return full profile
     if (permission === 'owner' || permission === 'editor') {
-      return person;
+      return { ...person, userPermission: permission };
     }
 
     // Otherwise, filter based on privacy settings
-    const filtered: Partial<Person> = { ...person };
+    const filtered: any = { ...person, userPermission: permission };
     
     if (person.phoneVisibility !== 'tree') delete filtered.phone;
     if (person.emailVisibility !== 'tree') delete filtered.email;
@@ -96,8 +96,13 @@ export class PeopleService {
   }
 
   static async deletePerson(id: string, treeId: string, userId: string) {
+    const isAdmin = await TreesRepository.isAdmin(treeId, userId);
     const permission = await PeopleRepository.checkPermission(id, userId);
-    if (permission !== 'owner') {
+    
+    // Only tree admins or profile owners can directly delete (if we want to allow direct deletion)
+    // But since the user asked for "admin confirmation", maybe we should force proposals?
+    // Let's assume admins can delete directly, others must propose.
+    if (!isAdmin && permission !== 'owner') {
       throw new AppError('Only owners or admins can delete profiles', 403);
     }
 
@@ -115,15 +120,137 @@ export class PeopleService {
     );
   }
 
+  static async proposeDeletion(personId: string, treeId: string, proposerId: string, reason?: string) {
+    const person = await PeopleRepository.findById(personId, treeId);
+    if (!person) throw new AppError('Person not found', 404);
+
+    // Permission check: any member can propose? Or only those with some stake?
+    // Let's allow any member to propose, admin will decide.
+    const proposal = await PeopleRepository.createDeletionProposal(personId, treeId, proposerId, reason);
+
+    await AuditService.log(
+      treeId,
+      proposerId,
+      'deletion_proposed',
+      'Person',
+      personId,
+      { proposalId: proposal.id, reason }
+    );
+
+    // Notify Admins
+    const adminIds = await TreesRepository.getAdmins(treeId);
+    for (const adminId of adminIds) {
+      await NotificationsService.createNotification(
+        adminId,
+        'deletion_proposal_pending',
+        'Deletion Request',
+        `A deletion has been proposed for ${person.firstName} ${person.lastName || ''}`,
+        { personId, treeId, proposalId: proposal.id }
+      );
+    }
+
+    return proposal;
+  }
+
+  static async approveDeletionProposal(proposalId: string, adminId: string) {
+    const proposal = await PeopleRepository.findDeletionProposalById(proposalId);
+    if (!proposal) throw new AppError('Proposal not found', 404);
+    if (proposal.status !== 'pending') throw new AppError('Proposal already processed', 400);
+
+    const { personId, treeId, proposerId } = proposal;
+
+    // 1. Perform actual deletion
+    await PeopleRepository.softDelete(personId, treeId, adminId);
+    
+    // 2. Update proposal status
+    await PeopleRepository.updateDeletionProposalStatus(proposalId, 'approved');
+
+    // 3. Log Audit
+    await AuditService.log(
+      treeId,
+      adminId,
+      'deletion_approved',
+      'Person',
+      personId,
+      { proposerId, proposalId }
+    );
+
+    // 4. Notify Proposer
+    await NotificationsService.createNotification(
+      proposerId,
+      'deletion_approved',
+      'Deletion Request Approved',
+      `Your request to delete a profile has been approved.`,
+      { treeId }
+    );
+
+    return { success: true };
+  }
+
+  static async rejectDeletionProposal(proposalId: string, adminId: string) {
+    const proposal = await PeopleRepository.findDeletionProposalById(proposalId);
+    if (!proposal) throw new AppError('Proposal not found', 404);
+    if (proposal.status !== 'pending') throw new AppError('Proposal already processed', 400);
+
+    await PeopleRepository.updateDeletionProposalStatus(proposalId, 'rejected');
+
+    await AuditService.log(
+      proposal.treeId,
+      adminId,
+      'deletion_rejected',
+      'DeletionProposal',
+      proposalId
+    );
+
+    await NotificationsService.createNotification(
+      proposal.proposerId,
+      'deletion_rejected',
+      'Deletion Request Rejected',
+      `Your request to delete a profile was rejected.`,
+      { treeId: proposal.treeId }
+    );
+
+    return { success: true };
+  }
+
+  static async getPendingDeletionProposals(treeId: string) {
+    return PeopleRepository.getPendingDeletionProposals(treeId);
+  }
+
   static async claimProfile(personId: string, userId: string) {
-    // 1. Check if person is a ghost
-    // Discovery use case: find by ID globally to get treeId
     const person = await PeopleRepository.findByIdGlobal(personId);
     if (!person) throw new AppError('Profile not found', 404);
     if (person.status !== 'ghost') throw new AppError('This profile is already claimed or active', 400);
 
+    const isAdmin = await TreesRepository.isAdmin(person.treeId, userId);
+
+    if (isAdmin) {
+      // Auto-approve if admin
+      await PeopleRepository.linkUserToPerson(userId, personId, person.treeId);
+      
+      await AuditService.log(
+        person.treeId,
+        userId,
+        'claim_approved',
+        'Person',
+        personId,
+        { userId, autoApproved: true }
+      );
+
+      return { success: true, message: 'Profile claimed successfully' };
+    }
+
     // 2. Create Request
-    await PeopleRepository.createClaimRequest(personId, userId, person.treeId);
+    const request = await PeopleRepository.createClaimRequest(personId, userId, person.treeId);
+
+    await AuditService.log(
+      person.treeId,
+      userId,
+      'claim_requested',
+      'Person',
+      personId,
+      { requestId: request.id }
+    );
 
     // 3. Notify Admins
     const adminIds = await TreesRepository.getAdmins(person.treeId);
@@ -133,7 +260,7 @@ export class PeopleService {
         'claim_request_pending',
         'Profile Claim Request',
         `A user is requesting to claim the profile of ${person.firstName} ${person.lastName || ''}`,
-        { personId, treeId: person.treeId }
+        { personId, treeId: person.treeId, requestId: request.id }
       );
     }
 
@@ -201,51 +328,141 @@ export class PeopleService {
     return PeopleRepository.getPendingClaimRequests(treeId);
   }
 
-  static async mergePeople(sourceId: string, targetId: string, userId: string, treeId: string) {
-    // 1. Authorization: Only admins can merge
+  static async mergePeople(sourceId: string, targetId: string, userId: string, treeId: string, reason?: string) {
     const isAdmin = await TreesRepository.isAdmin(treeId, userId);
-    if (!isAdmin) {
-      throw new AppError('Only tree admins can merge profiles', 403);
+    
+    if (isAdmin) {
+      // 1. Direct Merge for Admins
+      const source = await PeopleRepository.findById(sourceId, treeId);
+      const target = await PeopleRepository.findById(targetId, treeId);
+
+      if (!source || !target) throw new AppError('One or both profiles not found', 404);
+      if (source.treeId !== treeId || target.treeId !== treeId) {
+        throw new AppError('Profiles must belong to the same tree', 400);
+      }
+      if (sourceId === targetId) throw new AppError('Cannot merge a profile into itself', 400);
+
+      await PeopleRepository.mergePeople(sourceId, targetId, treeId, userId);
+
+      await AuditService.log(
+        treeId,
+        userId,
+        'person_merged',
+        'Person',
+        targetId,
+        { sourceId, action: 'merge', autoApproved: true }
+      );
+
+      return { success: true, message: 'Profiles merged successfully' };
     }
 
-    // 2. Existence & Same Tree Check
-    const source = await PeopleRepository.findById(sourceId, treeId);
-    const target = await PeopleRepository.findById(targetId, treeId);
+    // 2. Proposal for Members
+    const proposal = await PeopleRepository.createMergeProposal(sourceId, targetId, treeId, userId, reason);
 
-    if (!source || !target) throw new AppError('One or both profiles not found', 404);
-    if (source.treeId !== treeId || target.treeId !== treeId) {
-      throw new AppError('Profiles must belong to the same tree', 400);
-    }
-    if (sourceId === targetId) throw new AppError('Cannot merge a profile into itself', 400);
-
-    // 3. Perform Merge
-    await PeopleRepository.mergePeople(sourceId, targetId, treeId, userId);
-
-    // 4. Audit Log
     await AuditService.log(
       treeId,
       userId,
-      'person_merged',
+      'merge_proposed',
+      'MergeProposal',
+      proposal.id,
+      { sourceId, targetId, reason }
+    );
+
+    // 3. Notify Admins
+    const adminIds = await TreesRepository.getAdmins(treeId);
+    const source = await PeopleRepository.findById(sourceId, treeId);
+    const target = await PeopleRepository.findById(targetId, treeId);
+    
+    for (const adminId of adminIds) {
+      await NotificationsService.createNotification(
+        adminId,
+        'merge_proposal_pending',
+        'Merge Request',
+        `A merge has been proposed for ${source?.firstName} into ${target?.firstName}`,
+        { sourceId, targetId, treeId, proposalId: proposal.id }
+      );
+    }
+
+    return { success: true, message: 'Merge proposal submitted for admin review', data: proposal };
+  }
+
+  static async approveMergeProposal(proposalId: string, adminId: string) {
+    const proposal = await PeopleRepository.findMergeProposalById(proposalId);
+    if (!proposal) throw new AppError('Proposal not found', 404);
+    if (proposal.status !== 'pending') throw new AppError('Proposal already processed', 400);
+
+    const { sourceId, targetId, treeId, proposerId } = proposal;
+
+    // 1. Perform actual merge
+    await PeopleRepository.mergePeople(sourceId, targetId, treeId, adminId);
+    
+    // 2. Update proposal status
+    await PeopleRepository.updateMergeProposalStatus(proposalId, 'approved');
+
+    // 3. Log Audit
+    await AuditService.log(
+      treeId,
+      adminId,
+      'merge_approved',
       'Person',
       targetId,
-      { sourceId, action: 'merge' }
+      { proposerId, proposalId, sourceId }
+    );
+
+    // 4. Notify Proposer
+    await NotificationsService.createNotification(
+      proposerId,
+      'merge_approved',
+      'Merge Request Approved',
+      `Your request to merge profiles has been approved.`,
+      { treeId }
     );
 
     return { success: true };
   }
 
+  static async rejectMergeProposal(proposalId: string, adminId: string) {
+    const proposal = await PeopleRepository.findMergeProposalById(proposalId);
+    if (!proposal) throw new AppError('Proposal not found', 404);
+    if (proposal.status !== 'pending') throw new AppError('Proposal already processed', 400);
+
+    await PeopleRepository.updateMergeProposalStatus(proposalId, 'rejected');
+
+    await AuditService.log(
+      proposal.treeId,
+      adminId,
+      'merge_rejected',
+      'MergeProposal',
+      proposalId
+    );
+
+    await NotificationsService.createNotification(
+      proposal.proposerId,
+      'merge_rejected',
+      'Merge Request Rejected',
+      `Your request to merge profiles was rejected.`,
+      { treeId: proposal.treeId }
+    );
+
+    return { success: true };
+  }
+
+  static async getPendingMergeProposals(treeId: string) {
+    return PeopleRepository.getPendingMergeProposals(treeId);
+  }
+
   static async getPermissions(personId: string, treeId: string, userId: string) {
     const permission = await PeopleRepository.checkPermission(personId, userId);
-    if (permission !== 'owner') {
-      throw new AppError('Only owners and tree admins can view detailed permissions', 403);
+    if (permission !== 'owner' && permission !== 'editor') {
+      throw new AppError('You do not have permission to view detailed permissions', 403);
     }
     return PeopleRepository.getPermissions(personId);
   }
 
   static async grantPermission(personId: string, treeId: string, targetUserId: string, permissionType: 'owner' | 'editor', adminId: string) {
     const permission = await PeopleRepository.checkPermission(personId, adminId);
-    if (permission !== 'owner') {
-      throw new AppError('Only owners and tree admins can grant permissions', 403);
+    if (permission !== 'owner' && permission !== 'editor') {
+      throw new AppError('Only owners, editors, and tree admins can grant permissions', 403);
     }
 
     await PeopleRepository.grantPermission(personId, targetUserId, permissionType);

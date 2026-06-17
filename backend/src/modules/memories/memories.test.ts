@@ -36,7 +36,7 @@ describe('MemoriesRepository Integration', () => {
       type: 'milestone' as const,
       title: 'Test Milestone',
       content: 'This is a test milestone description.',
-      date: Date.now(),
+      date: new Date().toISOString().split('T')[0],
       associatedPersonIds: []
     };
 

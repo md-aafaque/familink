@@ -4,7 +4,7 @@ import { Memory } from '@/lib/shared/schemas/memories';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
 import { X, Calendar, Quote, ImageIcon, Users, Download, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 
@@ -82,7 +82,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                   <div className={cn("flex items-center gap-2 text-[10px] font-black uppercase tracking-widest", theme.colors.textMuted)}>
                     <span>{memory.type}</span>
                     <span className="opacity-30">•</span>
-                    <span>{format(new Date(memory.date), 'MMMM d, yyyy')}</span>
+                    <span>{formatDate(memory.date)}</span>
                   </div>
                 </div>
               </div>

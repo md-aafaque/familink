@@ -3,7 +3,7 @@
 import { hierarchy as d3Hierarchy, tree as d3Tree, HierarchyNode } from "d3-hierarchy";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import ProfileDrawer from "./ProfileDrawer";
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
@@ -699,10 +699,18 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const t = THEMES[themeKey];
 
   // ── Data ───────────────────────────────────────────────────────────────────
+  const { data: tree } = useQuery({
+    queryKey: ["tree", treeId],
+    queryFn: async () => (await api.get(`/trees/${treeId}`)).data as any,
+  });
+
   const { data: rawPeople, isLoading } = useQuery({
     queryKey: ["tree-visual", treeId],
     queryFn:  async () => (await api.get(`/trees/${treeId}/visual`)).data as Person[],
   });
+
+  const queryClient = useQueryClient();
+  const userRole = tree?.role;
 
   // ── Fullscreen ─────────────────────────────────────────────────────────────
   const toggleFS = useCallback(() =>
@@ -891,6 +899,24 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const handleDrop      = useCallback((src: string, tgt: string) => { setProposalSrc(src); setProposalTgt(tgt); }, []);
   const toggleCollapse  = useCallback((id: string) =>
     setCollapsedSet(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
+
+  const handleDeletePerson = useCallback(async (personId: string, reason?: string) => {
+    try {
+      if (userRole === 'admin') {
+        // Direct deletion for admins
+        await api.delete(`/trees/${treeId}/people/${personId}`);
+      } else {
+        // Proposal for others
+        await api.post(`/trees/${treeId}/people/${personId}/propose-deletion`, { reason });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["tree-visual", treeId] });
+      queryClient.invalidateQueries({ queryKey: ["tree-people-sandbox", treeId] });
+      setDrawerPersonId(null);
+    } catch (err) {
+      console.error("Failed to process deletion:", err);
+    }
+  }, [treeId, queryClient, userRole]);
 
   // ── Export ─────────────────────────────────────────────────────────────────
   const doExport = useCallback(async (format: "png" | "pdf") => {
@@ -1093,7 +1119,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
             </div>
           </div>
         )}
-        {/* end canvas overlay */}'
+        {/* end canvas overlay */}
 
 
         <TransformWrapper
@@ -1192,6 +1218,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         isOpen={Boolean(drawerPersonId)}
         onClose={() => setDrawerPersonId(null)}
         onEdit={() => { if (drawerPersonId) router.push(`/person/${drawerPersonId}`); }}
+        onDelete={handleDeletePerson}
+        userRole={userRole}
         onProposeRelationship={() => { if (drawerPersonId) { setProposalSrc(drawerPersonId); setProposalTgt(""); } }}
         treeId={treeId}
       />

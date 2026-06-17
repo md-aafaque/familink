@@ -21,11 +21,12 @@ export default function ManageUsersPage() {
     queryFn: async () => {
       const res = await api.get("/trees");
       const data = (res as any).data;
-      if (data?.length > 0 && !selectedTreeId) {
-        const adminTree = data.find((t: any) => t.role === 'admin');
-        setSelectedTreeId(adminTree?.id || data[0].id);
+      // Filter only admin trees for management
+      const adminTrees = data?.filter((t: any) => t.role === 'admin') || [];
+      if (adminTrees.length > 0 && !selectedTreeId) {
+        setSelectedTreeId(adminTrees[0].id);
       }
-      return data;
+      return adminTrees;
     },
   });
 

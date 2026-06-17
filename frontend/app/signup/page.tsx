@@ -15,12 +15,14 @@ function SignupContent() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    console.log("[Signup] Attempting account creation for:", email);
 
     // Basic validation to prevent common errors
     if (!email.includes('@')) {
@@ -29,21 +31,30 @@ function SignupContent() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: name,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
         },
-      },
-    });
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        console.error("[Signup] Error:", error.message);
+        setError(error.message);
+        setLoading(false);
+      } else {
+        console.log("[Signup] Success, redirecting to login");
+        router.push(`/login?message=Check your email to confirm your account&redirectTo=${encodeURIComponent(redirectTo)}`);
+      }
+    } catch (err: any) {
+      console.error("[Signup] Unexpected error:", err);
+      setError(err.message || "Something went wrong during signup.");
       setLoading(false);
-    } else {
-      router.push(`/login?message=Check your email to confirm your account&redirect=${encodeURIComponent(redirect)}`);
     }
   };
 
@@ -51,19 +62,20 @@ function SignupContent() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}${redirect}`,
+        redirectTo: `${window.location.origin}${redirectTo}`,
       },
     });
     if (error) setError(error.message);
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 px-4">
-      <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
-          <p className="text-muted-foreground mt-2">Start building your family tree</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="max-w-md w-full">
+        <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
+            <p className="text-muted-foreground mt-2">Start building your family tree</p>
+          </div>
 
         {error && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-6 text-sm">
@@ -151,12 +163,13 @@ function SignupContent() {
 
         <p className="text-center text-muted-foreground mt-8 text-sm">
           Already have an account?{' '}
-          <Link href={`/login`} className="text-primary font-semibold hover:opacity-80">
+          <Link href={`/login?redirectTo=${encodeURIComponent(redirectTo)}`} className="text-primary font-semibold hover:opacity-80">
             Sign In
           </Link>
         </p>
       </div>
     </div>
+  </div>
   );
 }
 
