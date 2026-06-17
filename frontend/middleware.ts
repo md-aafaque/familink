@@ -58,12 +58,50 @@ export async function middleware(req: NextRequest) {
     }
   )
 
+  // Use getUser() instead of getSession() as recommended for SSR/Middleware security
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // Removed server-side redirects to prevent loop with localStorage auth.
-  // Auth protection is handled client-side in AuthProvider/AppLayout.
+  const url = req.nextUrl.clone()
+
+  // Define route types
+  const isAuthRoute = url.pathname === '/login' || url.pathname === '/signup'
+  const isLandingPageRoute = url.pathname === '/'
+  const isPublicRoute = isLandingPageRoute || url.pathname.startsWith('/join/')
+  const isProtectedRoute = !isAuthRoute && !isPublicRoute
+
+  console.log(`[Middleware] Path: ${url.pathname}, Auth: ${!!user ? 'YES' : 'NO'}`);
+
+  // 1. If user is logged in and tries to access login/signup/landing -> Redirect to dashboard
+  if (user && (isAuthRoute || isLandingPageRoute)) {
+    console.log(`[Middleware] Redirecting logged-in user from ${url.pathname} to /dashboard`);
+    url.pathname = '/dashboard'
+    const redirectRes = NextResponse.redirect(url)
+    
+    // Transfer all current cookies to the redirect response
+    res.cookies.getAll().forEach((cookie) => {
+        redirectRes.cookies.set(cookie.name, cookie.value)
+    })
+    
+    return redirectRes
+  }
+
+  // 2. If user is NOT logged in and tries to access protected route -> Redirect to login
+  if (!user && isProtectedRoute) {
+    console.log(`[Middleware] Redirecting unauthenticated user from ${url.pathname} to /login`);
+    const redirectTo = encodeURIComponent(url.pathname + url.search)
+    url.pathname = '/login'
+    url.search = `?redirectTo=${redirectTo}`
+    const redirectRes = NextResponse.redirect(url)
+    
+    // Transfer all current cookies to the redirect response
+    res.cookies.getAll().forEach((cookie) => {
+        redirectRes.cookies.set(cookie.name, cookie.value)
+    })
+    
+    return redirectRes
+  }
 
   return res
 }

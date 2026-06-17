@@ -163,7 +163,7 @@ export default function Sidebar() {
                 <UserCircle className={cn("w-5 h-5", theme.colors.accent)} />
              </div>
              <div className="min-w-0">
-                <p className={cn("text-xs font-bold truncate", theme.colors.text)}>{user?.email?.split('@')[0]}</p>
+                <p className={cn("text-xs font-bold truncate", theme.colors.text)}>{user?.user_metadata.full_name}</p>
                 <p className={cn("text-[10px] font-medium truncate opacity-50", theme.colors.textMuted)}>Free Tier</p>
              </div>
           </div>

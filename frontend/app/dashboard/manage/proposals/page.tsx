@@ -36,15 +36,16 @@ export default function ManageProposalsPage() {
     queryKey: ["trees"],
     queryFn: async () => {
       const res = await api.get("/trees");
-      return (res as any).data;
+      const data = (res as any).data;
+      // Filter only admin trees for management
+      return data?.filter((t: any) => t.role === 'admin') || [];
     },
   });
 
   // Initialize selectedTreeId
   useEffect(() => {
     if (trees?.length > 0 && !selectedTreeId) {
-      const adminTree = trees.find((t: any) => t.role === 'admin');
-      setSelectedTreeId(adminTree?.id || trees[0].id);
+      setSelectedTreeId(trees[0].id);
     }
   }, [trees, selectedTreeId]);
 
