@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 type ProposalType = 'relationships' | 'deletions' | 'merges' | 'claims';
 import { useSearchParams, useRouter } from "next/navigation";
@@ -21,6 +22,7 @@ export default function ManageProposalsPage() {
   const router = useRouter();
   const [selectedTreeId, setSelectedTreeId] = useState<string>("");
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const activeType = (searchParams.get('tab') as ProposalType) || 'relationships';
 
@@ -69,8 +71,8 @@ export default function ManageProposalsPage() {
   });
 
   const { data: claimRequests, isLoading: isLoadingClaim, isError: isErrorClaim, error: errorClaim } = useQuery({
-    queryKey: ["tree-claim-requests", selectedTreeId],
-    queryFn: async () => (await api.get(`/trees/${selectedTreeId}/claim-requests`)).data,
+    queryKey: ["tree-claims", selectedTreeId],
+    queryFn: async () => (await api.get(`/trees/${selectedTreeId}/claims`)).data,
     enabled: !!selectedTreeId && activeType === 'claims',
   });
 
@@ -81,7 +83,7 @@ export default function ManageProposalsPage() {
       if (type === 'relationships') endpoint = `/trees/${selectedTreeId}/relationship-proposals/${id}/${action}`;
       if (type === 'deletions') endpoint = `/trees/${selectedTreeId}/deletion-proposals/${id}/${action}`;
       if (type === 'merges') endpoint = `/trees/${selectedTreeId}/merge-proposals/${id}/${action}`;
-      if (type === 'claims') endpoint = `/trees/${selectedTreeId}/claim-requests/${id}/${action}`;
+      if (type === 'claims') endpoint = `/trees/${selectedTreeId}/claims/${id}/${action}`;
       
       return api.post(endpoint, { reason });
     },
@@ -90,7 +92,7 @@ export default function ManageProposalsPage() {
         relationships: "tree-relationship-proposals",
         deletions: "tree-deletion-proposals",
         merges: "tree-merge-proposals",
-        claims: "tree-claim-requests"
+        claims: "tree-claims"
       };
       queryClient.invalidateQueries({ queryKey: [keys[variables.type], selectedTreeId] });
       queryClient.invalidateQueries({ queryKey: ["tree-visual", selectedTreeId] });
@@ -115,10 +117,10 @@ export default function ManageProposalsPage() {
     <div className="space-y-12">
       <header className="space-y-4">
         <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
-          Tree <span className={theme.colors.accent}>Management</span>
+          {t('admin.management.title').split(' ')[0]} <span className={theme.colors.accent}>{t('admin.management.title').split(' ').slice(1).join(' ')}</span>
         </h1>
         <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
-          Review and verify changes proposed by tree members.
+          {t('admin.management.subtitle')}
         </p>
       </header>
 
@@ -130,15 +132,15 @@ export default function ManageProposalsPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">Source Workspace</h3>
-              <p className="text-slate-300 font-medium">Select the family tree you want to review proposals for.</p>
+              <h3 className="text-2xl font-black text-white">{t('admin.management.sourceWorkspace.title')}</h3>
+              <p className="text-slate-300 font-medium">{t('admin.management.sourceWorkspace.desc')}</p>
             </div>
             <div className="relative min-w-[300px]">
               <CustomSelect
                 value={selectedTreeId}
                 onChange={setSelectedTreeId}
                 options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
-                placeholder="Choose a tree..."
+                placeholder={t('admin.chooseTree')}
               />
             </div>
           </div>
@@ -148,10 +150,10 @@ export default function ManageProposalsPage() {
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 w-fit">
         {[
-          { id: 'relationships', label: 'Relationships', icon: GitPullRequest },
-          { id: 'merges', label: 'Merges', icon: Merge },
-          { id: 'claims', label: 'Claims', icon: Fingerprint },
-          { id: 'deletions', label: 'Deletions', icon: Trash2 },
+          { id: 'relationships', label: t('admin.management.tab.relationships'), icon: GitPullRequest },
+          { id: 'merges', label: t('admin.management.tab.merges'), icon: Merge },
+          { id: 'claims', label: t('admin.management.tab.claims'), icon: Fingerprint },
+          { id: 'deletions', label: t('admin.management.tab.deletions'), icon: Trash2 },
         ].map(tab => (
           <button
             key={tab.id}
@@ -181,7 +183,9 @@ export default function ManageProposalsPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-slate-400">
                     <Calendar className="w-4 h-4" />
-                    Proposed {formatDate(prop.createdAt)} by {prop.proposerName || prop.proposerEmail || prop.userName || prop.userEmail}
+                    {t('admin.management.proposed')
+                      .replace('{date}', formatDate(prop.createdAt))
+                      .replace('{user}', prop.proposerName || prop.proposerEmail || prop.userName || prop.userEmail)}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -193,10 +197,10 @@ export default function ManageProposalsPage() {
                       )}
                     >
                       <Check className="w-5 h-5" />
-                      Approve
+                      {t('admin.approve')}
                     </button>
                     <button
-                      onClick={() => processMutation.mutate({ id: prop.id, type: activeType, action: 'reject', reason: 'Rejected by admin' })}
+                      onClick={() => processMutation.mutate({ id: prop.id, type: activeType, action: 'reject', reason: t('admin.management.defaultRejectReason') })}
                       disabled={processMutation.isPending}
                       className={cn(
                         "px-6 py-3 border rounded-2xl font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50",
@@ -207,34 +211,34 @@ export default function ManageProposalsPage() {
                       )}
                     >
                       <X className="w-5 h-5" />
-                      Reject
+                      {t('admin.reject')}
                     </button>
                   </div>
                 </div>
 
                 {activeType === 'relationships' && (
                   <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 py-4">
-                    <ProfileSummary person={prop.fromPerson} label="Subject" theme={theme} />
+                    <ProfileSummary person={prop.fromPerson} label={t('admin.management.label.subject')} theme={theme} />
                     <div className="flex flex-col items-center gap-3">
                       <div className={cn("px-6 py-2 rounded-full border text-[10px] font-black uppercase tracking-[0.2em]", theme.colors.primaryMuted, theme.colors.textMuted, theme.colors.border)}>
                         {prop.relationshipType}
                       </div>
                       <ArrowRight className={cn("w-8 h-8 hidden md:block", theme.colors.accent)} />
                     </div>
-                    <ProfileSummary person={prop.toPerson} label="Target" theme={theme} />
+                    <ProfileSummary person={prop.toPerson} label={t('admin.management.label.target')} theme={theme} />
                   </div>
                 )}
 
                 {activeType === 'merges' && (
                   <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 py-4">
-                    <ProfileSummary person={prop.sourcePerson} label="Source (To be deleted)" theme={theme} isWarning />
+                    <ProfileSummary person={prop.sourcePerson} label={t('admin.management.label.source')} theme={theme} isWarning />
                     <div className="flex flex-col items-center gap-3">
                       <div className={cn("px-6 py-2 rounded-full border text-[10px] font-black uppercase tracking-[0.2em]", theme.colors.primaryMuted, theme.colors.textMuted, theme.colors.border)}>
-                        Merge Into
+                        {t('admin.management.mergeInto')}
                       </div>
                       <ArrowRight className={cn("w-8 h-8 hidden md:block", theme.colors.accent)} />
                     </div>
-                    <ProfileSummary person={prop.targetPerson} label="Destination (To keep)" theme={theme} />
+                    <ProfileSummary person={prop.targetPerson} label={t('admin.management.label.destination')} theme={theme} />
                   </div>
                 )}
 
@@ -247,11 +251,11 @@ export default function ManageProposalsPage() {
                         </div>
                         <div className="text-left">
                           <h4 className={cn("font-black text-2xl", theme.colors.text)}>{prop.person?.firstName} {prop.person?.lastName}</h4>
-                          <p className={cn("text-xs font-bold uppercase tracking-widest text-primary")}>Profile being claimed</p>
+                          <p className={cn("text-xs font-bold uppercase tracking-widest text-primary")}>{t('admin.management.profileClaimed')}</p>
                         </div>
                        </div>
                        <div className="w-full pt-6 border-t border-dashed" style={{ borderColor: theme.colors.border }}>
-                         <p className={cn("text-[10px] font-black uppercase tracking-widest mb-2", theme.colors.textMuted)}>Requesting User</p>
+                         <p className={cn("text-[10px] font-black uppercase tracking-widest mb-2", theme.colors.textMuted)}>{t('admin.management.requestingUser')}</p>
                          <p className={cn("font-bold", theme.colors.text)}>{prop.userName}</p>
                          <p className={cn("text-xs", theme.colors.textMuted)}>{prop.userEmail}</p>
                        </div>
@@ -268,7 +272,7 @@ export default function ManageProposalsPage() {
                         </div>
                         <div className="text-left">
                           <h4 className={cn("font-black text-2xl", theme.colors.text)}>{prop.person?.firstName} {prop.person?.lastName}</h4>
-                          <p className={cn("text-xs font-bold uppercase tracking-widest text-red-500")}>Target for Removal</p>
+                          <p className={cn("text-xs font-bold uppercase tracking-widest text-red-500")}>{t('admin.management.targetRemoval')}</p>
                         </div>
                        </div>
                        
@@ -281,7 +285,7 @@ export default function ManageProposalsPage() {
 
                        <div className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-500/5 px-4 py-2 rounded-full">
                          <AlertTriangle className="w-4 h-4" />
-                         Approval will permanently remove this profile and all its connections.
+                         {t('admin.management.deletionWarning')}
                        </div>
                     </div>
                   </div>
@@ -294,9 +298,9 @@ export default function ManageProposalsPage() {
                 <IconForType type={activeType} theme={theme} />
               </div>
               <div className="space-y-2">
-                <h3 className={cn("text-xl font-bold", theme.colors.text)}>All caught up!</h3>
+                <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.management.allCaughtUp')}</h3>
                 <p className={cn("max-w-sm mx-auto font-medium", theme.colors.textMuted)}>
-                  There are no pending {activeType} proposals to review for this tree.
+                  {t('admin.management.noProposals').replace('{type}', t(`admin.management.tab.${activeType}`))}
                 </p>
               </div>
             </div>

@@ -21,12 +21,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function ManageInvitationsPage() {
   const queryClient = useQueryClient();
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [selectedTreeId, setSelectedTreeId] = useState<string>("");
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   // Fetch trees first to get a list
   const { data: trees, isLoading: isLoadingTrees } = useQuery({
@@ -53,7 +55,7 @@ export default function ManageInvitationsPage() {
 
   const generateMutation = useMutation({
     mutationFn: async (type: string) => {
-      const res = await api.post(`/trees/${selectedTreeId}/invitations`, { role: type });
+      const res = await api.post(`/trees/${selectedTreeId}/invitations/generate`, { role: type });
       return (res as any).data;
     },
     onSuccess: () => {
@@ -68,19 +70,19 @@ export default function ManageInvitationsPage() {
   };
 
   const inviteTypes = [
-    { type: 'member', title: 'Member', icon: Users, color: 'bg-violet-500/10 text-violet-600', desc: 'Can add people and propose relationships.' },
-    { type: 'viewer', title: 'Viewer', icon: Eye, color: 'bg-slate-500/10 text-slate-600', desc: 'Read-only access to the family tree.' },
-    { type: 'admin', title: 'Admin', icon: Shield, color: cn(theme.colors.primaryMuted, theme.colors.accent), desc: 'Full control over tree and invitations.' },
+    { type: 'member', title: t('role.member'), icon: Users, color: 'bg-violet-500/10 text-violet-600', desc: t('admin.invitations.desc.member') },
+    { type: 'viewer', title: t('role.viewer'), icon: Eye, color: 'bg-slate-500/10 text-slate-600', desc: t('admin.invitations.desc.viewer') },
+    { type: 'admin', title: t('role.admin'), icon: Shield, color: cn(theme.colors.primaryMuted, theme.colors.accent), desc: t('admin.invitations.desc.admin') },
   ];
 
   return (
     <div className="space-y-12">
       <header className="space-y-4">
         <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
-          Tree <span className={theme.colors.accent}>Invitations</span>
+          {t('admin.invitations.title').split(' ')[0]} <span className={theme.colors.accent}>{t('admin.invitations.title').split(' ').slice(1).join(' ')}</span>
         </h1>
         <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
-          Create secure links to invite your relatives. Each link is valid for 7 days and requires your approval before they can join.
+          {t('admin.invitations.subtitle')}
         </p>
       </header>
 
@@ -93,9 +95,9 @@ export default function ManageInvitationsPage() {
           
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">Target Family Tree</h3>
+              <h3 className="text-2xl font-black text-white">{t('admin.invitations.targetTree.title')}</h3>
               <p className="text-slate-300 font-medium max-w-md">
-                Select which family workspace you want to create secure invitation links for.
+                {t('admin.invitations.targetTree.desc')}
               </p>
             </div>
             
@@ -104,7 +106,7 @@ export default function ManageInvitationsPage() {
                 value={selectedTreeId}
                 onChange={setSelectedTreeId}
                 options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
-                placeholder="Choose a tree..."
+                placeholder={t('admin.chooseTree')}
               />
             </div>
           </div>
@@ -115,7 +117,7 @@ export default function ManageInvitationsPage() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {!selectedTreeId && !isLoadingTrees && (
           <div className={cn("md:col-span-3 p-12 rounded-[2rem] text-center border-2 border-dashed transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-            <p className={cn("font-bold italic", theme.colors.textMuted)}>Select a tree above to generate invitations.</p>
+            <p className={cn("font-bold italic", theme.colors.textMuted)}>{t('admin.invitations.selectToGenerate')}</p>
           </div>
         )}
         {selectedTreeId && inviteTypes.map((item) => (
@@ -124,7 +126,7 @@ export default function ManageInvitationsPage() {
               <item.icon className="w-7 h-7" />
             </div>
             <div className="flex-1 space-y-2">
-              <h3 className={cn("text-xl font-bold", theme.colors.text)}>{item.title} Link</h3>
+              <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.invitations.link').replace('{role}', item.title)}</h3>
               <p className={cn("text-sm leading-relaxed", theme.colors.textMuted)}>{item.desc}</p>
             </div>
             <button
@@ -136,7 +138,7 @@ export default function ManageInvitationsPage() {
               )}
             >
               <Plus className="w-4 h-4" />
-              Generate
+              {t('admin.invitations.generate')}
             </button>
           </div>
         ))}
@@ -144,7 +146,7 @@ export default function ManageInvitationsPage() {
 
       {/* Active Links */}
       <section className="space-y-6">
-        <h2 className={cn("text-2xl font-bold", theme.colors.text)}>Active Links</h2>
+        <h2 className={cn("text-2xl font-bold", theme.colors.text)}>{t('admin.invitations.activeLinks')}</h2>
         
         {selectedTreeId ? (
           <DataState isLoading={isLoading} isError={isError} error={error as Error}>
@@ -159,11 +161,11 @@ export default function ManageInvitationsPage() {
                         inv.role === 'admin' ? cn(theme.colors.primaryMuted, theme.colors.accent) : 
                         inv.role === 'member' ? "bg-violet-500/10 text-violet-600" : "bg-slate-500/10 text-slate-500"
                       )}>
-                        {inv.role}
+                        {t(`role.${inv.role}`)}
                       </span>
                       <div className={cn("flex items-center gap-1 text-xs font-medium", theme.colors.textMuted)}>
                         <Clock className="w-3 h-3" />
-                        Expires {new Date(inv.expiresAt).toLocaleDateString()}
+                        {t('admin.invitations.expires').replace('{date}', new Date(inv.expiresAt).toLocaleDateString())}
                       </div>
                     </div>
                     <div className={cn("flex items-center gap-2 p-3 rounded-2xl border font-mono text-xs truncate transition-colors duration-500", theme.colors.bg, theme.colors.border, theme.colors.textMuted)}>
@@ -182,7 +184,7 @@ export default function ManageInvitationsPage() {
                       )}
                     >
                       {copiedToken === inv.token ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                      {copiedToken === inv.token ? "Copied" : "Copy"}
+                      {copiedToken === inv.token ? t('admin.invitations.copied') : t('admin.invitations.copy')}
                     </button>
                     <a
                       href={inv.invitationUrl}
@@ -196,14 +198,14 @@ export default function ManageInvitationsPage() {
               ))
             ) : (
               <div className={cn("p-12 rounded-[2rem] text-center border-2 border-dashed transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-                <p className={cn("font-medium italic", theme.colors.textMuted)}>No active invitation links for this tree. Generate one above.</p>
+                <p className={cn("font-medium italic", theme.colors.textMuted)}>{t('admin.invitations.noLinks')}</p>
               </div>
             )}
           </div>
         </DataState>
         ) : (
           <div className={cn("p-12 rounded-[2rem] text-center transition-colors duration-500", theme.colors.surface)}>
-             <p className={cn("font-medium italic", theme.colors.textMuted)}>Select a tree above to view active invitations.</p>
+             <p className={cn("font-medium italic", theme.colors.textMuted)}>{t('admin.invitations.selectToView')}</p>
           </div>
         )}
       </section>

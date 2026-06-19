@@ -4,6 +4,7 @@ import { X, UserPlus, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import { useLanguage } from "./providers/LanguageProvider";
 import PersonForm from "./PersonForm";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
@@ -20,6 +21,7 @@ export default function CreatePersonModal({
   onSuccess,
 }: CreatePersonModalProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
@@ -65,10 +67,10 @@ export default function CreatePersonModal({
             </div>
             <div>
               <h2 className={cn("text-xl font-black leading-tight", theme.colors.text)}>
-                Add New Relative
+                {t('createPersonModal.title')}
               </h2>
               <p className={cn("text-xs font-medium mt-0.5", theme.colors.textMuted)}>
-                Create a new profile in your family tree
+                {t('createPersonModal.subtitle')}
               </p>
             </div>
           </div>

@@ -25,7 +25,7 @@ export default async function invitationRoutes(fastify: FastifyInstance) {
    * Generate an invitation link
    * Access: Admin only
    */
-  fastify.post('/trees/:treeId/invitations', { 
+  fastify.post('/trees/:treeId/invitations/generate', { 
     preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])] 
   }, async (request, reply) => {
     const { treeId } = treeIdParamSchema.parse(request.params);

@@ -6,6 +6,7 @@ import api from "../lib/api";
 import { X, Search, GitMerge, Loader2, AlertTriangle, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppTheme } from "./providers/ThemeProvider";
+import { useLanguage } from "./providers/LanguageProvider";
 
 interface MergeProfileModalProps {
   treeId: string;
@@ -29,6 +30,7 @@ export default function MergeProfileModal({
   const [step, setStep] = useState<"select" | "confirm">("select");
   const queryClient = useQueryClient();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const { data: people, isLoading: isLoadingPeople } = useQuery({
     queryKey: ["tree-people", treeId],
@@ -95,8 +97,8 @@ export default function MergeProfileModal({
               <GitMerge className={cn("w-6 h-6", theme.colors.accent)} />
             </div>
             <div>
-              <h2 className={cn("text-xl font-black", theme.colors.text)}>Merge Profile</h2>
-              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>Consolidate duplicate family members</p>
+              <h2 className={cn("text-xl font-black", theme.colors.text)}>{t('mergeModal.title')}</h2>
+              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>{t('mergeModal.subtitle')}</p>
             </div>
           </div>
           <button
@@ -122,20 +124,20 @@ export default function MergeProfileModal({
                   theme.colors.bg,
                   theme.colors.border
                 )}>
-                  <p className={cn("text-xs font-black uppercase tracking-widest", theme.colors.textMuted)}>Merging Source</p>
+                  <p className={cn("text-xs font-black uppercase tracking-widest", theme.colors.textMuted)}>{t('mergeModal.source')}</p>
                   <p className={cn("font-bold", theme.colors.text)}>{sourcePerson.firstName} {sourcePerson.lastName}</p>
-                  <p className={cn("text-xs", theme.colors.textMuted)}>This profile will be marked as merged and its relationships will move to the target.</p>
+                  <p className={cn("text-xs", theme.colors.textMuted)}>{t('mergeModal.sourceDesc')}</p>
                 </div>
 
                 <div className="space-y-4">
                   <label className={cn("text-sm font-black uppercase tracking-widest", theme.colors.text)}>
-                    Select Target Profile <span className="text-red-500">*</span>
+                    {t('mergeModal.selectTarget')} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-500", theme.colors.textMuted)} />
                     <input
                       type="text"
-                      placeholder="Search by name..."
+                      placeholder={t('mergeModal.searchPlaceholder')}
                       className={cn(
                         "w-full pl-12 pr-4 py-4 rounded-2xl outline-none transition-all border focus:ring-2 focus:ring-primary/50",
                         theme.colors.bg,
@@ -154,7 +156,7 @@ export default function MergeProfileModal({
                       </div>
                     ) : filteredPeople?.length === 0 ? (
                       <div className={cn("text-center py-8 text-sm font-medium", theme.colors.textMuted)}>
-                        No other profiles found.
+                        {t('mergeModal.noResults')}
                       </div>
                     ) : (
                       filteredPeople?.map((p: any) => (
@@ -192,7 +194,7 @@ export default function MergeProfileModal({
                     theme.colors.primary
                   )}
                 >
-                  Continue to Confirmation
+                  {t('mergeModal.continue')}
                 </button>
               </motion.div>
             ) : (
@@ -206,16 +208,18 @@ export default function MergeProfileModal({
                 <div className="bg-amber-50 border border-amber-100 p-6 rounded-[2rem] space-y-4">
                   <div className="flex items-center gap-3 text-amber-700">
                     <AlertTriangle className="w-6 h-6" />
-                    <h3 className="font-black uppercase tracking-tight">Warning: Destructive Action</h3>
+                    <h3 className="font-black uppercase tracking-tight">{t('mergeModal.warningTitle')}</h3>
                   </div>
                   <p className="text-sm text-amber-800 leading-relaxed font-medium">
-                    You are about to merge <strong className={cn(theme.colors.text)}>{sourcePerson.firstName} {sourcePerson.lastName}</strong> into <strong className={cn(theme.colors.text)}>{selectedTarget.firstName} {selectedTarget.lastName}</strong>.
+                    {t('mergeModal.warningBody')
+                      .replace('{source}', `${sourcePerson.firstName} ${sourcePerson.lastName}`)
+                      .replace('{target}', `${selectedTarget.firstName} ${selectedTarget.lastName}`)}
                   </p>
                   <ul className="text-xs text-amber-700 space-y-2 list-disc pl-4">
-                    <li>All existing relationships from the source will be transferred.</li>
-                    <li>Duplicate relationships will be skipped.</li>
-                    <li>The source profile will be marked as "merged" and hidden from the tree.</li>
-                    <li>This action is recorded in the audit history.</li>
+                    <li>{t('mergeModal.warningOne')}</li>
+                    <li>{t('mergeModal.warningTwo')}</li>
+                    <li>{t('mergeModal.warningThree')}</li>
+                    <li>{t('mergeModal.warningFour')}</li>
                   </ul>
                 </div>
 
@@ -225,7 +229,7 @@ export default function MergeProfileModal({
                       <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center mx-auto transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
                         <User className={cn("w-8 h-8 transition-colors duration-500", theme.colors.textMuted)} />
                       </div>
-                      <p className={cn("text-xs font-bold", theme.colors.textMuted)}>Source</p>
+                      <p className={cn("text-xs font-bold", theme.colors.textMuted)}>{t('mergeModal.sourceLabel')}</p>
                     </div>
                     <div className={cn("transition-colors duration-500", theme.colors.accent)}>
                       <GitMerge className="w-8 h-8" />
@@ -234,7 +238,7 @@ export default function MergeProfileModal({
                       <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border-2 transition-colors duration-500", theme.colors.primaryMuted, theme.colors.border)}>
                         <User className={cn("w-8 h-8 transition-colors duration-500", theme.colors.accent)} />
                       </div>
-                      <p className={cn("text-xs font-bold", theme.colors.accent)}>Target</p>
+                      <p className={cn("text-xs font-bold", theme.colors.accent)}>{t('mergeModal.targetLabel')}</p>
                     </div>
                   </div>
                 </div>
@@ -249,7 +253,7 @@ export default function MergeProfileModal({
                       theme.colors.border
                     )}
                   >
-                    Go Back
+                    {t('mergeModal.back')}
                   </button>
                   <button
                     onClick={() => mergeMutation.mutate()}
@@ -259,7 +263,7 @@ export default function MergeProfileModal({
                       theme.colors.primary
                     )}
                   >
-                    {mergeMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm Merge"}
+                    {mergeMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : t('mergeModal.confirm')}
                   </button>
                 </div>
               </motion.div>

@@ -8,12 +8,14 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import CustomSelect from "@/components/ui/CustomSelect";
 
 export default function ManageUsersPage() {
   const queryClient = useQueryClient();
   const [selectedTreeId, setSelectedTreeId] = useState<string>("");
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   // Fetch trees first to get a list
   const { data: trees, isLoading: isLoadingTrees } = useQuery({
@@ -52,11 +54,10 @@ export default function ManageUsersPage() {
     <div className="space-y-12">
       <header className="space-y-4">
         <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
-          Access <span className={theme.colors.accent}>Requests</span>
+          {t('admin.accessRequests.title')}
         </h1>
         <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
-          Manage who can join your family tree and their permission levels. 
-          New members and role upgrades appear here.
+          {t('admin.accessRequests.subtitle')}
         </p>
       </header>
 
@@ -68,15 +69,15 @@ export default function ManageUsersPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">Select Tree</h3>
-              <p className="text-slate-300 font-medium">Manage members for the selected workspace</p>
+              <h3 className="text-2xl font-black text-white">{t('admin.selectTree.title')}</h3>
+              <p className="text-slate-300 font-medium">{t('admin.selectTree.desc')}</p>
             </div>
             <div className="relative min-w-[300px]">
               <CustomSelect
                 value={selectedTreeId}
                 onChange={setSelectedTreeId}
-                options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
-                placeholder="Choose a tree..."
+                options={trees?.map((tree: any) => ({ label: `${tree.name} (${t(`role.${tree.role}` || tree.role)})`, value: tree.id })) || []}
+                placeholder={t('admin.chooseTree')}
               />
             </div>
           </div>
@@ -98,10 +99,10 @@ export default function ManageUsersPage() {
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName || 'New User'}</h3>
+                      <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName || t('admin.newUserFallback')}</h3>
                       {req.upgradeFrom && (
                         <span className="px-2 py-0.5 bg-violet-500/10 text-violet-600 rounded-md text-[10px] font-bold uppercase tracking-widest border border-violet-500/20">
-                          Upgrade
+                          {t('admin.upgrade')}
                         </span>
                       )}
                     </div>
@@ -112,12 +113,20 @@ export default function ManageUsersPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Shield className="w-4 h-4" />
-                        Requested: <span className={cn("font-bold capitalize", theme.colors.text)}>{req.requestedRole}</span>
+                        <span>
+                          {t('admin.requested').split('{role}')[0]}
+                          <span className={cn("font-bold capitalize", theme.colors.text)}>{t(`role.${req.requestedRole}`)}</span>
+                          {t('admin.requested').split('{role}')[1]}
+                        </span>
                       </div>
                       {req.upgradeFrom && (
                         <div className="flex items-center gap-1">
                           <ArrowUpRight className="w-4 h-4" />
-                          Current: <span className="capitalize">{req.upgradeFrom}</span>
+                          <span>
+                            {t('admin.current').split('{role}')[0]}
+                            <span className="capitalize">{t(`role.${req.upgradeFrom}`)}</span>
+                            {t('admin.current').split('{role}')[1]}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -134,7 +143,7 @@ export default function ManageUsersPage() {
                     )}
                   >
                     <Check className="w-5 h-5" />
-                    Approve
+                    {t('admin.approve')}
                   </button>
                   <button
                     className={cn(
@@ -146,7 +155,7 @@ export default function ManageUsersPage() {
                     )}
                   >
                     <X className="w-5 h-5" />
-                    Reject
+                    {t('admin.reject')}
                   </button>
                 </div>
               </motion.div>
@@ -157,9 +166,9 @@ export default function ManageUsersPage() {
                 <UserPlus className={cn("w-10 h-10", theme.colors.textMuted)} />
               </div>
               <div className="space-y-2">
-                <h3 className={cn("text-xl font-bold", theme.colors.text)}>No pending requests</h3>
+                <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.noRequests.title')}</h3>
                 <p className={cn("max-w-sm mx-auto font-medium", theme.colors.textMuted)}>
-                  When new family members ask to join your tree, they will show up here for approval.
+                  {t('admin.noRequests.subtitle')}
                 </p>
               </div>
             </div>

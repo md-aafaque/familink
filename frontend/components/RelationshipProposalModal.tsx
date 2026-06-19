@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "./providers/LanguageProvider";
 import api from "../lib/api";
 import { X, Loader2, Link2, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -19,10 +20,10 @@ interface RelationshipProposalModalProps {
 }
 
 const RELATIONSHIP_TYPES = [
-  { value: "parent",  label: "Parent"  },
-  { value: "child",   label: "Child"   },
-  { value: "spouse",  label: "Spouse"  },
-  { value: "sibling", label: "Sibling" },
+  { value: "parent"  },
+  { value: "child"   },
+  { value: "spouse"  },
+  { value: "sibling" },
 ] as const;
 
 type RelType = (typeof RELATIONSHIP_TYPES)[number]["value"];
@@ -42,6 +43,7 @@ export default function RelationshipProposalModal({
 
   const queryClient = useQueryClient();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   // ── Data ──────────────────────────────────────────────────────────────
   const { data: tree } = useQuery({
@@ -72,7 +74,7 @@ export default function RelationshipProposalModal({
   const canSubmit  = !proposalMutation.isPending && fromId && toId && fromId !== toId;
 
   const errorMessage = proposalMutation.isError
-    ? ((proposalMutation.error as Error)?.message ?? "Something went wrong. Please try again.")
+    ? ((proposalMutation.error as Error)?.message ?? t('proposalModal.error'))
     : null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,17 +114,17 @@ export default function RelationshipProposalModal({
             </div>
             <div>
               <h2 className={cn("text-xl font-black leading-tight", theme.colors.text)}>
-                {isAdmin ? "Create Relationship" : "Propose Relationship"}
+                {isAdmin ? t('proposalModal.title.create') : t('proposalModal.title.propose')}
               </h2>
               <p className={cn("text-xs font-medium mt-0.5", theme.colors.textMuted)}>
-                {isAdmin ? "Directly link family members" : "Link two family members together"}
+                {isAdmin ? t('proposalModal.subtitle.create') : t('proposalModal.subtitle.propose')}
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('proposalModal.close')}
             className={cn(
               "p-2.5 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5",
               theme.colors.textMuted
@@ -146,19 +148,19 @@ export default function RelationshipProposalModal({
           )}
 
           {/* FROM person */}
-          <Field label={<span>Subject Person <span className="text-red-500">*</span></span>}>
+          <Field label={<span>{t('proposalModal.subjectPerson')} <span className="text-red-500">*</span></span>}>
             <PersonSelect
               value={fromId}
               onChange={setFromId}
               people={people}
               excludeId={toId}
-              placeholder="Select person…"
+              placeholder={t('proposalModal.selectPerson')}
               theme={theme}
             />
           </Field>
 
           {/* Relationship type */}
-          <Field label="Is the…">
+          <Field label={t('proposalModal.isThe')}>
             <div className="grid grid-cols-4 gap-2">
               {RELATIONSHIP_TYPES.map((rt) => (
                 <button
@@ -172,20 +174,20 @@ export default function RelationshipProposalModal({
                       : cn(theme.colors.bg, theme.colors.border, theme.colors.textMuted, "hover:border-primary/40")
                   )}
                 >
-                  {rt.label}
+                  {t('relationship.' + rt.value)}
                 </button>
               ))}
             </div>
           </Field>
 
           {/* TO person */}
-          <Field label={<span>Of… <span className="text-red-500">*</span></span>}>
+          <Field label={<span>{t('proposalModal.of')} <span className="text-red-500">*</span></span>}>
             <PersonSelect
               value={toId}
               onChange={setToId}
               people={people}
               excludeId={fromId}
-              placeholder="Select person…"
+              placeholder={t('proposalModal.selectPerson')}
               theme={theme}
             />
           </Field>
@@ -218,7 +220,7 @@ export default function RelationshipProposalModal({
           {/* Self-selection warning */}
           {fromId && toId && fromId === toId && (
             <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 text-center">
-              A person cannot have a relationship with themselves.
+              {t('proposalModal.selfWarning')}
             </p>
           )}
 
@@ -237,7 +239,7 @@ export default function RelationshipProposalModal({
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                {isAdmin ? "Create Now" : "Submit Proposal"}
+                {isAdmin ? t('proposalModal.createNow') : t('proposalModal.submitProposal')}
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

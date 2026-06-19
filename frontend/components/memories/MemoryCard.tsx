@@ -3,6 +3,7 @@
 import { Memory } from '@/lib/shared/schemas/memories';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
+import { useLanguage } from '../providers/LanguageProvider';
 import { Calendar, Quote, ImageIcon, MapPin, Users, MoreVertical, Trash2, Edit, X, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
 import { useState } from 'react';
@@ -18,6 +19,7 @@ interface MemoryCardProps {
 
 export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: MemoryCardProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const [showActions, setShowActions] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -105,13 +107,13 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
                         onClick={() => { onEdit?.(memory); setShowActions(false); }}
                         className={cn("w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors", "hover:bg-black/5", theme.colors.text)}
                       >
-                        <Edit className="w-3.5 h-3.5" /> Edit
+                        <Edit className="w-3.5 h-3.5" /> {t('memoryCard.edit')}
                       </button>
                       <button 
                         onClick={() => { setIsConfirmingDelete(true); setShowActions(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                        <Trash2 className="w-3.5 h-3.5" /> {t('memoryCard.delete')}
                       </button>
                     </motion.div>
                   )}
@@ -131,22 +133,22 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
                 onClick={(e) => e.stopPropagation()}
               >
                 <AlertTriangle className="w-10 h-10 text-white mb-4" />
-                <h4 className="text-white font-black text-lg mb-2 uppercase tracking-tight">Delete Memory?</h4>
+                <h4 className="text-white font-black text-lg mb-2 uppercase tracking-tight">{t('memoryCard.confirmDelete.title')}</h4>
                 <p className="text-red-100 text-xs font-medium mb-6 leading-relaxed">
-                  This memory will be permanently removed. This action cannot be undone.
+                  {t('memoryCard.confirmDelete.desc')}
                 </p>
                 <div className="flex flex-col gap-2 w-full max-w-[160px]">
                   <button 
                     onClick={() => { onDelete?.(memory.id); setIsConfirmingDelete(false); }}
                     className="w-full py-2.5 bg-white text-red-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
                   >
-                    Confirm Delete
+                    {t('memoryCard.confirmDelete.confirm')}
                   </button>
                   <button 
                     onClick={() => setIsConfirmingDelete(false)}
                     className="w-full py-2.5 bg-red-700/50 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-800/50 transition-all"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </motion.div>

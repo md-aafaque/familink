@@ -5,6 +5,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
+import { useLanguage } from '../providers/LanguageProvider';
 import { X, Calendar, Type, Image as ImageIcon, Users, Save, Loader2, Upload, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import StoryEditor from './StoryEditor';
@@ -22,6 +23,7 @@ interface MemoryModalProps {
 
 export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, initialMemory }: MemoryModalProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const isEditing = !!initialMemory;
   
@@ -216,7 +218,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                 <Save className={cn("w-5 h-5", theme.colors.accent)} />
               </div>
               <h2 className={cn("text-xl font-black uppercase tracking-tight", theme.colors.text)}>
-                {isEditing ? 'Edit Memory' : 'Capture a Memory'}
+                {isEditing ? t('memoryModal.editTitle') : t('memoryModal.createTitle')}
               </h2>
             </div>
             <button onClick={onClose} className={cn("p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors", theme.colors.text)}>
@@ -253,7 +255,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2 space-y-2" data-error-id="title">
                   <label className={labelClass(true)}>
-                    Memory Title <span className="text-red-500">*</span>
+                    {t('memoryModal.title')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -262,7 +264,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                       setTitle(e.target.value);
                       if (formErrors.title) setFormErrors(prev => { const n = {...prev}; delete n.title; return n; });
                     }}
-                    placeholder="E.g., Great Grandpa's 90th Birthday"
+                    placeholder={t('memoryModal.titlePlaceholder')}
                     className={cn(
                       "w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all",
                       theme.colors.bg,
@@ -274,7 +276,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                 </div>
                 <div className="space-y-2" data-error-id="date">
                   <label className={labelClass(true)}>
-                    Date <span className="text-red-500">*</span>
+                    {t('memoryModal.date')} <span className="text-red-500">*</span>
                   </label>
                   <PartialDateInput
                     value={date}
@@ -293,7 +295,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               {(type === 'photo' || type === 'milestone') && (
                 <div className="space-y-2" data-error-id="image">
                   <label className={labelClass(type === 'photo')}>
-                    {type === 'photo' ? 'Select Photo' : 'Featured Image (Optional)'} 
+                    {type === 'photo' ? t('memoryModal.selectPhoto') : t('memoryModal.featuredImage')} 
                     {type === 'photo' && <span className="text-red-500"> *</span>}
                   </label>
                   <div 
@@ -313,8 +315,8 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                     ) : (
                       <div className="text-center p-6">
                         <ImageIcon className={cn("w-10 h-10 mx-auto mb-2 opacity-20", theme.colors.text)} />
-                        <p className={cn("text-sm font-bold", theme.colors.textMuted)}>Click to upload image</p>
-                        <p className={cn("text-[10px] uppercase tracking-wider mt-1 opacity-50", theme.colors.textMuted)}>JPG, PNG up to 10MB</p>
+                        <p className={cn("text-sm font-bold", theme.colors.textMuted)}>{t('memoryModal.clickUpload')}</p>
+                        <p className={cn("text-[10px] uppercase tracking-wider mt-1 opacity-50", theme.colors.textMuted)}>{t('memoryModal.uploadHint')}</p>
                       </div>
                     )}
                     <input id="memory-image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
@@ -327,7 +329,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               {type !== 'photo' && (
                 <div className="space-y-2" data-error-id="content">
                   <label className={labelClass(type === 'story')}>
-                    {type === 'story' ? 'The Story' : 'Description'}
+                    {type === 'story' ? t('memoryModal.storyTitle') : t('memoryModal.description')}
                     {type === 'story' && <span className="text-red-500"> *</span>}
                   </label>
                   {type === 'story' ? (
@@ -344,7 +346,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                         setContent(e.target.value);
                         if (formErrors.content) setFormErrors(prev => { const n = {...prev}; delete n.content; return n; });
                       }}
-                      placeholder="Share some details about this milestone..."
+                      placeholder={t('memoryModal.milestonePlaceholder')}
                       className={cn(
                         "w-full h-32 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none",
                         theme.colors.bg,
@@ -359,7 +361,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
 
               {/* Associated People */}
               <div className="space-y-2">
-                <label className={labelClass()}>Link to Family Members</label>
+                <label className={labelClass()}>{t('memoryModal.linkFamilyMembers')}</label>
                 <div className="flex flex-wrap gap-2">
                   {associatedPersonIds.map(id => {
                     const p = people?.find((per: any) => per.id === id);
@@ -373,7 +375,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                   <div className="relative group">
                     <button className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-dashed hover:border-primary/50 transition-colors", theme.colors.border, theme.colors.textMuted)}>
                       <Users className="w-3 h-3" />
-                      Add Person
+                      {t('memoryModal.addPerson')}
                     </button>
                     <div className={cn(
                       "absolute bottom-full left-0 mb-2 w-64 max-h-64 overflow-hidden rounded-xl shadow-xl border flex flex-col hidden group-focus-within:flex group-hover:flex z-20",
@@ -387,7 +389,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                                 type="text"
                                 value={personSearch}
                                 onChange={(e) => setPersonSearch(e.target.value)}
-                                placeholder="Search people..."
+                                placeholder={t('memoryModal.searchPeople')}
                                 className={cn("w-full pl-7 pr-2 py-1.5 rounded-lg border text-[10px] outline-none", theme.colors.bg, theme.colors.border, theme.colors.text)}
                             />
                         </div>
@@ -402,7 +404,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                             {p.firstName} {p.lastName}
                             </div>
                         ))}
-                        {filteredPeople?.length === 0 && <p className="p-4 text-center text-[10px] uppercase font-bold opacity-40">No people found</p>}
+                        {filteredPeople?.length === 0 && <p className="p-4 text-center text-[10px] uppercase font-bold opacity-40">{t('memoryModal.noPeople')}</p>}
                       </div>
                     </div>
                   </div>
@@ -417,7 +419,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               onClick={onClose}
               className={cn("px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all", "hover:bg-slate-100 dark:hover:bg-slate-800", theme.colors.text)}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               disabled={saveMutation.isPending}
@@ -431,10 +433,10 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               {saveMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
+                  {t('memoryModal.saving')}
                 </>
               ) : (
-                isEditing ? 'Update Memory' : 'Save Memory'
+                isEditing ? t('memoryModal.update') : t('memoryModal.save')
               )}
             </button>
           </div>

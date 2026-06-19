@@ -33,9 +33,9 @@ export default function AuditLogsPage() {
   }, [trees, selectedTreeId]);
 
   const { data: logs, isLoading, isError, error } = useQuery({
-    queryKey: ["tree-audit-logs", selectedTreeId],
+    queryKey: ["tree-activity", selectedTreeId],
     queryFn: async () => {
-      const res = await api.get(`/trees/${selectedTreeId}/audit-logs`);
+      const res = await api.get(`/trees/${selectedTreeId}/activity`);
       return (res as any).data;
     },
     enabled: !!selectedTreeId,

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import api from '../../lib/api';
 import { formatDateTime } from '../../lib/dateUtils';
 import { useAppTheme } from '@/components/providers/ThemeProvider';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { cn } from '@/lib/cn';
 
 type Notification = {
@@ -20,11 +21,103 @@ type Notification = {
   data?: string;
 };
 
+function translateNotification(notif: Notification, t: (key: string) => string) {
+  let title = notif.title;
+  let message = notif.message;
+
+  // 1. Translate Title based on Type
+  let titleKey = `notification.${notif.type}.title`;
+  if (notif.type === 'access_request_pending') {
+    if (notif.title.includes('Upgrade')) {
+      titleKey = 'notification.access_request_pending.title.upgrade';
+    } else {
+      titleKey = 'notification.access_request_pending.title.join';
+    }
+  }
+
+  const translatedTitle = t(titleKey);
+  if (translatedTitle !== titleKey) {
+    title = translatedTitle;
+  }
+
+  // 2. Translate Message based on Type
+  const msgKey = `notification.${notif.type}.message`;
+  const translatedMsg = t(msgKey);
+  if (translatedMsg !== msgKey) {
+    let temp = translatedMsg;
+    
+    if (notif.type === 'access_request_approved') {
+      const match = notif.message.match(/join as a (\w+) has/);
+      if (match) {
+        temp = temp.replace('{role}', t(`role.${match[1]}`));
+      }
+    } else if (notif.type === 'access_request_rejected') {
+      const match = notif.message.match(/join as a (\w+) was/);
+      if (match) {
+        temp = temp.replace('{role}', t(`role.${match[1]}`));
+      }
+    } else if (notif.type === 'access_request_pending') {
+      const upgradeMatch = notif.message.match(/upgrade from (\w+) to (\w+)/);
+      if (upgradeMatch) {
+        temp = t('notification.access_request_pending.upgrade_message')
+          .replace('{currentRole}', t(`role.${upgradeMatch[1]}`))
+          .replace('{requestedRole}', t(`role.${upgradeMatch[2]}`));
+      } else {
+        const joinMatch = notif.message.match(/join your family tree as a (\w+)/);
+        if (joinMatch) {
+          temp = t('notification.access_request_pending.join_message')
+            .replace('{role}', t(`role.${joinMatch[1]}`));
+        }
+      }
+    } else if (notif.type === 'deletion_proposal_pending') {
+      const match = notif.message.match(/proposed for (.*)/);
+      if (match) {
+        temp = temp.replace('{name}', match[1]);
+      }
+    } else if (notif.type === 'claim_request_pending') {
+      const match = notif.message.match(/claim the profile of (.*)/);
+      if (match) {
+        temp = temp.replace('{name}', match[1]);
+      }
+    } else if (notif.type === 'merge_proposal_pending') {
+      const match = notif.message.match(/proposed for (.*) into (.*)/);
+      if (match) {
+        temp = temp.replace('{source}', match[1]).replace('{target}', match[2]);
+      }
+    } else if (notif.type === 'permission_granted') {
+      const match = notif.message.match(/granted (\w+) rights/);
+      if (match) {
+        temp = temp.replace('{permissionType}', match[1]);
+      }
+    } else if (notif.type === 'relationship_pending') {
+      const match = notif.message.match(/A new (\w+) relationship/);
+      if (match) {
+        temp = temp.replace('{relationshipType}', t(`relationship.${match[1]}`));
+      }
+    } else if (notif.type === 'relationship_approved') {
+      const match = notif.message.match(/Your proposed (\w+) relationship/);
+      if (match) {
+        temp = temp.replace('{relationshipType}', t(`relationship.${match[1]}`));
+      }
+    } else if (notif.type === 'relationship_rejected') {
+      const match = notif.message.match(/Your proposed (\w+) relationship was rejected: (.*)/);
+      if (match) {
+        temp = temp.replace('{relationshipType}', t(`relationship.${match[1]}`))
+                   .replace('{reason}', match[2]);
+      }
+    }
+    message = temp;
+  }
+
+  return { title, message };
+}
+
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadNotifications();
@@ -124,8 +217,8 @@ export default function NotificationsPage() {
           <div className="py-4 mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className={cn("text-3xl font-bold", theme.colors.text)}>Notifications</h1>
-                <p className={cn("mt-1", theme.colors.textMuted)}>{unreadCount} unread messages</p>
+                <h1 className={cn("text-3xl font-bold", theme.colors.text)}>{t('notifications.title')}</h1>
+                <p className={cn("mt-1", theme.colors.textMuted)}>{t('notifications.unreadCount').replace('{count}', String(unreadCount))}</p>
               </div>
               {notifications.length > 0 && (
                 <div className="flex gap-3">
@@ -137,7 +230,7 @@ export default function NotificationsPage() {
                       className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium bg-indigo-500 hover:bg-indigo-600"
                     >
                       <Check className="w-4 h-4" />
-                      Mark All as Read
+                      {t('notifications.markAllRead')}
                     </motion.button>
                   )}
                   <motion.button
@@ -147,7 +240,7 @@ export default function NotificationsPage() {
                     className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete All
+                    {t('notifications.deleteAll')}
                   </motion.button>
                 </div>
               )}
@@ -160,86 +253,89 @@ export default function NotificationsPage() {
             <div className="inline-block animate-spin">
               <Bell className={cn("w-8 h-8", theme.colors.textMuted)} />
             </div>
-            <p className={cn("mt-4 font-medium", theme.colors.textMuted)}>Loading notifications...</p>
+            <p className={cn("mt-4 font-medium", theme.colors.textMuted)}>{t('notifications.loading')}</p>
           </div>
         ) : notifications.length === 0 ? (
           <div className={cn("rounded-xl shadow-sm border p-12 text-center", theme.colors.surface, theme.colors.border)}>
             <Bell className={cn("w-16 h-16 mx-auto mb-4", theme.colors.textMuted)} />
-            <h2 className={cn("text-2xl font-bold mb-2", theme.colors.text)}>No notifications yet</h2>
-            <p className={cn("mb-6", theme.colors.textMuted)}>You're all caught up! Check back later.</p>
+            <h2 className={cn("text-2xl font-bold mb-2", theme.colors.text)}>{t('notifications.noNotifications.title')}</h2>
+            <p className={cn("mb-6", theme.colors.textMuted)}>{t('notifications.noNotifications.subtitle')}</p>
             <motion.button
               onClick={() => router.push('/dashboard')}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={cn("px-4 py-2 text-white rounded-lg font-medium", theme.colors.primary)}
             >
-              Go to Dashboard
+              {t('notifications.noNotifications.button')}
             </motion.button>
           </div>
         ) : (
           <div className="space-y-3">
-            {notifications.map((notif, idx) => (
-              <motion.div
-                key={notif.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                onClick={() => handleNotificationClick(notif)}
-                className={cn(
-                  "rounded-xl shadow-sm border transition-all p-6 flex items-start justify-between gap-4 hover:shadow-md cursor-pointer",
-                  theme.colors.surface,
-                  theme.colors.border,
-                  !notif.isRead && "border-orange-500/50 bg-orange-500/10 dark:border-indigo-500/50 dark:bg-indigo-500/10"
-                )}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className={cn("font-semibold text-lg", theme.colors.text)}>
-                      {notif.title}
-                    </h3>
-                    {!notif.isRead && (
-                      <div className={cn("px-2 py-1 text-white text-xs rounded-full font-medium", theme.colors.primary)}>
-                        New
-                      </div>
-                    )}
-                  </div>
-                  <p className={cn("mb-3", theme.colors.text)}>{notif.message}</p>
-                  <div className="flex items-center justify-between">
-                    <span className={cn("text-sm", theme.colors.textMuted)}>
-                      {formatDateTime(notif.createdAt)}
-                    </span>
-                    {notif.readAt && (
-                      <span className={cn("text-xs", theme.colors.textMuted)}>
-                        Read {formatDateTime(notif.readAt)}
+            {notifications.map((notif, idx) => {
+              const { title, message } = translateNotification(notif, t);
+              return (
+                <motion.div
+                  key={notif.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  onClick={() => handleNotificationClick(notif)}
+                  className={cn(
+                    "rounded-xl shadow-sm border transition-all p-6 flex items-start justify-between gap-4 hover:shadow-md cursor-pointer",
+                    theme.colors.surface,
+                    theme.colors.border,
+                    !notif.isRead && "border-orange-500/50 bg-orange-500/10 dark:border-indigo-500/50 dark:bg-indigo-500/10"
+                  )}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className={cn("font-semibold text-lg", theme.colors.text)}>
+                        {title}
+                      </h3>
+                      {!notif.isRead && (
+                        <div className={cn("px-2 py-1 text-white text-xs rounded-full font-medium", theme.colors.primary)}>
+                          {t('notifications.new')}
+                        </div>
+                      )}
+                    </div>
+                    <p className={cn("mb-3", theme.colors.text)}>{message}</p>
+                    <div className="flex items-center justify-between">
+                      <span className={cn("text-sm", theme.colors.textMuted)}>
+                        {formatDateTime(notif.createdAt)}
                       </span>
-                    )}
+                      {notif.readAt && (
+                        <span className={cn("text-xs", theme.colors.textMuted)}>
+                          {t('notifications.readAt').replace('{date}', formatDateTime(notif.readAt))}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex gap-2 flex-shrink-0">
-                  {!notif.isRead && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    {!notif.isRead && (
+                      <motion.button
+                        onClick={() => markAsRead(notif.id)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-indigo-100 hover:text-indigo-600")}
+                        title={t('notifications.markAsRead')}
+                      >
+                        <Check className="w-5 h-5" />
+                      </motion.button>
+                    )}
                     <motion.button
-                      onClick={() => markAsRead(notif.id)}
+                      onClick={() => deleteNotification(notif.id)}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-indigo-100 hover:text-indigo-600")}
-                      title="Mark as read"
+                      className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-red-100 hover:text-red-600")}
+                      title={t('notifications.delete')}
                     >
-                      <Check className="w-5 h-5" />
+                      <Trash2 className="w-5 h-5" />
                     </motion.button>
-                  )}
-                  <motion.button
-                    onClick={() => deleteNotification(notif.id)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-red-100 hover:text-red-600")}
-                    title="Delete"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </main>

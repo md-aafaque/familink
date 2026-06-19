@@ -49,4 +49,50 @@ export class UsersRepository {
       await session.close();
     }
   }
+
+  static async updateProfile(id: string, updates: any) {
+    const session = getSession();
+    try {
+      const result = await session.executeWrite(async (tx) => {
+        // Handle notificationPreferences serialization if it's an object
+        const params = { ...updates, id };
+        if (params.notificationPreferences && typeof params.notificationPreferences === 'object') {
+          params.notificationPreferences = JSON.stringify(params.notificationPreferences);
+        }
+
+        let setClause = Object.keys(updates)
+          .map(key => `u.${key} = $${key}`)
+          .join(', ');
+
+        if (!setClause) return (await this.findById(id));
+
+        const query = `
+          MATCH (u:User {id: $id})
+          SET ${setClause}, u.updatedAt = timestamp()
+          RETURN u
+        `;
+        const res = await tx.run(query, params);
+        if (res.records.length === 0) return null;
+        return res.records[0].get('u').properties;
+      });
+      return result;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async deleteUser(id: string) {
+    const session = getSession();
+    try {
+      await session.executeWrite(async (tx) => {
+        await tx.run(
+          `MATCH (u:User {id: $id}) DETACH DELETE u`,
+          { id }
+        );
+      });
+      return true;
+    } finally {
+      await session.close();
+    }
+  }
 }

@@ -7,6 +7,7 @@ import { Loader2, Heart } from 'lucide-react';
 import { cn } from '../../../lib/cn';
 import dynamic from 'next/dynamic';
 import { useAppTheme } from '../../../components/providers/ThemeProvider';
+import { useLanguage } from '../../../components/providers/LanguageProvider';
 
 const FamilyTreeContainer = dynamic(() => import('../../../components/tree/FamilyTreeContainer'), {
   ssr: false,
@@ -29,6 +30,7 @@ export default function TreePage() {
   const params = useParams();
   const id = params.id as string;
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const { data: treeData, isLoading: treeLoading } = useQuery({
     queryKey: ['tree', id],
@@ -40,7 +42,7 @@ export default function TreePage() {
   });
 
   if (treeLoading) {
-    return <UnifiedLoader text="Fetching Tree Metadata…" />;
+    return <UnifiedLoader text={t('tree.loading')} />;
   }
 
   return (

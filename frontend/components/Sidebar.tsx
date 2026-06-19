@@ -20,16 +20,19 @@ import {
   Link as LinkIcon,
   ImageIcon,
   Trash2,
-  Merge
+  Merge,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
 import { useSidebar } from "./providers/SidebarProvider";
+import { useLanguage } from "./providers/LanguageProvider";
 
 export default function Sidebar() {
   const { signOut, user } = useAuth();
   const { theme } = useAppTheme();
   const { isOpen, close } = useSidebar();
+  const { t } = useLanguage();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -45,12 +48,12 @@ export default function Sidebar() {
   const isAdmin = trees?.some((t: any) => t.role === 'admin');
 
   const adminItems = [
-    { label: "Access Requests", icon: Users, href: "/dashboard/manage/users", active: pathname === "/dashboard/manage/users" },
-    { label: "Review Proposals", icon: GitPullRequest, href: "/dashboard/manage/proposals?tab=relationships", active: pathname === "/dashboard/manage/proposals" && (searchParams.get('tab') === 'relationships' || !searchParams.get('tab')) },
-    { label: "Merge Requests", icon: Merge, href: "/dashboard/manage/proposals?tab=merges", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'merges' },
-    { label: "Profile Claims", icon: Fingerprint, href: "/dashboard/manage/proposals?tab=claims", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'claims' },
-    { label: "Deletion Requests", icon: Trash2, href: "/dashboard/manage/proposals?tab=deletions", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'deletions' },
-    { label: "Manage Invites", icon: ShieldCheck, href: "/dashboard/manage/invitations", active: pathname === "/dashboard/manage/invitations" },
+    { label: t("nav.accessRequests"), icon: Users, href: "/dashboard/manage/users", active: pathname === "/dashboard/manage/users" },
+    { label: t("nav.reviewProposals"), icon: GitPullRequest, href: "/dashboard/manage/proposals?tab=relationships", active: pathname === "/dashboard/manage/proposals" && (searchParams.get('tab') === 'relationships' || !searchParams.get('tab')) },
+    { label: t("nav.mergeRequests"), icon: Merge, href: "/dashboard/manage/proposals?tab=merges", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'merges' },
+    { label: t("nav.profileClaims"), icon: Fingerprint, href: "/dashboard/manage/proposals?tab=claims", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'claims' },
+    { label: t("nav.deletionRequests"), icon: Trash2, href: "/dashboard/manage/proposals?tab=deletions", active: pathname === "/dashboard/manage/proposals" && searchParams.get('tab') === 'deletions' },
+    { label: t("nav.manageInvites"), icon: ShieldCheck, href: "/dashboard/manage/invitations", active: pathname === "/dashboard/manage/invitations" },
   ];
 
   return (
@@ -87,7 +90,7 @@ export default function Sidebar() {
           {/* Main Menu */}
           <div className="space-y-1">
             <h3 className={cn("px-3 text-[10px] font-bold uppercase tracking-widest mb-2", theme.colors.textMuted)}>
-              Navigation
+              {t("nav.navigation")}
             </h3>
             <Link
               href="/dashboard"
@@ -100,7 +103,7 @@ export default function Sidebar() {
               )}
             >
               <Trees className={cn("w-4 h-4", pathname === "/dashboard" ? theme.colors.accent : "opacity-60")} />
-              My Family Trees
+              {t("nav.trees")}
             </Link>
             <Link
               href="/dashboard/memories"
@@ -113,7 +116,7 @@ export default function Sidebar() {
               )}
             >
               <ImageIcon className={cn("w-4 h-4", pathname === "/dashboard/memories" ? theme.colors.accent : "opacity-60")} />
-              Family Wall
+              {t("nav.wall")}
             </Link>
             <Link
               href="/notifications"
@@ -126,7 +129,7 @@ export default function Sidebar() {
               )}
             >
               <Bell className={cn("w-4 h-4", pathname === "/notifications" ? theme.colors.accent : "opacity-60")} />
-              Notifications
+              {t("nav.notifications")}
             </Link>
           </div>
 
@@ -134,7 +137,7 @@ export default function Sidebar() {
           {isAdmin && (
             <div className="space-y-1">
               <h3 className={cn("px-3 text-[10px] font-bold uppercase tracking-widest mb-2", theme.colors.textMuted)}>
-                Admin
+                {t("nav.admin")}
               </h3>
               {adminItems.map((item) => (
                 <Link
@@ -158,26 +161,44 @@ export default function Sidebar() {
 
         {/* User Profile & Sign Out */}
         <div className={cn("p-4 border-t mt-auto", theme.colors.sidebar.border)}>
-          <div className="flex items-center gap-3 mb-4 px-2">
-             <div className={cn("w-9 h-9 rounded flex items-center justify-center border", theme.colors.primaryMuted, theme.colors.sidebar.border)}>
-                <UserCircle className={cn("w-5 h-5", theme.colors.accent)} />
+          <Link 
+            href="/dashboard/settings"
+            onClick={close}
+            className={cn(
+              "flex items-center gap-3 mb-4 p-2 rounded-xl transition-all group",
+              pathname === "/dashboard/settings"
+                ? cn(theme.colors.sidebar.itemHover, "shadow-sm")
+                : "hover:bg-slate-100 dark:hover:bg-slate-800/50"
+            )}
+          >
+             <div className={cn(
+               "w-9 h-9 rounded-lg flex items-center justify-center border transition-colors",
+               pathname === "/dashboard/settings" ? "border-primary bg-primary/5" : theme.colors.sidebar.border,
+               theme.colors.primaryMuted
+             )}>
+                <UserCircle className={cn("w-5 h-5", pathname === "/dashboard/settings" ? theme.colors.accent : "opacity-60")} />
              </div>
-             <div className="min-w-0">
-                <p className={cn("text-xs font-bold truncate", theme.colors.text)}>{user?.user_metadata.full_name}</p>
-                <p className={cn("text-[10px] font-medium truncate opacity-50", theme.colors.textMuted)}>Free Tier</p>
+             <div className="flex-1 min-w-0">
+                <p className={cn("text-xs font-black truncate uppercase tracking-tight", theme.colors.text)}>{user?.user_metadata.full_name || t('common.defaultUserName')}</p>
+                <p className={cn("text-[9px] font-bold truncate opacity-50 uppercase tracking-widest", theme.colors.textMuted)}>{t("nav.accountSettings")}</p>
              </div>
-          </div>
+             <Settings className={cn(
+               "w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-all duration-300",
+               theme.colors.text,
+               pathname === "/dashboard/settings" && "opacity-100 rotate-90"
+             )} />
+          </Link>
           
           <button
             onClick={signOut}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
               theme.colors.textMuted,
-              "hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+              "hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 active:scale-[0.98]"
             )}
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            {t("nav.signOut")}
           </button>
         </div>
       </aside>

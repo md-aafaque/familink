@@ -7,8 +7,10 @@ import api from '../../lib/api';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { SiGoogle } from 'react-icons/si';
 import Link from 'next/link';
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 function LoginFormContent() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,11 +51,11 @@ function LoginFormContent() {
         router.replace(safeRedirect);
       } else {
         console.warn("[Login] Success but no session returned");
-        setError("Login succeeded but session was not created.");
+        setError(t('login.error.noSession'));
       }
     } catch (err: any) {
       console.error("[Login] Unexpected error:", err);
-      setError(err.message || "Something went wrong during login.");
+      setError(err.message || t('login.error.generic'));
     } finally {
       setLoading(false);
     }
@@ -74,8 +76,8 @@ function LoginFormContent() {
       <div className="max-w-md w-full">
         <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
-            <p className="text-muted-foreground mt-2">Sign in to your family tree</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('login.title')}</h1>
+            <p className="text-muted-foreground mt-2">{t('login.subtitle')}</p>
           </div>
 
         {message && (
@@ -93,7 +95,7 @@ function LoginFormContent() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground/80 mb-1">
-              Email Address <span className="text-red-500">*</span>
+              {t('login.email')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -101,7 +103,7 @@ function LoginFormContent() {
                 type="email"
                 required
                 className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="you@example.com"
+                placeholder={t('login.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -110,7 +112,7 @@ function LoginFormContent() {
 
           <div>
             <label className="block text-sm font-medium text-foreground/80 mb-1">
-              Password <span className="text-red-500">*</span>
+              {t('login.password')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -118,7 +120,7 @@ function LoginFormContent() {
                 type="password"
                 required
                 className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="••••••••"
+                placeholder={t('login.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -130,7 +132,7 @@ function LoginFormContent() {
             disabled={loading}
             className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('login.signIn')}
           </button>
         </form>
 
@@ -139,7 +141,7 @@ function LoginFormContent() {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
+            <span className="px-2 bg-card text-muted-foreground">{t('login.orContinueWith')}</span>
           </div>
         </div>
 
@@ -148,13 +150,13 @@ function LoginFormContent() {
           className="w-full border border-input hover:bg-muted text-foreground font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <SiGoogle className="w-5 h-5 text-primary" />
-          Google
+          {t('login.google')}
         </button>
 
         <p className="text-center text-muted-foreground mt-8 text-sm">
-          Don't have an account?{' '}
+          {t('login.noAccount')}{' '}
           <Link href={`/signup?redirectTo=${encodeURIComponent(redirectTo)}`} className="text-primary font-semibold hover:opacity-80">
-            Sign Up
+            {t('login.signUp')}
           </Link>
         </p>
       </div>

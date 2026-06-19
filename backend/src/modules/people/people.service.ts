@@ -217,9 +217,10 @@ export class PeopleService {
     return PeopleRepository.getPendingDeletionProposals(treeId);
   }
 
-  static async claimProfile(personId: string, userId: string) {
+  static async claimProfile(personId: string, treeId: string, userId: string) {
     const person = await PeopleRepository.findByIdGlobal(personId);
     if (!person) throw new AppError('Profile not found', 404);
+    if (person.treeId !== treeId) throw new AppError('Profile does not belong to this tree', 403);
     if (person.status !== 'ghost') throw new AppError('This profile is already claimed or active', 400);
 
     const isAdmin = await TreesRepository.isAdmin(person.treeId, userId);

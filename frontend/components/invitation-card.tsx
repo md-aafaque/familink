@@ -1,3 +1,6 @@
+"use client";
+
+import { useLanguage } from './providers/LanguageProvider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -30,23 +33,24 @@ export function InvitationCard({
   error,
 }: InvitationCardProps) {
   const { theme } = useAppTheme()
+  const { t } = useLanguage()
   
   const roleConfig = {
     admin: {
-      label: 'Administrator',
-      description: 'Full access to manage the family tree',
+      label: t('invitationCard.role.admin'),
+      description: t('invitationCard.role.adminDesc'),
       icon: Crown,
       color: 'text-purple-600',
     },
     member: {
-      label: 'Member',
-      description: 'Can create and edit family relationships',
+      label: t('invitationCard.role.member'),
+      description: t('invitationCard.role.memberDesc'),
       icon: Users,
       color: theme.colors.accent,
     },
     viewer: {
-      label: 'Viewer',
-      description: 'Read-only access to view the family tree',
+      label: t('invitationCard.role.viewer'),
+      description: t('invitationCard.role.viewerDesc'),
       icon: Eye,
       color: 'text-green-600',
     },
@@ -60,10 +64,10 @@ export function InvitationCard({
     <Card className={cn("w-full max-w-md mx-auto", theme.colors.surface, theme.colors.border)}>
       <CardHeader className="text-center">
         <CardTitle className={cn("text-2xl font-bold", theme.colors.text)}>
-          You're invited!
+          {t('invitationCard.title')}
         </CardTitle>
         <CardDescription className={theme.colors.textMuted}>
-          Join the family tree
+          {t('invitationCard.subtitle')}
         </CardDescription>
       </CardHeader>
 
@@ -84,7 +88,7 @@ export function InvitationCard({
           </p>
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <Calendar className="h-3 w-3" />
-            <span>Expires on {expirationDate}</span>
+            <span>{t('invitationCard.expires').replace('{date}', expirationDate)}</span>
           </div>
         </div>
 
@@ -103,7 +107,7 @@ export function InvitationCard({
             className={cn("w-full", theme.colors.primary, "text-white")}
             size="lg"
           >
-            {submitting ? 'Processing...' : 'Accept Invitation'}
+            {submitting ? t('invitationCard.processing') : t('invitationCard.accept')}
           </Button>
 
           <Button
@@ -111,12 +115,12 @@ export function InvitationCard({
             variant="outline"
             className={cn("w-full", theme.colors.bg, theme.colors.text, theme.colors.border)}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
 
         <p className="text-xs text-center text-muted-foreground">
-          Don't have an account? You'll be asked to create one on the next step.
+          {t('invitationCard.noAccount')}
         </p>
       </CardContent>
     </Card>

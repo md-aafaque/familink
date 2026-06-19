@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { memo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppTheme } from "../providers/ThemeProvider";
+import { useLanguage } from "../providers/LanguageProvider";
 import { useTreeInteraction } from "./TreeInteractionProvider";
 import ContextMenu from "./ContextMenu";
 
@@ -34,6 +35,7 @@ const TreeCard = memo(({
 }: TreeCardProps) => {
   const router = useRouter();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const { draggingPersonId } = useTreeInteraction();
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
 
@@ -109,13 +111,13 @@ const TreeCard = memo(({
             
             <div className="flex flex-wrap gap-1.5 justify-center">
               {person.status === 'ghost' && (
-                <span className={cn("px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-colors duration-500", theme.isDark ? "bg-slate-800 text-slate-400 border-white/5" : "bg-slate-100 text-slate-500 border-slate-200/30")}>Ghost</span>
+                <span className={cn("px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-colors duration-500", theme.isDark ? "bg-slate-800 text-slate-400 border-white/5" : "bg-slate-100 text-slate-500 border-slate-200/30")}>{t('personPage.statusBadge.ghost')}</span>
               )}
               {person.deathDate && (
-                <span className="px-3 py-1 bg-zinc-900 text-zinc-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/5">Deceased</span>
+                <span className="px-3 py-1 bg-zinc-900 text-zinc-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/5">{t('personPage.statusBadge.deceased')}</span>
               )}
               {person.status === 'active' && (
-                <span className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors duration-500 shadow-sm bg-primary/10 text-primary border-primary/20")}>Verified</span>
+                <span className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors duration-500 shadow-sm bg-primary/10 text-primary border-primary/20")}>{t('personPage.statusBadge.verified')}</span>
               )}
             </div>
           </div>
@@ -125,7 +127,7 @@ const TreeCard = memo(({
               "text-[12px] font-black tracking-widest opacity-30 uppercase",
               theme.colors.textMuted
             )} style={{ color: treeTheme?.accent }}>
-              {person.birthDate.substring(0, 4)} — {person.deathDate ? person.deathDate.substring(0, 4) : (person.status === 'deceased' ? "" : "Present")}
+              {person.birthDate.substring(0, 4)} — {person.deathDate ? person.deathDate.substring(0, 4) : (person.status === 'deceased' ? "" : t('common.present'))}
             </p>
           )}
         </div>
@@ -144,7 +146,7 @@ const TreeCard = memo(({
                theme.colors.textMuted,
                "hover:" + theme.colors.accent
              )}
-             title="Full Profile"
+             title={t('treeCard.fullProfile')}
            >
              <ExternalLink className="w-4 h-4" />
            </button>
@@ -169,10 +171,10 @@ const TreeCard = memo(({
             y={contextMenu.y}
             onClose={() => setContextMenu(null)}
             items={[
-              { label: 'View Full Profile', icon: User, onClick: () => router.push(`/person/${person.id}`) },
-              { label: 'Edit Member Details', icon: Edit3, onClick: () => {} },
-              { label: 'Grant Permissions', icon: ShieldCheck, onClick: () => {} },
-              { label: 'Remove from Tree', icon: Trash2, onClick: () => {}, variant: 'danger' },
+              { label: t('treeCard.viewFullProfile'), icon: User, onClick: () => router.push(`/person/${person.id}`) },
+              { label: t('treeCard.contextMenu.edit'), icon: Edit3, onClick: () => {} },
+              { label: t('treeCard.contextMenu.grantPermissions'), icon: ShieldCheck, onClick: () => {} },
+              { label: t('treeCard.contextMenu.remove'), icon: Trash2, onClick: () => {}, variant: 'danger' },
             ]}
           />
         )}

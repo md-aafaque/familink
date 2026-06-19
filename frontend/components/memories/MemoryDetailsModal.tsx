@@ -3,6 +3,7 @@
 import { Memory } from '@/lib/shared/schemas/memories';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
+import { useLanguage } from '../providers/LanguageProvider';
 import { X, Calendar, Quote, ImageIcon, Users, Download, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +17,7 @@ interface MemoryDetailsModalProps {
 
 export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDetailsModalProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   // Handle ESC key
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                     <button 
                     onClick={() => window.open(memory.imageUrl, '_blank')}
                     className={cn("p-2.5 rounded-full transition-all", theme.isDark ? "hover:bg-white/10 text-white" : "hover:bg-black/5 text-slate-900")}
-                    title="Open Original"
+                    title={t('memoryDetails.openOriginal')}
                     >
                     <Download className="w-5 h-5" />
                     </button>
@@ -161,7 +163,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                         <div className={cn("p-8 rounded-full", theme.isDark ? "bg-white/5" : "bg-black/5")}>
                             <ImageIcon className="w-16 h-16" />
                         </div>
-                        <p className="text-2xl font-black uppercase tracking-[0.2em]">No Media Found</p>
+                        <p className="text-2xl font-black uppercase tracking-[0.2em]">{t('memoryDetails.noMedia')}</p>
                     </div>
                 )}
 
@@ -212,7 +214,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                   >
                       <div className="space-y-6">
                           <h3 className={cn("text-[10px] font-black uppercase tracking-widest opacity-40", theme.colors.text)}>
-                            Tagged Family
+                            {t('memoryDetails.taggedFamily')}
                           </h3>
                           <div className="space-y-3">
                               {memory.associatedPeople.map(p => (
@@ -226,7 +228,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                                       </div>
                                       <div className="flex flex-col">
                                         <span className={cn("text-sm font-bold", theme.colors.text)}>{p.firstName} {p.lastName}</span>
-                                        <span className={cn("text-[9px] font-black uppercase tracking-tighter opacity-40", theme.colors.text)}>Family Member</span>
+                                        <span className={cn("text-[9px] font-black uppercase tracking-tighter opacity-40", theme.colors.text)}>{t('memoryDetails.familyMember')}</span>
                                       </div>
                                   </div>
                               ))}

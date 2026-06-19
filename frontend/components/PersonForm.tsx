@@ -6,6 +6,7 @@ import { createPersonSchema, updatePersonSchema, CreatePersonInput, UpdatePerson
 import { Loader2, Save, User as UserIcon, Briefcase, GraduationCap, Link2, Search, Plus, Trash2, Calendar, CheckCircle2, X, Mail, Camera, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import { useLanguage } from "./providers/LanguageProvider";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
@@ -24,6 +25,7 @@ interface PersonFormProps {
 export default function PersonForm({ initialData, onSubmit, isLoading, treeId }: PersonFormProps) {
   const isEditing = !!initialData;
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -96,9 +98,9 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
   });
 
   const visibilityOptions = [
-    { value: 'tree', label: 'Family Tree' },
-    { value: 'editors', label: 'Editors Only' },
-    { value: 'private', label: 'Private' },
+    { value: 'tree', label: t('personForm.visibility.tree') },
+    { value: 'editors', label: t('personForm.visibility.editors') },
+    { value: 'private', label: t('personForm.visibility.private') },
   ];
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -204,8 +206,8 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <input id="profile-image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
         </div>
         <div className="text-center">
-          <p className={cn("text-sm font-black uppercase tracking-widest", theme.colors.text)}>Profile Picture</p>
-          <p className={cn("text-[10px] opacity-40 uppercase font-bold", theme.colors.text)}>JPG or PNG, max 5MB</p>
+          <p className={cn("text-sm font-black uppercase tracking-widest", theme.colors.text)}>{t('personForm.picture')}</p>
+          <p className={cn("text-[10px] opacity-40 uppercase font-bold", theme.colors.text)}>{t('personForm.pictureHint')}</p>
         </div>
       </div>
 
@@ -213,23 +215,23 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       <div className="space-y-6">
         <h3 className={sectionHeaderClass}>
           <UserIcon className={cn("w-5 h-5", theme.colors.accent)} />
-          Identity
+          {t('personForm.identity')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className={labelClass}>First Name <RequiredStar /></label>
+              <label className={labelClass}>{t('personForm.firstName')} <RequiredStar /></label>
               <input {...register("firstName")} className={inputBaseClass(errors.firstName)} placeholder="John" />
               {errors.firstName && <p className="text-xs text-red-500 font-bold mt-1">{errors.firstName.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className={labelClass}>Last Name</label>
+              <label className={labelClass}>{t('personForm.lastName')}</label>
               <input {...register("lastName")} className={inputBaseClass(errors.lastName)} placeholder="Doe" />
               {errors.lastName && <p className="text-xs text-red-500 font-bold mt-1">{errors.lastName.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className={labelClass}>Gender</label>
+              <label className={labelClass}>{t('personForm.gender.title')}</label>
               <Controller
                   name="gender"
                   control={control}
@@ -237,10 +239,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                       <CustomSelect
                           {...field}
                           options={[
-                              { value: 'unknown', label: 'Prefer not to say' },
-                              { value: 'male', label: 'Male' },
-                              { value: 'female', label: 'Female' },
-                              { value: 'other', label: 'Other' }
+                              { value: 'unknown', label: t('personForm.gender.unknown') },
+                              { value: 'male', label: t('personForm.gender.male') },
+                              { value: 'female', label: t('personForm.gender.female') },
+                              { value: 'other', label: t('personForm.gender.other') }
                           ]}
                           error={!!errors.gender}
                       />
@@ -249,7 +251,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
             </div>
 
             <div className="space-y-1.5">
-              <label className={labelClass}>Profile Status</label>
+              <label className={labelClass}>{t('personForm.status.title')}</label>
               <Controller
                   name="status"
                   control={control}
@@ -257,10 +259,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                       <CustomSelect
                           {...field}
                           options={[
-                              { value: 'ghost', label: 'Ghost Profile' },
-                              { value: 'active', label: 'Active Member' },
-                              { value: 'deceased', label: 'Deceased' },
-                              { value: 'archived', label: 'Archived' }
+                              { value: 'ghost', label: t('personForm.status.ghost') },
+                              { value: 'active', label: t('personForm.status.active') },
+                              { value: 'deceased', label: t('personForm.status.deceased') },
+                              { value: 'archived', label: t('personForm.status.archived') }
                           ]}
                           error={!!errors.status}
                       />
@@ -274,41 +276,27 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       <div className="space-y-6">
         <h3 className={sectionHeaderClass}>
           <Calendar className={cn("w-5 h-5", theme.colors.accent)} />
-          Lifecycle
+          {t('personForm.lifecycle')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className={labelClass}>Birth Date <RequiredStar /></label>
-              <div className="flex items-center gap-3">
-                  <Controller
-                      name="birthDate"
-                      control={control}
-                      render={({ field }) => (
-                          <PartialDateInput
-                              {...field}
-                              className="flex-1"
-                              error={!!errors.birthDate}
-                          />
-                      )}
-                  />
-                  <Controller
-                      name="birthDateVisibility"
-                      control={control}
-                      render={({ field }) => (
-                          <CustomSelect
-                              {...field}
-                              options={visibilityOptions}
-                              className="w-32 flex-shrink-0"
-                              size="md"
-                          />
-                      )}
-                  />
-              </div>
+              <label className={labelClass}>{t('personForm.birthDate')} <RequiredStar /></label>
+              <Controller
+                  name="birthDate"
+                  control={control}
+                  render={({ field }) => (
+                      <PartialDateInput
+                          {...field}
+                          className="w-full"
+                          error={!!errors.birthDate}
+                      />
+                  )}
+              />
               {errors.birthDate && <p className="text-xs text-red-500 font-bold mt-1">{errors.birthDate.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className={labelClass}>Death Date</label>
+              <label className={labelClass}>{t('personForm.deathDate')}</label>
               <Controller
                   name="deathDate"
                   control={control}
@@ -331,7 +319,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <div className="flex items-center gap-4">
             <h3 className={sectionHeaderClass}>
                 <GraduationCap className={cn("w-5 h-5", theme.colors.accent)} />
-                Education
+                {t('personForm.education')}
             </h3>
             <label className="flex items-center gap-2 cursor-pointer group">
                 <input type="checkbox" {...register("educationSectionVisible" as any)} className="hidden" />
@@ -345,7 +333,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
             onClick={() => appendEducation({ id: uuidv4(), school: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", description: "", visibility: "tree" })}
             className={cn("flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all", theme.colors.primaryMuted, theme.colors.accent)}
           >
-            <Plus className="w-3.5 h-3.5" /> Add Education
+            <Plus className="w-3.5 h-3.5" /> {t('personForm.addEducation')}
           </button>
         </div>
 
@@ -362,17 +350,17 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className={labelClass}>School/University <RequiredStar /></label>
+                  <label className={labelClass}>{t('personForm.school')} <RequiredStar /></label>
                   <input {...register(`educations.${index}.school` as any)} className={inputBaseClass((errors.educations as any)?.[index]?.school)} placeholder="e.g. Oxford" />
                   {(errors.educations as any)?.[index]?.school && <p className="text-xs text-red-500 font-bold mt-1">{(errors.educations as any)[index].school.message}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Degree</label>
+                  <label className={labelClass}>{t('personForm.degree')}</label>
                   <input {...register(`educations.${index}.degree` as any)} className={inputBaseClass((errors.educations as any)?.[index]?.degree)} placeholder="e.g. BSc" />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Start Date <RequiredStar /></label>
+                  <label className={labelClass}>{t('personForm.startDate')} <RequiredStar /></label>
                   <Controller
                       name={`educations.${index}.startDate` as any}
                       control={control}
@@ -384,7 +372,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className={labelClass}>End Date</label>
+                  <label className={labelClass}>{t('personForm.endDate')}</label>
                   <Controller
                       name={`educations.${index}.endDate` as any}
                       control={control}
@@ -395,7 +383,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                 </div>
                 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className={labelClass}>Visibility</label>
+                  <label className={labelClass}>{t('personForm.visibility.label')}</label>
                   <Controller
                     name={`educations.${index}.visibility` as any}
                     control={control}
@@ -408,7 +396,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
             </div>
           ))}
           {educationFields.length === 0 && (
-            <p className={cn("text-sm italic text-center py-4", theme.colors.textMuted)}>No education history added.</p>
+            <p className={cn("text-sm italic text-center py-4", theme.colors.textMuted)}>{t('personForm.noEducation')}</p>
           )}
         </div>
       </div>
@@ -419,7 +407,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <div className="flex items-center gap-4">
             <h3 className={sectionHeaderClass}>
                 <Briefcase className={cn("w-5 h-5", theme.colors.accent)} />
-                Occupation
+                {t('personForm.occupation')}
             </h3>
             <label className="flex items-center gap-2 cursor-pointer group">
                 <input type="checkbox" {...register("occupationSectionVisible" as any)} className="hidden" />
@@ -433,7 +421,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
             onClick={() => appendOccupation({ id: uuidv4(), title: "", company: "", location: "", startDate: "", endDate: "", isCurrent: false, description: "", visibility: "tree" })}
             className={cn("flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all", theme.colors.primaryMuted, theme.colors.accent)}
           >
-            <Plus className="w-3.5 h-3.5" /> Add Occupation
+            <Plus className="w-3.5 h-3.5" /> {t('personForm.addOccupation')}
           </button>
         </div>
 
@@ -450,18 +438,18 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Job Title <RequiredStar /></label>
+                  <label className={labelClass}>{t('personForm.jobTitle')} <RequiredStar /></label>
                   <input {...register(`occupations.${index}.title` as any)} className={inputBaseClass((errors.occupations as any)?.[index]?.title)} placeholder="e.g. Architect" />
                   {(errors.occupations as any)?.[index]?.title && <p className="text-xs text-red-500 font-bold mt-1">{(errors.occupations as any)[index].title.message}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Company <RequiredStar /></label>
+                  <label className={labelClass}>{t('personForm.company')} <RequiredStar /></label>
                   <input {...register(`occupations.${index}.company` as any)} className={inputBaseClass((errors.occupations as any)?.[index]?.company)} placeholder="e.g. Google" />
                   {(errors.occupations as any)?.[index]?.company && <p className="text-xs text-red-500 font-bold mt-1">{(errors.occupations as any)[index].company.message}</p>}
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Start Date <RequiredStar /></label>
+                  <label className={labelClass}>{t('personForm.startDate')} <RequiredStar /></label>
                   <Controller
                       name={`occupations.${index}.startDate` as any}
                       control={control}
@@ -472,7 +460,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                   {(errors.occupations as any)?.[index]?.startDate && <p className="text-xs text-red-500 font-bold mt-1">{(errors.occupations as any)[index].startDate.message}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className={labelClass}>End Date</label>
+                  <label className={labelClass}>{t('personForm.endDate')}</label>
                   <div className="space-y-2">
                       <Controller
                           name={`occupations.${index}.endDate` as any}
@@ -501,7 +489,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                                       }}
                                       className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" 
                                   />
-                                  <span className={cn("text-[10px] font-bold uppercase tracking-wider", theme.colors.textMuted)}>Current Work</span>
+                                  <span className={cn("text-[10px] font-bold uppercase tracking-wider", theme.colors.textMuted)}>{t('personForm.currentWork')}</span>
                               </label>
                           )}
                       />
@@ -509,7 +497,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className={labelClass}>Visibility</label>
+                  <label className={labelClass}>{t('personForm.visibility.label')}</label>
                   <Controller
                     name={`occupations.${index}.visibility` as any}
                     control={control}
@@ -522,7 +510,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
             </div>
           ))}
           {occupationFields.length === 0 && (
-            <p className={cn("text-sm italic text-center py-4", theme.colors.textMuted)}>No experience added.</p>
+            <p className={cn("text-sm italic text-center py-4", theme.colors.textMuted)}>{t('personForm.noExperience')}</p>
           )}
         </div>
       </div>
@@ -531,30 +519,30 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       <div className="space-y-6">
         <h3 className={sectionHeaderClass}>
           <Mail className={cn("w-5 h-5", theme.colors.accent)} />
-          Contact & Privacy
+          {t('personForm.contactPrivacy')}
         </h3>
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             <div className="md:col-span-2 space-y-1.5">
-              <label className={labelClass}>Email Address</label>
+              <label className={labelClass}>{t('personForm.emailAddress')}</label>
               <input {...register("email")} type="email" className={inputBaseClass(errors.email)} placeholder="email@example.com" />
               {errors.email && <p className="text-xs text-red-500 font-bold mt-1">{errors.email.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <label className={labelClass}>Email Visibility</label>
+              <label className={labelClass}>{t('personForm.emailVisibility')}</label>
               <Controller name="emailVisibility" control={control} render={({ field }) => <CustomSelect {...field} options={visibilityOptions} size="md" />} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             <div className="md:col-span-2 space-y-1.5">
-              <label className={labelClass}>Phone Number</label>
+              <label className={labelClass}>{t('personForm.phoneNumber')}</label>
               <input {...register("phone")} className={inputBaseClass(errors.phone)} placeholder="+1..." />
               {errors.phone && <p className="text-xs text-red-500 font-bold mt-1">{errors.phone.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <label className={labelClass}>Phone Visibility</label>
+              <label className={labelClass}>{t('personForm.phoneVisibility')}</label>
               <Controller name="phoneVisibility" control={control} render={({ field }) => <CustomSelect {...field} options={visibilityOptions} size="md" />} />
             </div>
           </div>
@@ -565,12 +553,12 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
         <div className={cn("border-t pt-10 space-y-6", theme.colors.border)}>
           <h3 className={sectionHeaderClass}>
             <Link2 className={cn("w-5 h-5", theme.colors.accent)} />
-            Link Member
+          {t('personForm.linkMember')}
           </h3>
           <div className="space-y-4">
             <div className="relative">
               <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4", theme.colors.textMuted)} />
-              <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search existing..." className={inputBaseClass()} />
+              <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('personForm.searchExisting')} className={inputBaseClass()} />
             </div>
             {searchTerm && filteredPeople && filteredPeople.length > 0 && (
               <div className={cn("max-h-60 overflow-y-auto border rounded-xl shadow-lg", theme.colors.border, theme.colors.surface)}>
@@ -591,7 +579,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               <div className={cn("flex items-center justify-between p-6 rounded-2xl border bg-primary/5", theme.colors.borderAccent)}>
                 <div className="flex items-center gap-4">
                   <CheckCircle2 className="w-6 h-6 text-primary" />
-                  <p className={cn("text-sm font-bold", theme.colors.text)}>Linked to {selectedLinkPerson.firstName} {selectedLinkPerson.lastName}</p>
+                  <p className={cn("text-sm font-bold", theme.colors.text)}>{t('personForm.linkedTo').replace('{name}', `${selectedLinkPerson.firstName} ${selectedLinkPerson.lastName}`)}</p>
                 </div>
                 <button type="button" onClick={() => setSelectedLinkPerson(null)} className="p-2 rounded-xl hover:bg-red-50 text-red-500"><X className="w-5 h-5" /></button>
               </div>
@@ -602,7 +590,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
 
       <button type="submit" disabled={isLoading || isUploading} className={cn("w-full py-4 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-3", theme.colors.primary)}>
         {isLoading || isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-        {isEditing ? "Update Profile" : "Create Profile"}
+        {isEditing ? t('personForm.updateProfile') : t('personForm.createProfile')}
       </button>
     </form>
   );

@@ -10,11 +10,13 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function ManageClaimsPage() {
   const queryClient = useQueryClient();
   const [selectedTreeId, setSelectedTreeId] = useState<string>("");
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   // Fetch trees first to get a list
   const { data: trees, isLoading: isLoadingTrees } = useQuery({
@@ -34,9 +36,9 @@ export default function ManageClaimsPage() {
   }, [trees, selectedTreeId]);
 
   const { data: requests, isLoading, isError, error } = useQuery({
-    queryKey: ["claim-requests", selectedTreeId],
+    queryKey: ["claims", selectedTreeId],
     queryFn: async () => {
-      const res = await api.get(`/trees/${selectedTreeId}/claim-requests`);
+      const res = await api.get(`/trees/${selectedTreeId}/claims`);
       return (res as any).data;
     },
     enabled: !!selectedTreeId,
@@ -44,19 +46,19 @@ export default function ManageClaimsPage() {
 
   const approveMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      await api.post(`/trees/${selectedTreeId}/claim-requests/${requestId}/approve`);
+      await api.post(`/trees/${selectedTreeId}/claims/${requestId}/approve`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["claim-requests", selectedTreeId] });
+      queryClient.invalidateQueries({ queryKey: ["claims", selectedTreeId] });
     },
   });
 
   const rejectMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      await api.post(`/trees/${selectedTreeId}/claim-requests/${requestId}/reject`);
+      await api.post(`/trees/${selectedTreeId}/claims/${requestId}/reject`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["claim-requests", selectedTreeId] });
+      queryClient.invalidateQueries({ queryKey: ["claims", selectedTreeId] });
     },
   });
 
@@ -64,10 +66,10 @@ export default function ManageClaimsPage() {
     <div className="space-y-12">
       <header className="space-y-4">
         <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
-          Profile <span className={theme.colors.accent}>Claims</span>
+          {t('admin.claims.title').split(' ')[0]} <span className={theme.colors.accent}>{t('admin.claims.title').split(' ').slice(1).join(' ')}</span>
         </h1>
         <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
-          Review requests from users who want to link their account to an existing profile in the family tree.
+          {t('admin.claims.subtitle')}
         </p>
       </header>
 
@@ -79,15 +81,15 @@ export default function ManageClaimsPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">Select Tree</h3>
-              <p className="text-slate-300 font-medium">Review claims for the selected workspace</p>
+              <h3 className="text-2xl font-black text-white">{t('admin.claims.selectTree.title')}</h3>
+              <p className="text-slate-300 font-medium">{t('admin.claims.selectTree.desc')}</p>
             </div>
             <div className="relative min-w-[300px]">
               <CustomSelect
                 value={selectedTreeId}
                 onChange={setSelectedTreeId}
                 options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
-                placeholder="Choose a tree..."
+                placeholder={t('admin.claims.chooseTree')}
                 className="w-full md:min-w-[300px]"
               />
             </div>
@@ -111,7 +113,7 @@ export default function ManageClaimsPage() {
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-3">
                       <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName}</h3>
-                      <span className={theme.colors.textMuted}>wants to claim</span>
+                      <span className={theme.colors.textMuted}>{t('admin.claims.wantsToClaim')}</span>
                       <h3 className={cn("text-xl font-bold", theme.colors.accent)}>{req.person.firstName} {req.person.lastName}</h3>
                     </div>
                     <div className={cn("flex flex-wrap gap-4 text-sm font-medium", theme.colors.textMuted)}>
@@ -121,7 +123,7 @@ export default function ManageClaimsPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        Requested {formatDate(req.createdAt)}
+                        {t('admin.claims.requested').replace('{date}', formatDate(req.createdAt))}
                       </div>
                     </div>
                   </div>
@@ -135,9 +137,9 @@ export default function ManageClaimsPage() {
                       "flex-1 md:flex-none px-8 py-3 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 shadow-lg shadow-black/5",
                       theme.colors.primary
                     )}
-                  >
+                    >
                     <Check className="w-5 h-5" />
-                    Approve
+                    {t('admin.approve')}
                   </button>
                   <button
                     onClick={() => rejectMutation.mutate(req.id)}
@@ -151,7 +153,7 @@ export default function ManageClaimsPage() {
                     )}
                   >
                     <X className="w-5 h-5" />
-                    Reject
+                    {t('admin.reject')}
                   </button>
                 </div>
               </motion.div>
@@ -162,9 +164,9 @@ export default function ManageClaimsPage() {
                 <Fingerprint className={cn("w-10 h-10", theme.colors.textMuted)} />
               </div>
               <div className="space-y-2">
-                <h3 className={cn("text-xl font-bold", theme.colors.text)}>No pending claim requests</h3>
+                <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.claims.noRequests.title')}</h3>
                 <p className={cn("max-w-sm mx-auto font-medium", theme.colors.textMuted)}>
-                  When users request to claim a profile in your tree, they will show up here for verification.
+                  {t('admin.claims.noRequests.subtitle')}
                 </p>
               </div>
             </div>

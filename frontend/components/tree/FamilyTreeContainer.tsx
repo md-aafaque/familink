@@ -24,6 +24,7 @@ import { cn } from "@/lib/cn";
 import { useTreeInteraction } from "./TreeInteractionProvider";
 import DragRelationshipIndicator from "./DragRelationshipIndicator";
 import { useAppTheme } from "../providers/ThemeProvider";
+import { useLanguage } from "../providers/LanguageProvider";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -256,10 +257,11 @@ interface GenUnit {
   spouseIds:     string[];      // All spouses of this person
   children:      GenUnit[];
   isVirtual?:    boolean;       // For the root wrapper
+  collapsed?:    boolean;       // Union was collapsed, children hidden
 }
 
 // ── Step 1: build the virtual GenUnit tree from flat data ─────────────────────
-function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<string>): GenUnit {
+function buildGenTree(people: Person[], unions: Union[], collapsedUnions: Set<string>): GenUnit {
   const pMap = new Map<string, Person>();
   people.forEach(p => pMap.set(p.id, p));
 
@@ -276,7 +278,7 @@ function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<strin
   function buildUnit(pid: string): GenUnit {
     visited.add(pid);
     const person = pMap.get(pid);
-    if (!person || collapsedSet.has(pid)) {
+    if (!person) {
       return { uid: pid, personId: pid, spouseIds: [], children: [] };
     }
 
@@ -291,19 +293,23 @@ function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<strin
       }
     });
 
-    // Find all children from ALL unions of this person
+    // Find children from unions that are NOT collapsed
     const childrenIds = new Set<string>();
     myUnions.forEach(u => {
+      if (collapsedUnions.has(u.id)) return;
       u.childrenIds.forEach(cid => {
         if (!visited.has(cid)) childrenIds.add(cid);
       });
     });
+
+    const anyCollapsed = myUnions.some(u => collapsedUnions.has(u.id));
 
     return {
       uid: pid,
       personId: pid,
       spouseIds: spouses,
       children: Array.from(childrenIds).map(cid => buildUnit(cid)),
+      collapsed: anyCollapsed || undefined,
     };
   }
 
@@ -443,17 +449,16 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
       positions.set(sid, { x: curX, y: visualY });
     });
 
-    // Connectors: draw from the MIDPOINT of all spouses if children exist
-    if (node.children) {
+    // Push connector when node has children or was collapsed (preserve spouse
+    // line + vertical stem). Genuine leaf nodes get none.
+    if (node.children || node.data.collapsed) {
       const lastSpouseX = curX;
-      const unionX = (pX + lastSpouseX) / 2;
-      
       connectors.push({
         id: `rel-${personId}`,
         p1x: pX,
         p2x: lastSpouseX,
         parentBottomY: visualY + CARD_H,
-        childXs: node.children.map(c => c.x! + xShift),
+        childXs: node.children ? node.children.map(c => c.x! + xShift) : [],
         childTopY: (node.depth) * (CARD_H + V_GAP)
       });
     }
@@ -495,8 +500,11 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
             <circle cx={unionX} cy={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} r={4.5} 
               fill={hasSpouse ? spouseColor : lineColor} stroke="white" strokeWidth={2} />
 
-            {/* Vertical stem */}
-            <line x1={unionX} y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} x2={unionX} y2={elbowY}
+            {/* Vertical stem — full length when children exist, short stub to icon otherwise */}
+            <line x1={unionX}
+              y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
+              x2={unionX}
+              y2={c.childXs.length > 0 ? elbowY : c.parentBottomY + 6}
               stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
 
             {/* Horizontal bus */}
@@ -521,21 +529,18 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
 // Person Node Card
 // ─────────────────────────────────────────────────────────────────────────────
 interface PersonNodeProps {
-  person:      Person;
+  person:     Person;
   t:           Theme;
   accentHex:   string;
   isFocus:     boolean;
   isHit:       boolean;
-  hasKids:     boolean;
-  isCollapsed: boolean;
   onFocus:     (id: string) => void;
   onDrop:      (srcId: string, tgtId: string) => void;
-  onCollapse:  (id: string) => void;
 }
 
 function PersonNode({
   person, t, accentHex, isFocus, isHit,
-  hasKids, isCollapsed, onFocus, onDrop, onCollapse,
+  onFocus, onDrop,
 }: PersonNodeProps) {
   const { setHoveredPersonId } = useTreeInteraction();
   const initials  = `${person.firstName[0]}${person.lastName?.[0] ?? ""}`.toUpperCase();
@@ -627,24 +632,6 @@ function PersonNode({
           )}
         </div>
       </button>
-
-      {/* Collapse / expand button - Styled to be more integrated */}
-      {hasKids && (
-        <button
-          onClick={e => { e.stopPropagation(); onCollapse(person.id); }}
-          title={isCollapsed ? "Expand Branch" : "Collapse Branch"}
-          className={cn(
-            "absolute -bottom-[14px] left-1/2 -translate-x-1/2 z-20",
-            "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300",
-            "border-2 shadow-lg hover:scale-110 active:scale-90",
-            isCollapsed 
-              ? "bg-primary text-white border-primary rotate-180" 
-              : cn(t.cardBg, t.cardBorder, "text-slate-400 hover:text-primary")
-          )}
-        >
-          <ChevronDown className="w-3.5 h-3.5" />
-        </button>
-      )}
     </div>
   );
 }
@@ -677,6 +664,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const centeredRef    = useRef(false);
 
   const { theme: appTheme } = useAppTheme();
+  const { t: tLang } = useLanguage();
   const [themeKey, setThemeKey] = useState<ThemeKey>(appTheme.isDark ? "dark" : "light");
 
   useEffect(() => {
@@ -686,7 +674,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullScreen, setIsFullScreen]     = useState(false);
   const [focusId, setFocusId]               = useState<string | null>(null);
-  const [collapsedSet, setCollapsedSet]     = useState<Set<string>>(new Set());
+  const [collapsedUnions, setCollapsedUnions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery]       = useState("");
   const [searchOpen, setSearchOpen]         = useState(false);
   const [drawerPersonId, setDrawerPersonId] = useState<string | null>(null);
@@ -815,9 +803,9 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   // ── Layout (D3) ────────────────────────────────────────────────────────────
   const layout = useMemo(() => {
     if (peopleInTree.length === 0) return null;
-    const genTree = buildGenTree(peopleInTree, unions, collapsedSet);
+    const genTree = buildGenTree(peopleInTree, unions, collapsedUnions);
     return applyD3Layout(genTree);
-  }, [unions, peopleInTree, collapsedSet]);
+  }, [unions, peopleInTree, collapsedUnions]);
 
   // ── Search ─────────────────────────────────────────────────────────────────
   const searchResults = useMemo(() => {
@@ -897,8 +885,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCardClick = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
   const handleDrop      = useCallback((src: string, tgt: string) => { setProposalSrc(src); setProposalTgt(tgt); }, []);
-  const toggleCollapse  = useCallback((id: string) =>
-    setCollapsedSet(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
+  const toggleCollapse  = useCallback((unionId: string) =>
+    setCollapsedUnions(prev => { const n = new Set(prev); n.has(unionId) ? n.delete(unionId) : n.add(unionId); return n; }), []);
 
   const handleDeletePerson = useCallback(async (personId: string, reason?: string) => {
     try {
@@ -952,57 +940,14 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       style={{ backgroundColor: t.canvas }}>
 
       {/* ══════════════════════════════════════════════════════════════════
-          OUTER OVERLAY — sidebar toggle + search (straddles sidebar/canvas)
+          OUTER OVERLAY — sidebar toggle (straddles sidebar/canvas)
       ══════════════════════════════════════════════════════════════════ */}
       <div className="absolute inset-0 pointer-events-none z-30">
         <div className="absolute top-4 left-4 pointer-events-auto">
           <IconBtn onClick={() => setShowSandbox(s => !s)}
-            title={showSandbox ? "Hide panel" : "Show panel"} className={t.iconBtn}>
+            title={showSandbox ? tLang('treePage.hidePanel') : tLang('treePage.showPanel')} className={t.iconBtn}>
             {showSandbox ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </IconBtn>
-        </div>
-
-        <div className="absolute top-4 left-16 pointer-events-auto">
-          <motion.div animate={{ width: searchOpen ? 228 : 36 }}
-            transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            className={cn("h-9 rounded-xl flex items-center overflow-hidden", t.panel)}>
-            <button onClick={searchOpen ? closeSearch : openSearch}
-              className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0", t.muted)}>
-              <Search className="w-3.5 h-3.5" />
-            </button>
-            <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search people…" className={cn("flex-1 bg-transparent outline-none text-xs font-medium", t.text)} />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0", t.muted)}>
-                <X className="w-3 h-3" />
-              </button>
-            )}
-          </motion.div>
-
-          <AnimatePresence>
-            {searchOpen && searchResults.length > 0 && (
-              <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
-                className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden shadow-2xl", t.panel)}>
-                {searchResults.map((p, i) => (
-                  <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
-                    className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5", 
-                        i && "border-t",
-                        themeKey === 'sepia' ? "border-stone-200/50" : (themeKey === 'forest' ? "border-emerald-100" : "border-slate-100/50")
-                    )}>
-                    <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                      style={{ backgroundColor: t.accent }}>
-                      {p.firstName[0]}{p.lastName?.[0] ?? ""}
-                    </span>
-                    <div className="min-w-0">
-                      <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
-                      {p.birthDate && <p className={cn("text-[10px]", t.muted)}>{p.birthDate}</p>}
-                    </div>
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
@@ -1045,9 +990,53 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         {peopleInTree.length > 0 && (
           <div className="absolute inset-0 pointer-events-none z-20">
 
+            {/* Search — top-left of canvas */}
+            <div className="absolute top-4 left-4 pointer-events-auto">
+              <motion.div animate={{ width: searchOpen ? 228 : 36 }}
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                className={cn("h-9 rounded-xl flex items-center overflow-hidden", t.panel)}>
+                <button onClick={searchOpen ? closeSearch : openSearch}
+                  className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0", t.muted)}>
+                  <Search className="w-3.5 h-3.5" />
+                </button>
+                <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search people…" className={cn("flex-1 bg-transparent outline-none text-xs font-medium", t.text)} />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0", t.muted)}>
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </motion.div>
+
+              <AnimatePresence>
+                {searchOpen && searchResults.length > 0 && (
+                  <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
+                    className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden shadow-2xl", t.panel)}>
+                    {searchResults.map((p, i) => (
+                      <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
+                        className={cn(
+                            "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5", 
+                            i && "border-t",
+                            themeKey === 'sepia' ? "border-stone-200/50" : (themeKey === 'forest' ? "border-emerald-100" : "border-slate-100/50")
+                        )}>
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                          style={{ backgroundColor: t.accent }}>
+                          {p.firstName[0]}{p.lastName?.[0] ?? ""}
+                        </span>
+                        <div className="min-w-0">
+                          <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
+                          {p.birthDate && <p className={cn("text-[10px]", t.muted)}>{p.birthDate}</p>}
+                        </div>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* Fullscreen — top-right of canvas */}
             <div className="absolute top-4 right-4 pointer-events-auto">
-              <IconBtn onClick={toggleFS} title={isFullScreen ? "Exit fullscreen" : "Fullscreen"} className={t.iconBtn}>
+              <IconBtn onClick={toggleFS} title={isFullScreen ? tLang('treePage.exitFullscreen') : tLang('treePage.fullscreen')} className={t.iconBtn}>
                 {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
               </IconBtn>
             </div>
@@ -1065,15 +1054,15 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
             {/* Bottom-centre floating toolbar */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
               <div className={cn("flex items-center gap-0.5 px-2 h-11 rounded-2xl", t.toolbar)}>
-                <button title="Zoom out" onClick={() => transformRef.current?.zoomOut(0.3)}
+                <button title={tLang('treePage.zoomOut')} onClick={() => transformRef.current?.zoomOut(0.3)}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                   <ZoomOut className="w-3.5 h-3.5" />
                 </button>
-                <button title="Fit to screen" onClick={centerTree}
+                <button title={tLang('treePage.fitToScreen')} onClick={centerTree}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
-                <button title="Zoom in" onClick={() => transformRef.current?.zoomIn(0.3)}
+                <button title={tLang('treePage.zoomIn')} onClick={() => transformRef.current?.zoomIn(0.3)}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                   <ZoomIn className="w-3.5 h-3.5" />
                 </button>
@@ -1094,7 +1083,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                 <div className="w-px h-5 mx-1 bg-current opacity-10" />
 
                 <div className="relative">
-                  <button title="Export" onClick={() => setExportMenuOpen(o => !o)}
+                  <button title={tLang('treePage.export')} onClick={() => setExportMenuOpen(o => !o)}
                     className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                     {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageDown className="w-3.5 h-3.5" />}
                   </button>
@@ -1105,11 +1094,11 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                         className={cn("absolute bottom-11 right-0 w-40 rounded-xl overflow-hidden", t.panel)}>
                         <button onClick={() => doExport("png")}
                           className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5", t.text)}>
-                          <ImageDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PNG
+                          <ImageDown className="w-3.5 h-3.5 flex-shrink-0" /> {tLang('treePage.exportPng')}
                         </button>
                         <button onClick={() => doExport("pdf")}
                           className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5 border-t border-black/5", t.text)}>
-                          <FileDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PDF
+                          <FileDown className="w-3.5 h-3.5 flex-shrink-0" /> {tLang('treePage.exportPdf')}
                         </button>
                       </motion.div>
                     )}
@@ -1162,9 +1151,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                     {layout && Array.from(layout.nodes.entries()).map(([pid, pos]) => {
                       const person = peopleMap.get(pid);
                       if (!person) return null;
-                      const hasKids = unions.some(u =>
-                        (u.partner1Id === pid || u.partner2Id === pid) && u.childrenIds.length > 0
-                      );
                       return (
                         <motion.div key={pid}
                           initial={{ opacity: 0, scale: 0.88, y: 6 }}
@@ -1175,10 +1161,39 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                           <PersonNode
                             person={person} t={t} accentHex={t.accent}
                             isFocus={focusId === pid} isHit={searchHitIds.has(pid)}
-                            hasKids={hasKids} isCollapsed={collapsedSet.has(pid)}
-                            onFocus={handleCardClick} onDrop={handleDrop} onCollapse={toggleCollapse}
+                            onFocus={handleCardClick} onDrop={handleDrop}
                           />
                         </motion.div>
+                      );
+                    })}
+
+                    {/* Layer 4 — Union collapse buttons (centered between partners) */}
+                    {layout && unions.map(u => {
+                      if (u.childrenIds.length === 0) return null;
+                      const p1 = layout.nodes.get(u.partner1Id);
+                      if (!p1) return null;
+                      const midX = u.partner2Id
+                        ? ((p1.x + (layout.nodes.get(u.partner2Id)?.x ?? p1.x)) / 2)
+                        : p1.x;
+                      const p2y = u.partner2Id ? (layout.nodes.get(u.partner2Id)?.y ?? p1.y) : p1.y;
+                      const btnY = Math.max(p1.y, p2y) + CARD_H;
+                      const isCollapsed = collapsedUnions.has(u.id);
+                      return (
+                        <button key={u.id}
+                          onClick={() => toggleCollapse(u.id)}
+                          title={isCollapsed ? 'Expand Branch' : 'Collapse Branch'}
+                          className={cn(
+                            "absolute z-20",
+                            "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300",
+                            "border-2 shadow-lg hover:scale-110 active:scale-90",
+                            isCollapsed
+                              ? "bg-primary text-white border-primary rotate-180"
+                              : cn(t.cardBg, t.cardBorder, "text-slate-400 hover:text-primary")
+                          )}
+                          style={{ left: midX - 14, top: btnY + 6 }}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
                       );
                     })}
                   </div>
@@ -1192,13 +1207,13 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                     <div className={cn("w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6", t.chipOn)}>
                       <Users className="w-8 h-8" />
                     </div>
-                    <h3 className={cn("text-xl font-black mb-3", t.text)}>Build Your Family Tree</h3>
+                    <h3 className={cn("text-xl font-black mb-3", t.text)}>{tLang('treePage.empty.title')}</h3>
                     <p className={cn("text-sm font-medium mb-8 leading-relaxed", t.muted)}>
-                      Add your first family member and connect them to start visualizing your history.
+                      {tLang('treePage.empty.subtitle')}
                     </p>
                     <button onClick={() => setShowCreateModal(true)}
                       className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-lg active:scale-95", t.chipOn)}>
-                      Add First Member
+                      {tLang('treePage.empty.button')}
                     </button>
                   </div>
                 </div>

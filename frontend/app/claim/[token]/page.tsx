@@ -4,12 +4,14 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '../../../lib/api';
 import { CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function ClaimPage() {
   const params = useParams() as any;
   const token = params.token as string;
+  const { t } = useLanguage();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
-  const [message, setMessage] = useState('Processing your claim...');
+  const [message, setMessage] = useState(t("claim.processing"));
   const [personName, setPersonName] = useState('');
   const [personId, setPersonId] = useState('');
   const router = useRouter();
@@ -30,7 +32,7 @@ export default function ClaimPage() {
         }
         
         setPersonId(res.data.personId || '');
-        setMessage(`You now have edit access to this family member!`);
+        setMessage(t("claim.success"));
         setStatus('success');
         
         // Redirect after 3 seconds
@@ -43,7 +45,7 @@ export default function ClaimPage() {
         }, 3000);
       } catch (err: any) {
         console.error('Claim error:', err);
-        setMessage(err?.response?.data?.error || 'This claim link is invalid or has expired. Please request a new one.');
+        setMessage(err?.response?.data?.error || t("claim.invalid"));
         setStatus('error');
       }
     })();
@@ -67,7 +69,7 @@ export default function ClaimPage() {
               >
                 <Loader className="w-16 h-16 text-primary-600" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Processing Claim</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">{t("claim.processingTitle")}</h2>
               <p className="text-slate-600">{message}</p>
             </>
           )}
@@ -82,13 +84,13 @@ export default function ClaimPage() {
               >
                 <CheckCircle className="w-16 h-16 text-green-500" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-green-700 mb-2">Claim Successful!</h2>
+              <h2 className="text-2xl font-bold text-green-700 mb-2">{t("claim.successTitle")}</h2>
               {personName && (
                 <p className="text-lg font-medium text-slate-900 mb-2">{personName}</p>
               )}
               <p className="text-slate-600 mb-6">{message}</p>
               <div className="pt-6 border-t border-slate-100">
-                <p className="text-sm text-slate-600 mb-4">Redirecting to person page...</p>
+                <p className="text-sm text-slate-600 mb-4">{t("claim.redirecting")}</p>
                 <motion.div
                   animate={{ width: '100%' }}
                   transition={{ duration: 3, ease: 'linear' }}
@@ -109,7 +111,7 @@ export default function ClaimPage() {
               >
                 <AlertCircle className="w-16 h-16 text-red-500" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-red-700 mb-2">Claim Failed</h2>
+              <h2 className="text-2xl font-bold text-red-700 mb-2">{t("claim.errorTitle")}</h2>
               <p className="text-red-600 mb-6">{message}</p>
               <motion.button
                 onClick={() => router.push('/dashboard')}
@@ -117,7 +119,7 @@ export default function ClaimPage() {
                 whileTap={{ scale: 0.95 }}
                 className="btn-primary w-full"
               >
-                Back to Dashboard
+                {t("claim.backToDashboard")}
               </motion.button>
             </>
           )}

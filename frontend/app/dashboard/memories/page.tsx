@@ -19,10 +19,12 @@ import { Memory } from '@/lib/shared/schemas/memories';
 import { useAuth } from '@/components/providers/AuthProvider';
 import DataState from '@/components/shared/DataState';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export default function FamilyWallPage() {
   const { theme } = useAppTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   
   const [selectedTreeId, setSelectedTreeId] = useState<string | null>(null);
@@ -95,11 +97,11 @@ export default function FamilyWallPage() {
               <ImageIcon className={cn("w-6 h-6", theme.colors.accent)} />
             </div>
             <h1 className={cn("text-3xl font-black uppercase tracking-tight", theme.colors.text)}>
-              Family Wall
+              {t('memories.title')}
             </h1>
           </div>
           <p className={cn("text-sm max-w-lg", theme.colors.textMuted)}>
-            A shared space for milestones, stories, and photos. Preserve your heritage together.
+            {t('memories.subtitle')}
           </p>
         </div>
 
@@ -112,7 +114,7 @@ export default function FamilyWallPage() {
           )}
         >
           <Plus className="w-5 h-5" />
-          Add Memory
+          {t('memories.add')}
         </button>
       </div>
 
@@ -129,7 +131,7 @@ export default function FamilyWallPage() {
                 options={trees?.map((tree: any) => ({ value: tree.id, label: tree.name })) || []}
                 value={selectedTreeId || ''}
                 onChange={(val) => setSelectedTreeId(val)}
-                placeholder={treesLoading ? "Loading trees..." : "Select Tree"}
+                placeholder={treesLoading ? t('memories.loadingTrees') : t('memories.selectTree')}
                 size="sm"
             />
           </div>
@@ -139,7 +141,7 @@ export default function FamilyWallPage() {
             <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40", theme.colors.text)} />
             <input
               type="text"
-              placeholder="Search memories..."
+              placeholder={t('memories.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={cn(
@@ -155,18 +157,23 @@ export default function FamilyWallPage() {
         <div className="flex items-center gap-4 w-full md:w-auto">
           {/* Filter Type */}
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-            {['all', 'milestone', 'story', 'photo'].map((t) => (
+            {[
+              { key: 'all', label: t('memories.filter.all') },
+              { key: 'milestone', label: t('memories.filter.milestone') },
+              { key: 'story', label: t('memories.filter.story') },
+              { key: 'photo', label: t('memories.filter.photo') },
+            ].map((item) => (
               <button
-                key={t}
-                onClick={() => setFilterType(t)}
+                key={item.key}
+                onClick={() => setFilterType(item.key)}
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                  filterType === t 
+                  filterType === item.key 
                     ? "bg-white dark:bg-slate-700 shadow-sm text-primary" 
                     : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 )}
               >
-                {t}
+                {item.label}
               </button>
             ))}
           </div>
@@ -219,11 +226,11 @@ export default function FamilyWallPage() {
               <ImageIcon className={cn("w-8 h-8 opacity-20", theme.colors.accent)} />
             </div>
             <div className="space-y-1">
-              <h3 className={cn("text-xl font-bold", theme.colors.text)}>No memories found</h3>
+              <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('memories.noMemories.title')}</h3>
               <p className={cn("text-sm opacity-60 max-w-xs mx-auto", theme.colors.textMuted)}>
                 {searchQuery || filterType !== 'all' 
-                  ? "Try adjusting your filters or search terms." 
-                  : "Be the first to capture a family memory in this tree!"}
+                  ? t('memories.noMemories.searchSubtitle')
+                  : t('memories.noMemories.emptySubtitle')}
               </p>
             </div>
             {!searchQuery && filterType === 'all' && (
@@ -231,7 +238,7 @@ export default function FamilyWallPage() {
                 onClick={() => setIsModalOpen(true)}
                 className={cn("px-6 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20")}
               >
-                Add Your First Memory
+                {t('memories.noMemories.button')}
               </button>
             )}
           </div>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useLanguage } from './providers/LanguageProvider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle } from 'lucide-react'
@@ -8,6 +11,7 @@ interface ErrorCardProps {
 }
 
 export function ErrorCard({ error, onGoHome }: ErrorCardProps) {
+  const { t } = useLanguage()
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100">
       <div className="flex items-center justify-center min-h-screen p-4">
@@ -17,7 +21,7 @@ export function ErrorCard({ error, onGoHome }: ErrorCardProps) {
               <AlertTriangle className="h-6 w-6 text-red-600" />
             </div>
             <CardTitle className="text-xl font-bold text-red-600">
-              Invalid Invitation
+              {t('errorCard.title')}
             </CardTitle>
             <CardDescription>
               {error}
@@ -26,7 +30,7 @@ export function ErrorCard({ error, onGoHome }: ErrorCardProps) {
 
           <CardContent className="text-center">
             <Button onClick={onGoHome} className="w-full">
-              Go to Home
+              {t('errorCard.goHome')}
             </Button>
           </CardContent>
         </Card>

@@ -85,7 +85,7 @@ export class RelationshipRepository {
         'child': 'parent',
         'spouse': 'spouse',
         'sibling': 'sibling',
-        'adopted_child': 'parent'
+        'adopted_child': 'child'
       };
 
       const reciprocalType = reciprocalMap[type] || type;
@@ -119,7 +119,89 @@ export class RelationshipRepository {
         { fromId, toId, reciprocalType, treeId, createdBy, approvedBy }
       );
 
-      // 3. Sibling Parent Inference
+      // 3. Parent/Child Inference (when type = 'parent', 'child', or 'adopted_child')
+      if (type === 'parent' || type === 'child' || type === 'adopted_child') {
+        const parentId = (type === 'parent' || type === 'adopted_child') ? fromId : toId;
+        const childId  = (type === 'parent' || type === 'adopted_child') ? toId : fromId;
+
+        // 3a. Sibling inference: child's siblings get this parent
+        await session.run(
+          `
+          MATCH (parent:Person {id: $parentId, treeId: $treeId})
+          MATCH (child:Person {id: $childId, treeId: $treeId})
+          OPTIONAL MATCH (child)<-[:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]-(sibling:Person)
+          WHERE sibling.deletedAt IS NULL AND sibling.id <> $childId
+          WITH parent, collect(DISTINCT sibling) as siblings
+          FOREACH (s IN siblings |
+            MERGE (parent)-[r1:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(s)
+            ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+            MERGE (s)-[r2:FAMILY_RELATIONSHIP {type: 'child', treeId: $treeId}]->(parent)
+            ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          )
+          `,
+          { parentId, childId, treeId, createdBy, approvedBy }
+        );
+
+        // 3b. Full Sibling Closure: all of parent's children become siblings
+        await session.run(
+          `
+          MATCH (parent:Person {id: $parentId, treeId: $treeId})
+          OPTIONAL MATCH (parent)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child:Person)
+          WHERE child.deletedAt IS NULL
+          WITH collect(DISTINCT child) as allChildren
+          UNWIND allChildren as c1
+          UNWIND allChildren as c2
+          WITH c1, c2 WHERE c1.id <> c2.id
+          MERGE (c1)-[r1:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(c2)
+          ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+          MERGE (c2)-[r2:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(c1)
+          ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          `,
+          { parentId, treeId, createdBy, approvedBy }
+        );
+
+        // 3c. Spouse inference: parent's spouses get ALL parent's children
+        await session.run(
+          `
+          MATCH (parent:Person {id: $parentId, treeId: $treeId})
+          OPTIONAL MATCH (parent)<-[:FAMILY_RELATIONSHIP {type: 'spouse', treeId: $treeId}]-(spouse:Person)
+          WHERE spouse.deletedAt IS NULL AND spouse.id <> $parentId
+          OPTIONAL MATCH (parent)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child:Person)
+          WHERE child.deletedAt IS NULL
+          WITH spouse, child
+          WHERE spouse IS NOT NULL AND child IS NOT NULL
+          MERGE (spouse)-[r1:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child)
+          ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+          MERGE (child)-[r2:FAMILY_RELATIONSHIP {type: 'child', treeId: $treeId}]->(spouse)
+          ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          `,
+          { parentId, treeId, createdBy, approvedBy }
+        );
+
+        // 3d. Spouse-Step-Sibling Closure: spouses' other children become step-siblings
+        await session.run(
+          `
+          MATCH (parent:Person {id: $parentId, treeId: $treeId})
+          OPTIONAL MATCH (parent)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(pChild:Person)
+          WHERE pChild.deletedAt IS NULL
+          OPTIONAL MATCH (parent)<-[:FAMILY_RELATIONSHIP {type: 'spouse', treeId: $treeId}]-(spouse:Person)
+          WHERE spouse.deletedAt IS NULL AND spouse.id <> $parentId
+          OPTIONAL MATCH (spouse)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(sChild:Person)
+          WHERE sChild.deletedAt IS NULL AND sChild.id <> $parentId
+          WITH collect(DISTINCT pChild) as pChildren, collect(DISTINCT sChild) as sChildren
+          UNWIND pChildren as pc
+          UNWIND sChildren as sc
+          WITH pc, sc WHERE pc.id <> sc.id
+          MERGE (pc)-[r1:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(sc)
+          ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+          MERGE (sc)-[r2:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(pc)
+          ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          `,
+          { parentId, treeId, createdBy, approvedBy }
+        );
+      }
+
+      // 4. Sibling Parent Inference
       if (type === 'sibling') {
         await session.run(
           `
@@ -151,6 +233,167 @@ export class RelationshipRepository {
           `,
           { fromId, toId, treeId, createdBy, approvedBy }
         );
+
+        // 4b. Transitive Sibling Closure: A's siblings become B's siblings and vice versa
+        await session.run(
+          `
+          MATCH (a:Person {id: $fromId, treeId: $treeId}), (b:Person {id: $toId, treeId: $treeId})
+          OPTIONAL MATCH (a)<-[:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]-(sA:Person)
+          WHERE sA.deletedAt IS NULL AND sA.id <> $toId
+          WITH a, b, collect(DISTINCT sA) as siblingsOfA
+          FOREACH (s IN siblingsOfA |
+            MERGE (s)-[r1:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(b)
+            ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+            MERGE (b)-[r2:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(s)
+            ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          )
+          WITH a, b
+          OPTIONAL MATCH (b)<-[:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]-(sB:Person)
+          WHERE sB.deletedAt IS NULL AND sB.id <> $fromId
+          WITH a, b, collect(DISTINCT sB) as siblingsOfB
+          FOREACH (s IN siblingsOfB |
+            MERGE (s)-[r3:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(a)
+            ON CREATE SET r3.createdBy = $createdBy, r3.approvedBy = $approvedBy, r3.createdAt = timestamp()
+            MERGE (a)-[r4:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(s)
+            ON CREATE SET r4.createdBy = $createdBy, r4.approvedBy = $approvedBy, r4.createdAt = timestamp()
+          )
+          `,
+          { fromId, toId, treeId, createdBy, approvedBy }
+        );
+
+        // 4c. Re-run full parent/child inference for affected parents
+        // Collect all parents of A and B (after parent propagation in 4a)
+        const parentResult = await session.run(
+          `
+          MATCH (a:Person {id: $fromId, treeId: $treeId}), (b:Person {id: $toId, treeId: $treeId})
+          OPTIONAL MATCH (pa:Person)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(a)
+          WHERE pa.deletedAt IS NULL
+          OPTIONAL MATCH (pb:Person)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(b)
+          WHERE pb.deletedAt IS NULL
+          WITH collect(DISTINCT pa) + collect(DISTINCT pb) as rawParents
+          WITH [p IN rawParents WHERE p IS NOT NULL] as parents
+          UNWIND parents as p
+          RETURN collect(DISTINCT p.id) as parentIds
+          `,
+          { fromId, toId, treeId }
+        );
+
+        const parentIds: string[] = parentResult.records[0]?.get('parentIds') || [];
+
+        for (const pid of parentIds) {
+          // Full Sibling Closure (same as 3b)
+          await session.run(
+            `
+            MATCH (parent:Person {id: $parentId, treeId: $treeId})
+            OPTIONAL MATCH (parent)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child:Person)
+            WHERE child.deletedAt IS NULL
+            WITH collect(DISTINCT child) as allChildren
+            UNWIND allChildren as c1
+            UNWIND allChildren as c2
+            WITH c1, c2 WHERE c1.id <> c2.id
+            MERGE (c1)-[r1:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(c2)
+            ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+            MERGE (c2)-[r2:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(c1)
+            ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+            `,
+            { parentId: pid, treeId, createdBy, approvedBy }
+          );
+
+          // Spouse-Child Propagation (same as 3c)
+          await session.run(
+            `
+            MATCH (parent:Person {id: $parentId, treeId: $treeId})
+            OPTIONAL MATCH (parent)<-[:FAMILY_RELATIONSHIP {type: 'spouse', treeId: $treeId}]-(spouse:Person)
+            WHERE spouse.deletedAt IS NULL AND spouse.id <> $parentId
+            OPTIONAL MATCH (parent)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child:Person)
+            WHERE child.deletedAt IS NULL
+            WITH spouse, child
+            WHERE spouse IS NOT NULL AND child IS NOT NULL
+            MERGE (spouse)-[r1:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child)
+            ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+            MERGE (child)-[r2:FAMILY_RELATIONSHIP {type: 'child', treeId: $treeId}]->(spouse)
+            ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+            `,
+            { parentId: pid, treeId, createdBy, approvedBy }
+          );
+
+          // Spouse-Step-Sibling Closure (same as 3d)
+          await session.run(
+            `
+            MATCH (parent:Person {id: $parentId, treeId: $treeId})
+            OPTIONAL MATCH (parent)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(pChild:Person)
+            WHERE pChild.deletedAt IS NULL
+            OPTIONAL MATCH (parent)<-[:FAMILY_RELATIONSHIP {type: 'spouse', treeId: $treeId}]-(spouse:Person)
+            WHERE spouse.deletedAt IS NULL AND spouse.id <> $parentId
+            OPTIONAL MATCH (spouse)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(sChild:Person)
+            WHERE sChild.deletedAt IS NULL AND sChild.id <> $parentId
+            WITH collect(DISTINCT pChild) as pChildren, collect(DISTINCT sChild) as sChildren
+            UNWIND pChildren as pc
+            UNWIND sChildren as sc
+            WITH pc, sc WHERE pc.id <> sc.id
+            MERGE (pc)-[r1:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(sc)
+            ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+            MERGE (sc)-[r2:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(pc)
+            ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+            `,
+            { parentId: pid, treeId, createdBy, approvedBy }
+          );
+        }
+      }
+
+      // 5. Spouse Inference (when type = 'spouse')
+      if (type === 'spouse') {
+        // Each spouse's children become children of the other spouse
+        await session.run(
+          `
+          MATCH (p1:Person {id: $fromId, treeId: $treeId}), (p2:Person {id: $toId, treeId: $treeId})
+          OPTIONAL MATCH (p1)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child:Person)
+          WHERE child.deletedAt IS NULL
+          WITH p2, collect(DISTINCT child) as childrenOfP1
+          FOREACH (c IN childrenOfP1 |
+            MERGE (p2)-[r1:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(c)
+            ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+            MERGE (c)-[r2:FAMILY_RELATIONSHIP {type: 'child', treeId: $treeId}]->(p2)
+            ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          )
+          `,
+          { fromId, toId, treeId, createdBy, approvedBy }
+        );
+
+        // p2's children -> p1 becomes parent
+        await session.run(
+          `
+          MATCH (p1:Person {id: $fromId, treeId: $treeId}), (p2:Person {id: $toId, treeId: $treeId})
+          OPTIONAL MATCH (p2)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child:Person)
+          WHERE child.deletedAt IS NULL
+          WITH p1, collect(DISTINCT child) as childrenOfP2
+          FOREACH (c IN childrenOfP2 |
+            MERGE (p1)-[r1:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(c)
+            ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+            MERGE (c)-[r2:FAMILY_RELATIONSHIP {type: 'child', treeId: $treeId}]->(p1)
+            ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          )
+          `,
+          { fromId, toId, treeId, createdBy, approvedBy }
+        );
+
+        // 5b. Full Sibling Closure: all children of both spouses become siblings
+        await session.run(
+          `
+          MATCH (p1:Person {id: $fromId, treeId: $treeId})
+          OPTIONAL MATCH (p1)-[:FAMILY_RELATIONSHIP {type: 'parent', treeId: $treeId}]->(child:Person)
+          WHERE child.deletedAt IS NULL
+          WITH collect(DISTINCT child) as allChildren
+          UNWIND allChildren as c1
+          UNWIND allChildren as c2
+          WITH c1, c2 WHERE c1.id <> c2.id
+          MERGE (c1)-[r1:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(c2)
+          ON CREATE SET r1.createdBy = $createdBy, r1.approvedBy = $approvedBy, r1.createdAt = timestamp()
+          MERGE (c2)-[r2:FAMILY_RELATIONSHIP {type: 'sibling', treeId: $treeId}]->(c1)
+          ON CREATE SET r2.createdBy = $createdBy, r2.approvedBy = $approvedBy, r2.createdAt = timestamp()
+          `,
+          { fromId, treeId, createdBy, approvedBy }
+        );
       }
     } finally {
       await session.close();
@@ -171,7 +414,7 @@ export class RelationshipRepository {
         'child': 'parent',
         'spouse': 'spouse',
         'sibling': 'sibling',
-        'adopted_child': 'parent'
+        'adopted_child': 'child'
       };
       const reciprocalType = reciprocalMap[type] || type;
 
