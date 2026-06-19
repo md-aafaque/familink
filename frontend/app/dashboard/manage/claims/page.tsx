@@ -36,9 +36,9 @@ export default function ManageClaimsPage() {
   }, [trees, selectedTreeId]);
 
   const { data: requests, isLoading, isError, error } = useQuery({
-    queryKey: ["claim-requests", selectedTreeId],
+    queryKey: ["claims", selectedTreeId],
     queryFn: async () => {
-      const res = await api.get(`/trees/${selectedTreeId}/claim-requests`);
+      const res = await api.get(`/trees/${selectedTreeId}/claims`);
       return (res as any).data;
     },
     enabled: !!selectedTreeId,
@@ -46,19 +46,19 @@ export default function ManageClaimsPage() {
 
   const approveMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      await api.post(`/trees/${selectedTreeId}/claim-requests/${requestId}/approve`);
+      await api.post(`/trees/${selectedTreeId}/claims/${requestId}/approve`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["claim-requests", selectedTreeId] });
+      queryClient.invalidateQueries({ queryKey: ["claims", selectedTreeId] });
     },
   });
 
   const rejectMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      await api.post(`/trees/${selectedTreeId}/claim-requests/${requestId}/reject`);
+      await api.post(`/trees/${selectedTreeId}/claims/${requestId}/reject`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["claim-requests", selectedTreeId] });
+      queryClient.invalidateQueries({ queryKey: ["claims", selectedTreeId] });
     },
   });
 

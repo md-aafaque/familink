@@ -257,6 +257,7 @@ interface GenUnit {
   spouseIds:     string[];      // All spouses of this person
   children:      GenUnit[];
   isVirtual?:    boolean;       // For the root wrapper
+  collapsed?:    boolean;       // Union was collapsed, children hidden
 }
 
 // ── Step 1: build the virtual GenUnit tree from flat data ─────────────────────
@@ -301,11 +302,14 @@ function buildGenTree(people: Person[], unions: Union[], collapsedUnions: Set<st
       });
     });
 
+    const anyCollapsed = myUnions.some(u => collapsedUnions.has(u.id));
+
     return {
       uid: pid,
       personId: pid,
       spouseIds: spouses,
       children: Array.from(childrenIds).map(cid => buildUnit(cid)),
+      collapsed: anyCollapsed || undefined,
     };
   }
 
@@ -445,17 +449,16 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
       positions.set(sid, { x: curX, y: visualY });
     });
 
-    // Connectors: draw from the MIDPOINT of all spouses if children exist
-    if (node.children) {
+    // Push connector when node has children or was collapsed (preserve spouse
+    // line + vertical stem). Genuine leaf nodes get none.
+    if (node.children || node.data.collapsed) {
       const lastSpouseX = curX;
-      const unionX = (pX + lastSpouseX) / 2;
-      
       connectors.push({
         id: `rel-${personId}`,
         p1x: pX,
         p2x: lastSpouseX,
         parentBottomY: visualY + CARD_H,
-        childXs: node.children.map(c => c.x! + xShift),
+        childXs: node.children ? node.children.map(c => c.x! + xShift) : [],
         childTopY: (node.depth) * (CARD_H + V_GAP)
       });
     }
@@ -497,8 +500,11 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
             <circle cx={unionX} cy={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} r={4.5} 
               fill={hasSpouse ? spouseColor : lineColor} stroke="white" strokeWidth={2} />
 
-            {/* Vertical stem */}
-            <line x1={unionX} y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} x2={unionX} y2={elbowY}
+            {/* Vertical stem — full length when children exist, short stub to icon otherwise */}
+            <line x1={unionX}
+              y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
+              x2={unionX}
+              y2={c.childXs.length > 0 ? elbowY : c.parentBottomY + 6}
               stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
 
             {/* Horizontal bus */}

@@ -3,6 +3,7 @@
 import { Memory } from '@/lib/shared/schemas/memories';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
+import { useLanguage } from '../providers/LanguageProvider';
 import { X, Calendar, Quote, ImageIcon, Users, Download, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/lib/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +17,7 @@ interface MemoryDetailsModalProps {
 
 export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDetailsModalProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   // Handle ESC key
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                     <button 
                     onClick={() => window.open(memory.imageUrl, '_blank')}
                     className={cn("p-2.5 rounded-full transition-all", theme.isDark ? "hover:bg-white/10 text-white" : "hover:bg-black/5 text-slate-900")}
-                    title="Open Original"
+                    title={t('memoryDetails.openOriginal')}
                     >
                     <Download className="w-5 h-5" />
                     </button>

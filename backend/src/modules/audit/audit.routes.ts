@@ -16,7 +16,7 @@ const adminRoutes = async (fastify: FastifyInstance) => {
    * Get audit logs for a tree
    * Access: Admin
    */
-  fastify.get('/trees/:treeId/audit-logs', {
+  fastify.get('/trees/:treeId/activity', {
     preHandler: [fastify.authenticate, verifyTreeAccess(['admin'])]
   }, async (request, reply) => {
     const { treeId } = treeIdParamSchema.parse(request.params);

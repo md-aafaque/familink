@@ -235,18 +235,18 @@ export default function SettingsPage() {
   };
 
   const navItems = [
-    { id: 'profile', label: t('settings.tab.identity'), icon: User, desc: 'Public name and avatar' },
-    { id: 'appearance', label: t('settings.tab.visuals'), icon: Layout, desc: 'Themes and interface' },
-    { id: 'notifications', label: t('settings.tab.alerts'), icon: Bell, desc: 'Stay updated' },
-    { id: 'security', label: t('settings.tab.security'), icon: Lock, desc: 'Passwords and access' },
-    { id: 'preferences', label: t('settings.tab.regional'), icon: Globe, desc: 'Language and clock' },
+    { id: 'profile', label: t('settings.tab.identity'), icon: User, desc: t('settings.nav.identity.desc') },
+    { id: 'appearance', label: t('settings.tab.visuals'), icon: Layout, desc: t('settings.nav.visuals.desc') },
+    { id: 'notifications', label: t('settings.tab.alerts'), icon: Bell, desc: t('settings.nav.alerts.desc') },
+    { id: 'security', label: t('settings.tab.security'), icon: Lock, desc: t('settings.nav.security.desc') },
+    { id: 'preferences', label: t('settings.tab.regional'), icon: Globe, desc: t('settings.nav.regional.desc') },
   ];
 
   if (isProfileLoading) {
       return (
           <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
               <Loader2 className={cn("w-12 h-12 animate-spin", theme.colors.accent)} />
-              <p className={cn("font-black text-xs uppercase tracking-widest opacity-40", theme.colors.textMuted)}>Decrypting Profile...</p>
+              <p className={cn("font-black text-xs uppercase tracking-widest opacity-40", theme.colors.textMuted)}>{t('settings.loadingProfile')}</p>
           </div>
       )
   }
@@ -257,7 +257,7 @@ export default function SettingsPage() {
       <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] w-fit mb-3", theme.colors.primaryMuted, theme.colors.accent)}>
-             System Configuration
+             {t('settings.systemConfiguration')}
           </div>
           <h1 className={cn("text-5xl font-black tracking-tighter leading-none", theme.colors.text)}>
             {t('settings.title').split(' ')[0]} <span className={theme.colors.accent}>{t('settings.title').split(' ')[1]}</span>
@@ -349,7 +349,7 @@ export default function SettingsPage() {
                 className="flex items-center gap-3 text-red-500 font-black text-[10px] uppercase tracking-[0.2em] hover:opacity-70 transition-opacity"
               >
                   <LogOut className="w-4 h-4" />
-                  Terminate Session
+                  {t('settings.terminateSession')}
               </button>
               <p className={cn("text-[9px] font-black uppercase opacity-20 tracking-tighter", theme.colors.text)}>v0.1.0-alpha</p>
           </div>
@@ -385,7 +385,7 @@ export default function SettingsPage() {
                         <div className="space-y-2 text-center md:text-left">
                             <div className="flex items-center gap-3 justify-center md:justify-start">
                                 <h2 className={cn("text-3xl font-black tracking-tight", theme.colors.text)}>{t('settings.profile.title')}</h2>
-                                <div className="px-2 py-0.5 rounded bg-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest border border-green-500/20">Verified</div>
+                                <div className="px-2 py-0.5 rounded bg-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest border border-green-500/20">{t('settings.verified')}</div>
                             </div>
                             <p className={cn("text-sm font-medium opacity-50", theme.colors.text)}>{t('settings.profile.desc')}</p>
                         </div>
@@ -449,7 +449,7 @@ export default function SettingsPage() {
                                 <SiGoogle className="text-xl text-[#4285F4]" />
                             </div>
                             <div className="min-w-0">
-                                <p className={cn("font-black text-[11px] uppercase tracking-widest", theme.colors.text)}>Google Auth</p>
+                                <p className={cn("font-black text-[11px] uppercase tracking-widest", theme.colors.text)}>{t('settings.googleAuth')}</p>
                                 <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest truncate">{user?.email}</p>
                             </div>
                         </div>
@@ -458,7 +458,7 @@ export default function SettingsPage() {
                                 <Clock className={cn("w-5 h-5 opacity-40", theme.colors.text)} />
                             </div>
                             <div>
-                                <p className={cn("font-black text-[11px] uppercase tracking-widest", theme.colors.text)}>Member Since</p>
+                                <p className={cn("font-black text-[11px] uppercase tracking-widest", theme.colors.text)}>{t('settings.memberSince')}</p>
                                 <p className={cn("text-[10px] font-bold uppercase tracking-widest", theme.colors.textMuted)}>
                                     {new Date(profile?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                                 </p>
@@ -523,7 +523,7 @@ export default function SettingsPage() {
                         onClick={handleAutoDetectTheme}
                         className={cn("px-10 py-3 rounded-2xl border-2 font-black text-[10px] uppercase tracking-widest transition-all", theme.colors.border, theme.colors.text, "hover:opacity-60")}
                       >
-                          Activate Auto-Detect
+                          {t('settings.activateAutoDetect')}
                       </button>
                   </div>
                 </section>
@@ -682,7 +682,7 @@ export default function SettingsPage() {
                         <div className="space-y-4">
                             <label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-2 flex items-center gap-2", theme.colors.textMuted)}>
                                 <Languages className="w-3.5 h-3.5" />
-                                System Language
+                                {t('settings.systemLanguage')}
                             </label>
                             <select 
                                 value={formData.language}
@@ -703,7 +703,7 @@ export default function SettingsPage() {
                         <div className="space-y-4">
                             <label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-2 flex items-center gap-2", theme.colors.textMuted)}>
                                 <Clock className="w-3.5 h-3.5" />
-                                Timezone Offset
+                                {t('settings.timezoneOffset')}
                             </label>
                             <select 
                                 value={formData.timezone}
@@ -726,7 +726,7 @@ export default function SettingsPage() {
                                 <Globe className={cn("w-7 h-7 opacity-30", theme.colors.text)} />
                             </div>
                             <div className="space-y-2">
-                                <p className={cn("font-black text-base uppercase tracking-widest", theme.colors.text)}>Automatic Detection</p>
+                                <p className={cn("font-black text-base uppercase tracking-widest", theme.colors.text)}>{t('settings.automaticDetection')}</p>
                                 <p className={cn("text-xs font-medium opacity-50 leading-relaxed max-w-[280px]", theme.colors.textMuted)}>The system will attempt to derive your location and time parameters from your active browser session.</p>
                             </div>
                         </div>
@@ -734,7 +734,7 @@ export default function SettingsPage() {
                             onClick={handleAutoScan}
                             className={cn("text-xs font-black uppercase tracking-widest transition-opacity hover:opacity-50 flex items-center gap-2 px-6 py-2 rounded-xl border-2", theme.colors.accent, theme.colors.border)}
                         >
-                            Re-scan
+                            {t('settings.rescan')}
                         </button>
                     </div>
                 </section>

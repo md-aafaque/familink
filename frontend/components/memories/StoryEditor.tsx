@@ -7,6 +7,7 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
+import { useLanguage } from '../providers/LanguageProvider';
 import { 
   Bold, 
   Italic, 
@@ -27,6 +28,7 @@ interface StoryEditorProps {
 
 export default function StoryEditor({ content, onChange, placeholder }: StoryEditorProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const editor = useEditor({
     extensions: [
@@ -107,21 +109,21 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
         <MenuButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}
-          title="Bold"
+          title={t('storyEditor.bold')}
         >
           <Bold className="w-4 h-4" />
         </MenuButton>
         <MenuButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           active={editor.isActive('italic')}
-          title="Italic"
+          title={t('storyEditor.italic')}
         >
           <Italic className="w-4 h-4" />
         </MenuButton>
         <MenuButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           active={editor.isActive('underline')}
-          title="Underline"
+          title={t('storyEditor.underline')}
         >
           <UnderlineIcon className="w-4 h-4" />
         </MenuButton>
@@ -131,21 +133,21 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
         <MenuButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           active={editor.isActive('bulletList')}
-          title="Bullet List"
+          title={t('storyEditor.bulletList')}
         >
           <List className="w-4 h-4" />
         </MenuButton>
         <MenuButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           active={editor.isActive('orderedList')}
-          title="Numbered List"
+          title={t('storyEditor.numberedList')}
         >
           <ListOrdered className="w-4 h-4" />
         </MenuButton>
         <MenuButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           active={editor.isActive('blockquote')}
-          title="Quote"
+          title={t('storyEditor.quote')}
         >
           <Quote className="w-4 h-4" />
         </MenuButton>
@@ -164,7 +166,7 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
             }
           }}
           active={editor.isActive('link')}
-          title="Add Link"
+          title={t('storyEditor.addLink')}
         >
           <LinkIcon className="w-4 h-4" />
         </MenuButton>
@@ -174,14 +176,14 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
         <MenuButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          title="Undo"
+          title={t('storyEditor.undo')}
         >
           <Undo className="w-4 h-4" />
         </MenuButton>
         <MenuButton
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          title="Redo"
+          title={t('storyEditor.redo')}
         >
           <Redo className="w-4 h-4" />
         </MenuButton>

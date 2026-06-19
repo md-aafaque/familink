@@ -37,6 +37,7 @@ import PersonPermissionsTab from "@/components/PersonPermissionsTab";
 import { Person } from "@/lib/shared/schemas/people";
 
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -55,6 +56,7 @@ export default function PersonProfilePage() {
   const [deleteReason, setDeleteReason] = useState("");
   const [statusMessage, setStatusMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const { data, isLoading, isError, error } = useQuery<Person>({
     queryKey: ["person", id],
@@ -122,7 +124,7 @@ export default function PersonProfilePage() {
 
   const claimMutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post(`/people/${id}/claim`);
+      const res = await api.post(`/trees/${data?.treeId}/people/${id}/claim`);
       return res as any;
     },
     onSuccess: (res) => {
@@ -152,7 +154,7 @@ export default function PersonProfilePage() {
           className={cn("flex items-center gap-2 transition-colors group", theme.colors.textMuted, "hover:" + theme.colors.text)}
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Back
+          {t('common.back')}
         </button>
 
         <div className="flex items-center gap-4">
@@ -164,7 +166,7 @@ export default function PersonProfilePage() {
                   className={cn("px-6 py-2.5 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shadow-xl shadow-indigo-500/10", theme.colors.primary)}
                 >
                   <Sparkles className="w-4 h-4" />
-                  Claim Profile
+                  {t('personPage.claimProfile')}
                 </button>
               )}
               <button
@@ -176,9 +178,9 @@ export default function PersonProfilePage() {
                         ? cn(theme.colors.surface, theme.colors.border, theme.colors.text, "hover:opacity-80 shadow-sm")
                         : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-transparent opacity-50"
                 )}
-                title={data?.userPermission === 'owner' || data?.userPermission === 'editor' ? "Edit Profile" : "You do not have permission to edit this profile"}
+                title={data?.userPermission === 'owner' || data?.userPermission === 'editor' ? t('personPage.editProfile') : t('personPage.noEditPermission')}
               >
-                Edit
+                {t('common.edit')}
               </button>
               
               {!isConfirmingDelete && (
@@ -187,7 +189,7 @@ export default function PersonProfilePage() {
                   className={cn(
                       "p-3 rounded-2xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                   )}
-                  title={isAdmin ? "Delete Profile" : "Request Removal"}
+                  title={isAdmin ? t('personPage.deleteProfile') : t('personPage.requestRemoval')}
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -199,7 +201,7 @@ export default function PersonProfilePage() {
               onClick={() => setIsEditing(false)}
               className={cn("px-6 py-2.5 text-sm font-black uppercase tracking-widest", theme.colors.textMuted)}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
           )}
         </div>
@@ -252,10 +254,10 @@ export default function PersonProfilePage() {
                 </div>
                 <div>
                   <h3 className={cn("text-xl font-black uppercase tracking-tight", theme.isDark ? "text-red-400" : "text-red-600")}>
-                    {isAdmin ? "Confirm Permanent Deletion" : "Propose Profile Removal"}
+                    {isAdmin ? t('personPage.confirmDeletion') : t('personPage.proposeRemoval')}
                   </h3>
                   <p className={cn("text-sm font-medium", theme.isDark ? "text-red-400/60" : "text-red-600/60")}>
-                    {isAdmin ? "This action cannot be undone. All relationships and data for this profile will be purged." : "A request will be sent to tree administrators for review."}
+                    {isAdmin ? t('personPage.permanentDeleteNote') : t('personPage.removalNote')}
                   </p>
                 </div>
               </div>
@@ -264,7 +266,7 @@ export default function PersonProfilePage() {
                 <textarea
                   value={deleteReason}
                   onChange={(e) => setDeleteReason(e.target.value)}
-                  placeholder="Optional: Why should this profile be removed?"
+                  placeholder={t('personPage.deleteReason')}
                   className={cn(
                     "w-full p-4 rounded-2xl border text-sm outline-none resize-none h-24 transition-all focus:ring-4 focus:ring-red-500/10",
                     theme.colors.bg,
@@ -281,7 +283,7 @@ export default function PersonProfilePage() {
                   className="flex-1 py-4 rounded-2xl bg-red-500 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl shadow-red-500/20 flex items-center justify-center gap-2"
                 >
                   {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (isAdmin ? <Trash2 className="w-4 h-4" /> : <X className="w-4 h-4" />)}
-                  {isAdmin ? "Delete Permanently" : "Submit Removal Request"}
+                  {isAdmin ? t('personPage.deletePermanently') : t('personPage.submitRemoval')}
                 </button>
                 <button
                   disabled={deleteMutation.isPending}
@@ -293,7 +295,7 @@ export default function PersonProfilePage() {
                     "hover:bg-black/5"
                   )}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -317,7 +319,7 @@ export default function PersonProfilePage() {
                 </div>
                 <div>
                   <h3 className={cn("text-xl font-black uppercase tracking-tight", theme.isDark ? "text-indigo-400" : "text-orange-600")}>
-                    {isAdmin ? "Claim This Profile" : "Request Profile Claim"}
+                    {isAdmin ? t('personPage.claimThisProfile') : t('personPage.requestClaim')}
                   </h3>
                   <p className={cn("text-sm font-medium", theme.isDark ? "text-indigo-400/60" : "text-orange-600/60")}>
                     {isAdmin ? "As an administrator, your claim will be automatically approved." : "This will establish you as the representative of this profile. Admin approval required."}
@@ -335,7 +337,7 @@ export default function PersonProfilePage() {
                   )}
                 >
                   {claimMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  {isAdmin ? "Confirm Claim" : "Submit Claim Request"}
+                    {isAdmin ? t('personPage.confirmClaim') : t('personPage.submitClaim')}
                 </button>
                 <button
                   disabled={claimMutation.isPending}
@@ -347,7 +349,7 @@ export default function PersonProfilePage() {
                     "hover:bg-black/5"
                   )}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -381,7 +383,7 @@ export default function PersonProfilePage() {
                         {data.status}
                       </span>
                     </div>
-                    <p className={cn("text-lg font-medium transition-colors duration-500 opacity-60", theme.colors.text)}>Tree Member • Added {formatDate(data.createdAt)}</p>
+                        <p className={cn("text-lg font-medium transition-colors duration-500 opacity-60", theme.colors.text)}>{t('personPage.addedToTree').replace('{date}', formatDate(data.createdAt))}</p>
                   </div>
                 </div>
               </div>
@@ -437,7 +439,7 @@ export default function PersonProfilePage() {
                       <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>Identity</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
                         <div className="space-y-2">
-                          <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>Gender</p>
+                          <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.gender')}</p>
                           <p className={cn("text-lg font-bold capitalize transition-colors duration-500", theme.colors.text)}>{data.gender || 'Unknown'}</p>
                         </div>
                         <div className="space-y-2">
@@ -455,12 +457,12 @@ export default function PersonProfilePage() {
                         <div className="flex items-center justify-between">
                             <h3 className={cn("text-2xl font-black flex items-center gap-4 transition-colors duration-500", theme.colors.text)}>
                                 <GraduationCap className={cn("w-8 h-8", theme.colors.accent)} />
-                                Education
+                                {t('personPage.education')}
                             </h3>
                             <button 
                                 onClick={() => updateMutation.mutate({ educationSectionVisible: !data.educationSectionVisible })}
                                 className={cn("p-2 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5", data.educationSectionVisible ? "text-primary" : "text-red-500")}
-                                title={data.educationSectionVisible ? "Visible to family" : "Hidden from family"}
+                                title={data.educationSectionVisible ? t('personPage.visibleToFamily') : t('personPage.hiddenFromFamily')}
                             >
                                 {data.educationSectionVisible ? <Eye className="w-6 h-6" /> : <EyeOff className="w-6 h-6" />}
                             </button>
@@ -497,12 +499,12 @@ export default function PersonProfilePage() {
                         <div className="flex items-center justify-between">
                             <h3 className={cn("text-2xl font-black flex items-center gap-4 transition-colors duration-500", theme.colors.text)}>
                                 <Briefcase className={cn("w-8 h-8", theme.colors.accent)} />
-                                Occupation
+                                {t('personPage.occupation')}
                             </h3>
                             <button 
                                 onClick={() => updateMutation.mutate({ occupationSectionVisible: !data.occupationSectionVisible })}
                                 className={cn("p-2 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5", data.occupationSectionVisible ? "text-primary" : "text-red-500")}
-                                title={data.occupationSectionVisible ? "Visible to family" : "Hidden from family"}
+                                title={data.occupationSectionVisible ? t('personPage.visibleToFamily') : t('personPage.hiddenFromFamily')}
                             >
                                 {data.occupationSectionVisible ? <Eye className="w-6 h-6" /> : <EyeOff className="w-6 h-6" />}
                             </button>
@@ -620,7 +622,7 @@ export default function PersonProfilePage() {
 
                     {/* Admin Actions */}
                     <div className={cn("p-8 rounded-[3rem] border shadow-sm space-y-4 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-                      <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>Administration</h3>
+                      <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.adminSection')}</h3>
                       <button
                         onClick={() => setShowMergeModal(true)}
                         disabled={data.userPermission !== 'owner' && data.userPermission !== 'editor'}
@@ -630,10 +632,10 @@ export default function PersonProfilePage() {
                                 ? cn(theme.colors.primaryMuted, theme.colors.accent, "hover:opacity-80 shadow-sm")
                                 : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-transparent opacity-50"
                         )}
-                        title={data.userPermission === 'owner' || data.userPermission === 'editor' ? "Merge Profile" : "You do not have permission to initiate profile merges"}
+                        title={data.userPermission === 'owner' || data.userPermission === 'editor' ? t('personPage.mergeProfile') : t('personPage.noMergePermission')}
                       >
                         <GitMerge className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                        Merge Profile
+                        {t('personPage.mergeProfile')}
                       </button>
                     </div>
                   </div>

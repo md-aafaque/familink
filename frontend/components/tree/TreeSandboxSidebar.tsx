@@ -6,6 +6,7 @@ import { Search, UserPlus, Info, GripVertical, Loader2, ChevronRight, ChevronLef
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppTheme } from "../providers/ThemeProvider";
+import { useLanguage } from "../providers/LanguageProvider";
 import { cn } from "@/lib/cn";
 import { useTreeInteraction } from "./TreeInteractionProvider";
 
@@ -28,6 +29,7 @@ export default function TreeSandboxSidebar({
 }: TreeSandboxSidebarProps) {
   const [search, setSearch] = useState("");
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const { data: people, isLoading } = useQuery({
     queryKey: ["tree-people-sandbox", treeId],
@@ -58,7 +60,7 @@ export default function TreeSandboxSidebar({
           <div className={cn("flex items-center gap-2", isCollapsed && "hidden")}>
             <div className={cn("w-2 h-2 rounded-full animate-pulse", theme.colors.primary)} />
             <h2 className={cn("text-xs font-black uppercase tracking-[0.2em]", theme.colors.sidebar.activeText)}>
-              Sandbox
+              {t('treeSandbox.title')}
             </h2>
           </div>
           <button 
@@ -72,13 +74,13 @@ export default function TreeSandboxSidebar({
         {!isCollapsed && (
           <>
             <h1 className={cn("text-xl font-black tracking-tight transition-colors duration-500", theme.colors.text)}>
-              Unlinked Members
+              {t('treeSandbox.unlinkedMembers')}
             </h1>
             <div className="relative group">
               <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-500", theme.colors.textMuted, "group-focus-within:" + theme.colors.accent)} />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder={t('treeSandbox.searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className={cn(
@@ -97,7 +99,7 @@ export default function TreeSandboxSidebar({
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
              <Loader2 className={cn("w-6 h-6 animate-spin", theme.colors.accent)} />
-             {!isCollapsed && <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading</p>}
+             {!isCollapsed && <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('treeSandbox.loading')}</p>}
           </div>
         ) : unlinkedPeople?.length === 0 ? (
           !isCollapsed && (
@@ -105,7 +107,7 @@ export default function TreeSandboxSidebar({
               <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mx-auto transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
                 <Info className={cn("w-5 h-5 transition-colors duration-500", theme.colors.textMuted)} />
               </div>
-              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>All members are linked.</p>
+              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>{t('treeSandbox.allLinked')}</p>
             </div>
           )
         ) : (
@@ -124,7 +126,7 @@ export default function TreeSandboxSidebar({
       <div className={cn("p-4 border-t transition-colors duration-500 flex-shrink-0", theme.colors.border, isCollapsed && "px-2")}>
          <button 
            onClick={onAddNew}
-           title="Add New Relative"
+           title={t('treeSandbox.addRelative')}
            className={cn(
            "w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl",
            theme.colors.primary,
@@ -132,7 +134,7 @@ export default function TreeSandboxSidebar({
            isCollapsed && "py-3 px-0"
          )}>
             <UserPlus className="w-4 h-4" />
-            {!isCollapsed && "Add New Relative"}
+            {!isCollapsed && t('treeSandbox.addRelative')}
          </button>
       </div>
     </div>
@@ -141,6 +143,7 @@ export default function TreeSandboxSidebar({
 
 function DraggableSandboxItem({ person, isCollapsed, onClick, onDrop }: { person: any, isCollapsed: boolean, onClick: () => void, onDrop?: (src: string, tgt: string) => void }) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const { 
     setDraggingPersonId, 
     hoveredPersonId, 
@@ -225,7 +228,7 @@ function DraggableSandboxItem({ person, isCollapsed, onClick, onDrop }: { person
                 {person.firstName} {person.lastName}
               </p>
               <p className={cn("text-[10px] font-black uppercase tracking-tighter transition-colors duration-500", theme.colors.textMuted)}>
-                {person.status} • Unlinked
+                {person.status} • {t('treeSandbox.unlinked')}
               </p>
             </div>
             <button 

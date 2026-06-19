@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, User, Heart, Edit3, Link2, FileText, Plus, Calendar, Quote, ImageIcon, Loader2, Briefcase, GraduationCap, Mail, Phone, MapPin, Trash2, AlertTriangle, ExternalLink, CheckCircle2, UserPlus, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "../providers/ThemeProvider";
+import { useLanguage } from "../providers/LanguageProvider";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
@@ -34,6 +35,7 @@ export default function ProfileDrawer({
   treeId
 }: ProfileDrawerProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'core' | 'family' | 'timeline'>('core');
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
@@ -66,7 +68,7 @@ export default function ProfileDrawer({
     setIsClaiming(true);
     setStatusMessage(null);
     try {
-      const res = await api.post(`/people/${person.id}/claim`);
+      const res = await api.post(`/trees/${treeId}/people/${person.id}/claim`);
       setStatusMessage({ 
         text: (res as any).message || "Claim request submitted for review.", 
         type: 'success' 
@@ -158,7 +160,7 @@ export default function ProfileDrawer({
                         theme.colors.primaryMuted,
                         theme.colors.accent
                       )}>
-                        Verified
+                        {t('profileDrawer.verified')}
                       </span>
                     )}
                     {person.status === 'ghost' && (
@@ -166,12 +168,12 @@ export default function ProfileDrawer({
                         "px-3 py-1 rounded-full text-xs font-bold uppercase border",
                         theme.isDark ? "bg-slate-800/50 text-slate-400 border-slate-700" : "bg-slate-100 text-slate-600 border-slate-300"
                       )}>
-                        Ghost Profile
+                        {t('profileDrawer.ghost')}
                       </span>
                     )}
                     {person.deathDate && (
                       <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-300 border border-zinc-700">
-                        Deceased
+                        {t('profileDrawer.deceased')}
                       </span>
                     )}
                   </div>
@@ -183,7 +185,7 @@ export default function ProfileDrawer({
                         "p-2 rounded-lg transition-colors group relative",
                         theme.isDark ? "hover:bg-red-500/10 text-slate-500 hover:text-red-400" : "hover:bg-red-50 text-slate-400 hover:text-red-500"
                       )}
-                      title={isAdmin ? "Delete Profile" : "Request Deletion"}
+                      title={isAdmin ? t('profileDrawer.deleteProfile') : t('profileDrawer.requestDeletion')}
                     >
                       <Trash2 className="w-4.5 h-4.5" />
                     </button>
@@ -198,7 +200,7 @@ export default function ProfileDrawer({
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-red-500" />
                       <p className={cn("text-xs font-black uppercase tracking-tight", theme.isDark ? "text-red-400" : "text-red-600")}>
-                        {isAdmin ? "Confirm Permanent Deletion" : "Propose Profile Removal"}
+                        {isAdmin ? t('profileDrawer.confirmDelete') : t('profileDrawer.proposeRemoval')}
                       </p>
                     </div>
                     
@@ -206,7 +208,7 @@ export default function ProfileDrawer({
                       <textarea
                         value={deleteReason}
                         onChange={(e) => setDeleteReason(e.target.value)}
-                        placeholder="Why should this profile be removed? (Optional)"
+                        placeholder={t('profileDrawer.deleteReason')}
                         className={cn(
                           "w-full p-3 rounded-xl border text-xs outline-none resize-none h-20 transition-all focus:ring-2 focus:ring-red-500/20",
                           theme.colors.bg,
@@ -232,7 +234,7 @@ export default function ProfileDrawer({
                         className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
                       >
                         {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (isAdmin ? <Trash2 className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />)}
-                        {isAdmin ? "Delete Now" : "Submit Request"}
+                        {isAdmin ? t('profileDrawer.deleteNow') : t('profileDrawer.submitRequest')}
                       </button>
                       <button
                         disabled={isDeleting}
@@ -247,7 +249,7 @@ export default function ProfileDrawer({
                           "hover:bg-black/5 dark:hover:bg-white/5"
                         )}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                     </div>
                   </div>
@@ -263,10 +265,10 @@ export default function ProfileDrawer({
                       "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-bold text-xs uppercase transition-all shadow-sm",
                       theme.colors.primaryMuted, theme.colors.accent, "hover:opacity-80"
                     )}
-                    title="View Detailed Profile"
+                    title={t('profileDrawer.viewDetailedProfile')}
                   >
                     <ExternalLink className="w-4 h-4" />
-                    View Profile
+                    {t('profileDrawer.viewProfile')}
                   </button>
                   <button
                     onClick={onProposeRelationship}
@@ -274,10 +276,10 @@ export default function ProfileDrawer({
                       "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border font-bold text-xs uppercase transition-colors shadow-sm",
                       theme.colors.primaryMuted, theme.colors.accent, "hover:opacity-80"
                     )}
-                    title="Link family members"
+                    title={t('profileDrawer.linkFamily')}
                   >
                     <Link2 className="w-4 h-4" />
-                    Link
+                    {t('profileDrawer.link')}
                   </button>
                 </div>
 
@@ -292,7 +294,7 @@ export default function ProfileDrawer({
                     )}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    Claim This Profile
+                    {t('profileDrawer.claim')}
                   </button>
                 )}
 
@@ -304,14 +306,14 @@ export default function ProfileDrawer({
                     <div className="flex items-center gap-2">
                       <UserPlus className={cn("w-4 h-4", theme.colors.accent)} />
                       <p className={cn("text-xs font-black uppercase tracking-tight", theme.colors.accent)}>
-                        {isAdmin ? "Confirm Profile Link" : "Propose Profile Claim"}
+                        {isAdmin ? t('profileDrawer.confirmLink') : t('profileDrawer.proposeClaim')}
                       </p>
                     </div>
                     
                     <p className={cn("text-[10px] font-medium leading-relaxed", theme.colors.textMuted)}>
                       {isAdmin 
-                        ? "As an administrator, this profile will be instantly linked to your account."
-                        : "Establishing a link to this profile requires administrative approval."}
+                        ? t('profileDrawer.adminClaimNote')
+                        : t('profileDrawer.userClaimNote')}
                     </p>
 
                     <div className="flex items-center gap-2">
@@ -325,7 +327,7 @@ export default function ProfileDrawer({
                         )}
                       >
                         {isClaiming ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                        {isAdmin ? "Confirm Now" : "Submit Request"}
+                        {isAdmin ? t('profileDrawer.confirmNow') : t('profileDrawer.submitRequest')}
                       </button>
                       <button
                         disabled={isClaiming}
@@ -337,7 +339,7 @@ export default function ProfileDrawer({
                           "hover:bg-black/5 dark:hover:bg-white/5"
                         )}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                     </div>
                   </div>
@@ -367,7 +369,7 @@ export default function ProfileDrawer({
                         : cn(theme.colors.hover, theme.colors.textMuted)
                     )}
                   >
-                    {tab === 'core' ? 'Facts' : tab === 'family' ? 'Family' : 'Timeline'}
+                    {tab === 'core' ? t('profileDrawer.tab.core') : tab === 'family' ? t('profileDrawer.tab.family') : t('profileDrawer.tab.timeline')}
                   </button>
                 ))}
               </div>
@@ -380,7 +382,7 @@ export default function ProfileDrawer({
                     <div>
                       <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
                         <Calendar className="w-3 h-3" />
-                        Birth Information
+                        {t('profileDrawer.birthInfo')}
                       </h3>
                       <div className={cn("p-3 rounded-lg border", theme.colors.border)}>
                         {person.birthDate ? (
@@ -388,7 +390,7 @@ export default function ProfileDrawer({
                             {formatDate(person.birthDate)}
                           </p>
                         ) : (
-                          <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>Not provided</p>
+                          <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>{t('common.notProvided')}</p>
                         )}
                       </div>
                     </div>
@@ -396,11 +398,11 @@ export default function ProfileDrawer({
                     {/* 1b. Gender (New Position) */}
                     <div>
                       <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2", theme.colors.textMuted)}>
-                        Gender
+                        {t('profileDrawer.gender')}
                       </h3>
                       <div className={cn("p-3 rounded-lg border capitalize transition-colors", theme.colors.border)}>
                         <p className={cn("text-sm font-bold", theme.colors.text)}>
-                          {person.gender || 'Not specified'}
+                          {person.gender || t('common.notSpecified')}
                         </p>
                       </div>
                     </div>
@@ -428,7 +430,7 @@ export default function ProfileDrawer({
                                 <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center justify-between gap-2", theme.colors.textMuted)}>
                                     <div className="flex items-center gap-2">
                                         <GraduationCap className={cn("w-3.5 h-3.5", theme.isDark ? "text-indigo-400" : "text-slate-400")} />
-                                        Education
+                                        {t('profileDrawer.education')}
                                     </div>
                                 </h3>
                                 <div className={cn("p-3 rounded-lg border transition-colors", theme.colors.border)}>
@@ -468,7 +470,7 @@ export default function ProfileDrawer({
                                 <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center justify-between gap-2", theme.colors.textMuted)}>
                                     <div className="flex items-center gap-2">
                                         <Briefcase className={cn("w-3.5 h-3.5", theme.isDark ? "text-indigo-400" : "text-slate-400")} />
-                                        Occupation
+                                        {t('profileDrawer.occupation')}
                                     </div>
                                 </h3>
                                 <div className={cn("p-3 rounded-lg border transition-colors", theme.colors.border)}>
@@ -488,7 +490,7 @@ export default function ProfileDrawer({
                     <div>
                       <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2", theme.colors.textMuted)}>
                         <Mail className="w-3 h-3" />
-                        Contact Info
+                        {t('profileDrawer.contactInfo')}
                       </h3>
                       <div className={cn("p-3 rounded-lg border space-y-3", theme.colors.border)}>
                         {person.email && (
@@ -504,7 +506,7 @@ export default function ProfileDrawer({
                             </div>
                         )}
                         {!person.email && !person.phone && (
-                            <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>No contact info shared</p>
+                            <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>{t('profileDrawer.noContactInfo')}</p>
                         )}
                       </div>
                     </div>
@@ -512,7 +514,7 @@ export default function ProfileDrawer({
                     {person.deathDate && (
                       <div>
                         <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2", theme.colors.textMuted)}>
-                          Death Information
+                          {t('profileDrawer.deathInfo')}
                         </h3>
                         <div className={cn("p-3 rounded-lg border", theme.colors.border)}>
                           <p className={cn("text-sm", theme.colors.text)}>
@@ -533,7 +535,7 @@ export default function ProfileDrawer({
                           <div>
                             <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
                               <User className="w-3 h-3" />
-                              Parents
+                              {t('profileDrawer.parents')}
                             </h3>
                             <div className="grid gap-2">
                               {person.relationships
@@ -553,7 +555,7 @@ export default function ProfileDrawer({
                           <div>
                             <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
                               <User className="w-3 h-3" />
-                              Siblings
+                              {t('profileDrawer.siblings')}
                             </h3>
                             <div className="grid gap-2">
                               {person.relationships
@@ -573,7 +575,7 @@ export default function ProfileDrawer({
                           <div>
                             <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
                               <Heart className="w-3 h-3 text-rose-500" />
-                              Partners
+                              {t('profileDrawer.partners')}
                             </h3>
                             <div className="grid gap-2">
                               {person.relationships
@@ -592,7 +594,7 @@ export default function ProfileDrawer({
                           <div>
                             <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2", theme.colors.textMuted)}>
                               <User className="w-3 h-3" />
-                              Children
+                              {t('profileDrawer.children')}
                             </h3>
                             <div className="grid gap-2">
                               {person.relationships
@@ -609,7 +611,7 @@ export default function ProfileDrawer({
                     ) : (
                       <div className={cn("p-8 rounded-[2rem] border border-dashed text-center", theme.colors.border)}>
                         <p className={cn("text-xs font-bold uppercase tracking-widest opacity-40", theme.colors.textMuted)}>
-                          No relatives found
+                          {t('profileDrawer.noRelatives')}
                         </p>
                       </div>
                     )}
@@ -620,7 +622,7 @@ export default function ProfileDrawer({
                   <div className="space-y-6 relative pb-10">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em]", theme.colors.textMuted)}>
-                            Life Events
+                            {t('profileDrawer.lifeEvents')}
                         </h3>
                         <button 
                             onClick={() => setIsMemoryModalOpen(true)}
@@ -675,7 +677,7 @@ export default function ProfileDrawer({
                         <div className={cn("p-8 rounded-[2rem] border border-dashed text-center", theme.colors.border)}>
                             <FileText className={cn("w-8 h-8 mx-auto mb-2 opacity-20", theme.colors.text)} />
                             <p className={cn("text-[10px] font-black uppercase tracking-widest opacity-40", theme.colors.textMuted)}>
-                                No events recorded
+                                {t('profileDrawer.noEvents')}
                             </p>
                         </div>
                     )}

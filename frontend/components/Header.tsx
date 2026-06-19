@@ -73,7 +73,7 @@ export default function Header() {
                 ? cn("bg-white shadow-sm border border-slate-200", theme.colors.accent)
                 : "text-slate-400 hover:text-slate-600"
             )}
-            title="Light Mode"
+            title={t('header.lightMode')}
           >
             <Sun className="w-4 h-4" />
           </button>
@@ -85,7 +85,7 @@ export default function Header() {
                 ? cn("bg-slate-800 shadow-sm border border-slate-700", theme.colors.accent) 
                 : "text-slate-500 hover:text-slate-300"
             )}
-            title="Dark Mode"
+            title={t('header.darkMode')}
           >
             <Moon className="w-4 h-4" />
           </button>

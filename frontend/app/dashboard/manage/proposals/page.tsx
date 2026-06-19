@@ -71,8 +71,8 @@ export default function ManageProposalsPage() {
   });
 
   const { data: claimRequests, isLoading: isLoadingClaim, isError: isErrorClaim, error: errorClaim } = useQuery({
-    queryKey: ["tree-claim-requests", selectedTreeId],
-    queryFn: async () => (await api.get(`/trees/${selectedTreeId}/claim-requests`)).data,
+    queryKey: ["tree-claims", selectedTreeId],
+    queryFn: async () => (await api.get(`/trees/${selectedTreeId}/claims`)).data,
     enabled: !!selectedTreeId && activeType === 'claims',
   });
 
@@ -83,7 +83,7 @@ export default function ManageProposalsPage() {
       if (type === 'relationships') endpoint = `/trees/${selectedTreeId}/relationship-proposals/${id}/${action}`;
       if (type === 'deletions') endpoint = `/trees/${selectedTreeId}/deletion-proposals/${id}/${action}`;
       if (type === 'merges') endpoint = `/trees/${selectedTreeId}/merge-proposals/${id}/${action}`;
-      if (type === 'claims') endpoint = `/trees/${selectedTreeId}/claim-requests/${id}/${action}`;
+      if (type === 'claims') endpoint = `/trees/${selectedTreeId}/claims/${id}/${action}`;
       
       return api.post(endpoint, { reason });
     },
@@ -92,7 +92,7 @@ export default function ManageProposalsPage() {
         relationships: "tree-relationship-proposals",
         deletions: "tree-deletion-proposals",
         merges: "tree-merge-proposals",
-        claims: "tree-claim-requests"
+        claims: "tree-claims"
       };
       queryClient.invalidateQueries({ queryKey: [keys[variables.type], selectedTreeId] });
       queryClient.invalidateQueries({ queryKey: ["tree-visual", selectedTreeId] });

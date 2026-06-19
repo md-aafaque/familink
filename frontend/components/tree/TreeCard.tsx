@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { memo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppTheme } from "../providers/ThemeProvider";
+import { useLanguage } from "../providers/LanguageProvider";
 import { useTreeInteraction } from "./TreeInteractionProvider";
 import ContextMenu from "./ContextMenu";
 
@@ -34,6 +35,7 @@ const TreeCard = memo(({
 }: TreeCardProps) => {
   const router = useRouter();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const { draggingPersonId } = useTreeInteraction();
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
 
@@ -144,7 +146,7 @@ const TreeCard = memo(({
                theme.colors.textMuted,
                "hover:" + theme.colors.accent
              )}
-             title="Full Profile"
+             title={t('treeCard.fullProfile')}
            >
              <ExternalLink className="w-4 h-4" />
            </button>
@@ -169,7 +171,7 @@ const TreeCard = memo(({
             y={contextMenu.y}
             onClose={() => setContextMenu(null)}
             items={[
-              { label: 'View Full Profile', icon: User, onClick: () => router.push(`/person/${person.id}`) },
+              { label: t('treeCard.viewFullProfile'), icon: User, onClick: () => router.push(`/person/${person.id}`) },
               { label: 'Edit Member Details', icon: Edit3, onClick: () => {} },
               { label: 'Grant Permissions', icon: ShieldCheck, onClick: () => {} },
               { label: 'Remove from Tree', icon: Trash2, onClick: () => {}, variant: 'danger' },

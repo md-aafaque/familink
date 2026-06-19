@@ -30,4 +30,4 @@ build/
 
 # Project specific documentation (if you want them ignored)
 *.md
-!GEMINI.md
+!README.md

@@ -55,7 +55,7 @@ export default function ManageInvitationsPage() {
 
   const generateMutation = useMutation({
     mutationFn: async (type: string) => {
-      const res = await api.post(`/trees/${selectedTreeId}/invitations`, { role: type });
+      const res = await api.post(`/trees/${selectedTreeId}/invitations/generate`, { role: type });
       return (res as any).data;
     },
     onSuccess: () => {
