@@ -24,6 +24,7 @@ import { cn } from "@/lib/cn";
 import { useTreeInteraction } from "./TreeInteractionProvider";
 import DragRelationshipIndicator from "./DragRelationshipIndicator";
 import { useAppTheme } from "../providers/ThemeProvider";
+import { useLanguage } from "../providers/LanguageProvider";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -259,7 +260,7 @@ interface GenUnit {
 }
 
 // ── Step 1: build the virtual GenUnit tree from flat data ─────────────────────
-function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<string>): GenUnit {
+function buildGenTree(people: Person[], unions: Union[], collapsedUnions: Set<string>): GenUnit {
   const pMap = new Map<string, Person>();
   people.forEach(p => pMap.set(p.id, p));
 
@@ -276,7 +277,7 @@ function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<strin
   function buildUnit(pid: string): GenUnit {
     visited.add(pid);
     const person = pMap.get(pid);
-    if (!person || collapsedSet.has(pid)) {
+    if (!person) {
       return { uid: pid, personId: pid, spouseIds: [], children: [] };
     }
 
@@ -291,9 +292,10 @@ function buildGenTree(people: Person[], unions: Union[], collapsedSet: Set<strin
       }
     });
 
-    // Find all children from ALL unions of this person
+    // Find children from unions that are NOT collapsed
     const childrenIds = new Set<string>();
     myUnions.forEach(u => {
+      if (collapsedUnions.has(u.id)) return;
       u.childrenIds.forEach(cid => {
         if (!visited.has(cid)) childrenIds.add(cid);
       });
@@ -521,21 +523,18 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
 // Person Node Card
 // ─────────────────────────────────────────────────────────────────────────────
 interface PersonNodeProps {
-  person:      Person;
+  person:     Person;
   t:           Theme;
   accentHex:   string;
   isFocus:     boolean;
   isHit:       boolean;
-  hasKids:     boolean;
-  isCollapsed: boolean;
   onFocus:     (id: string) => void;
   onDrop:      (srcId: string, tgtId: string) => void;
-  onCollapse:  (id: string) => void;
 }
 
 function PersonNode({
   person, t, accentHex, isFocus, isHit,
-  hasKids, isCollapsed, onFocus, onDrop, onCollapse,
+  onFocus, onDrop,
 }: PersonNodeProps) {
   const { setHoveredPersonId } = useTreeInteraction();
   const initials  = `${person.firstName[0]}${person.lastName?.[0] ?? ""}`.toUpperCase();
@@ -627,24 +626,6 @@ function PersonNode({
           )}
         </div>
       </button>
-
-      {/* Collapse / expand button - Styled to be more integrated */}
-      {hasKids && (
-        <button
-          onClick={e => { e.stopPropagation(); onCollapse(person.id); }}
-          title={isCollapsed ? "Expand Branch" : "Collapse Branch"}
-          className={cn(
-            "absolute -bottom-[14px] left-1/2 -translate-x-1/2 z-20",
-            "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300",
-            "border-2 shadow-lg hover:scale-110 active:scale-90",
-            isCollapsed 
-              ? "bg-primary text-white border-primary rotate-180" 
-              : cn(t.cardBg, t.cardBorder, "text-slate-400 hover:text-primary")
-          )}
-        >
-          <ChevronDown className="w-3.5 h-3.5" />
-        </button>
-      )}
     </div>
   );
 }
@@ -677,6 +658,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const centeredRef    = useRef(false);
 
   const { theme: appTheme } = useAppTheme();
+  const { t: tLang } = useLanguage();
   const [themeKey, setThemeKey] = useState<ThemeKey>(appTheme.isDark ? "dark" : "light");
 
   useEffect(() => {
@@ -686,7 +668,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullScreen, setIsFullScreen]     = useState(false);
   const [focusId, setFocusId]               = useState<string | null>(null);
-  const [collapsedSet, setCollapsedSet]     = useState<Set<string>>(new Set());
+  const [collapsedUnions, setCollapsedUnions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery]       = useState("");
   const [searchOpen, setSearchOpen]         = useState(false);
   const [drawerPersonId, setDrawerPersonId] = useState<string | null>(null);
@@ -815,9 +797,9 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   // ── Layout (D3) ────────────────────────────────────────────────────────────
   const layout = useMemo(() => {
     if (peopleInTree.length === 0) return null;
-    const genTree = buildGenTree(peopleInTree, unions, collapsedSet);
+    const genTree = buildGenTree(peopleInTree, unions, collapsedUnions);
     return applyD3Layout(genTree);
-  }, [unions, peopleInTree, collapsedSet]);
+  }, [unions, peopleInTree, collapsedUnions]);
 
   // ── Search ─────────────────────────────────────────────────────────────────
   const searchResults = useMemo(() => {
@@ -897,8 +879,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCardClick = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
   const handleDrop      = useCallback((src: string, tgt: string) => { setProposalSrc(src); setProposalTgt(tgt); }, []);
-  const toggleCollapse  = useCallback((id: string) =>
-    setCollapsedSet(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
+  const toggleCollapse  = useCallback((unionId: string) =>
+    setCollapsedUnions(prev => { const n = new Set(prev); n.has(unionId) ? n.delete(unionId) : n.add(unionId); return n; }), []);
 
   const handleDeletePerson = useCallback(async (personId: string, reason?: string) => {
     try {
@@ -957,7 +939,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       <div className="absolute inset-0 pointer-events-none z-30">
         <div className="absolute top-4 left-4 pointer-events-auto">
           <IconBtn onClick={() => setShowSandbox(s => !s)}
-            title={showSandbox ? "Hide panel" : "Show panel"} className={t.iconBtn}>
+            title={showSandbox ? tLang('treePage.hidePanel') : tLang('treePage.showPanel')} className={t.iconBtn}>
             {showSandbox ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </IconBtn>
         </div>
@@ -1047,7 +1029,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
 
             {/* Fullscreen — top-right of canvas */}
             <div className="absolute top-4 right-4 pointer-events-auto">
-              <IconBtn onClick={toggleFS} title={isFullScreen ? "Exit fullscreen" : "Fullscreen"} className={t.iconBtn}>
+              <IconBtn onClick={toggleFS} title={isFullScreen ? tLang('treePage.exitFullscreen') : tLang('treePage.fullscreen')} className={t.iconBtn}>
                 {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
               </IconBtn>
             </div>
@@ -1065,15 +1047,15 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
             {/* Bottom-centre floating toolbar */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
               <div className={cn("flex items-center gap-0.5 px-2 h-11 rounded-2xl", t.toolbar)}>
-                <button title="Zoom out" onClick={() => transformRef.current?.zoomOut(0.3)}
+                <button title={tLang('treePage.zoomOut')} onClick={() => transformRef.current?.zoomOut(0.3)}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                   <ZoomOut className="w-3.5 h-3.5" />
                 </button>
-                <button title="Fit to screen" onClick={centerTree}
+                <button title={tLang('treePage.fitToScreen')} onClick={centerTree}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
-                <button title="Zoom in" onClick={() => transformRef.current?.zoomIn(0.3)}
+                <button title={tLang('treePage.zoomIn')} onClick={() => transformRef.current?.zoomIn(0.3)}
                   className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                   <ZoomIn className="w-3.5 h-3.5" />
                 </button>
@@ -1094,7 +1076,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                 <div className="w-px h-5 mx-1 bg-current opacity-10" />
 
                 <div className="relative">
-                  <button title="Export" onClick={() => setExportMenuOpen(o => !o)}
+                  <button title={tLang('treePage.export')} onClick={() => setExportMenuOpen(o => !o)}
                     className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
                     {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageDown className="w-3.5 h-3.5" />}
                   </button>
@@ -1162,9 +1144,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                     {layout && Array.from(layout.nodes.entries()).map(([pid, pos]) => {
                       const person = peopleMap.get(pid);
                       if (!person) return null;
-                      const hasKids = unions.some(u =>
-                        (u.partner1Id === pid || u.partner2Id === pid) && u.childrenIds.length > 0
-                      );
                       return (
                         <motion.div key={pid}
                           initial={{ opacity: 0, scale: 0.88, y: 6 }}
@@ -1175,10 +1154,39 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                           <PersonNode
                             person={person} t={t} accentHex={t.accent}
                             isFocus={focusId === pid} isHit={searchHitIds.has(pid)}
-                            hasKids={hasKids} isCollapsed={collapsedSet.has(pid)}
-                            onFocus={handleCardClick} onDrop={handleDrop} onCollapse={toggleCollapse}
+                            onFocus={handleCardClick} onDrop={handleDrop}
                           />
                         </motion.div>
+                      );
+                    })}
+
+                    {/* Layer 4 — Union collapse buttons (centered between partners) */}
+                    {layout && unions.map(u => {
+                      if (u.childrenIds.length === 0) return null;
+                      const p1 = layout.nodes.get(u.partner1Id);
+                      if (!p1) return null;
+                      const midX = u.partner2Id
+                        ? ((p1.x + (layout.nodes.get(u.partner2Id)?.x ?? p1.x)) / 2)
+                        : p1.x;
+                      const p2y = u.partner2Id ? (layout.nodes.get(u.partner2Id)?.y ?? p1.y) : p1.y;
+                      const btnY = Math.max(p1.y, p2y) + CARD_H;
+                      const isCollapsed = collapsedUnions.has(u.id);
+                      return (
+                        <button key={u.id}
+                          onClick={() => toggleCollapse(u.id)}
+                          title={isCollapsed ? 'Expand Branch' : 'Collapse Branch'}
+                          className={cn(
+                            "absolute z-20",
+                            "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300",
+                            "border-2 shadow-lg hover:scale-110 active:scale-90",
+                            isCollapsed
+                              ? "bg-primary text-white border-primary rotate-180"
+                              : cn(t.cardBg, t.cardBorder, "text-slate-400 hover:text-primary")
+                          )}
+                          style={{ left: midX - 14, top: btnY + 6 }}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
                       );
                     })}
                   </div>
