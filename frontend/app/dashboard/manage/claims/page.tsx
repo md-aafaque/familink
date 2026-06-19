@@ -81,7 +81,7 @@ export default function ManageClaimsPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">{t('admin.claims.selectTree')}</h3>
+              <h3 className="text-2xl font-black text-white">{t('admin.claims.selectTree.title')}</h3>
               <p className="text-slate-300 font-medium">{t('admin.claims.selectTree.desc')}</p>
             </div>
             <div className="relative min-w-[300px]">

@@ -5,9 +5,11 @@ import { motion } from "framer-motion";
 import { Trees, Home, ArrowLeft, SearchX } from "lucide-react";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
 import { cn } from "@/lib/cn";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function NotFound() {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   return (
     <div className={cn("min-h-screen flex items-center justify-center p-6", theme.colors.bg)}>
@@ -51,10 +53,10 @@ export default function NotFound() {
             className="space-y-2"
           >
             <h2 className={cn("text-2xl md:text-3xl font-black uppercase tracking-tight", theme.colors.text)}>
-                Lost in the <span className={theme.colors.accent}>Family Tree</span>
+                {t("notFound.title")}
             </h2>
             <p className={cn("text-base md:text-lg font-medium max-w-md mx-auto leading-relaxed", theme.colors.textMuted)}>
-                The page you're looking for has moved out of the neighborhood or never existed in this branch.
+                {t("notFound.subtitle")}
             </p>
           </motion.div>
         </div>
@@ -74,7 +76,7 @@ export default function NotFound() {
             )}
           >
             <Home className="w-4 h-4" />
-            Back to Dashboard
+            {t("notFound.backToDashboard")}
           </Link>
           <button
             onClick={() => window.history.back()}
@@ -85,7 +87,7 @@ export default function NotFound() {
             )}
           >
             <ArrowLeft className="w-4 h-4" />
-            Go Back
+            {t("notFound.goHome")}
           </button>
         </motion.div>
 

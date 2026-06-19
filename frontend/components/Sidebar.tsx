@@ -179,7 +179,7 @@ export default function Sidebar() {
                 <UserCircle className={cn("w-5 h-5", pathname === "/dashboard/settings" ? theme.colors.accent : "opacity-60")} />
              </div>
              <div className="flex-1 min-w-0">
-                <p className={cn("text-xs font-black truncate uppercase tracking-tight", theme.colors.text)}>{user?.user_metadata.full_name || 'User'}</p>
+                <p className={cn("text-xs font-black truncate uppercase tracking-tight", theme.colors.text)}>{user?.user_metadata.full_name || t('common.defaultUserName')}</p>
                 <p className={cn("text-[9px] font-bold truncate opacity-50 uppercase tracking-widest", theme.colors.textMuted)}>{t("nav.accountSettings")}</p>
              </div>
              <Settings className={cn(

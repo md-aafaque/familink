@@ -35,7 +35,7 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
       StarterKit,
       Underline,
       Placeholder.configure({
-        placeholder: placeholder || 'Tell your family story...',
+        placeholder: placeholder || t('storyEditor.placeholder'),
       }),
       Link.configure({
         openOnClick: false,
@@ -198,8 +198,8 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
         theme.colors.border,
         theme.colors.textMuted
       )}>
-        <span>Story Editor</span>
-        <span>{editor.getText().length} characters</span>
+        <span>{t('storyEditor.footerLabel')}</span>
+        <span>{t('storyEditor.charCount').replace('{count}', String(editor.getText().length))}</span>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
+import { useLanguage } from "./providers/LanguageProvider";
 import CustomSelect from "./ui/CustomSelect";
 
 interface PersonPermissionsTabProps {
@@ -20,6 +21,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
   const [selectedUserId, setSelectedUserId] = useState("");
   const [permissionType, setPermissionType] = useState<"owner" | "editor">("editor");
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const { data: permissions, isLoading: isLoadingPerms } = useQuery({
     queryKey: ["person-permissions", personId],
@@ -71,9 +73,9 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
         {/* Current Permissions */}
         <div className={cn("p-10 rounded-[3rem] border shadow-sm space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
           <div className="flex items-center justify-between">
-            <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>Active Permissions</h3>
+            <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>{t('permissionsTab.activePermissions')}</h3>
             <span className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors duration-500", theme.colors.primaryMuted, theme.colors.accent, "border-primary/20")}>
-              {permissions?.length || 0} Explicit Users
+              {permissions?.length || 0} {t('permissionsTab.explicitUsers')}
             </span>
           </div>
 
@@ -85,7 +87,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
             ) : permissions?.length === 0 ? (
               <div className="py-16 text-center space-y-4">
                 <ShieldCheck className={cn("w-16 h-16 mx-auto opacity-20", theme.colors.textMuted)} />
-                <p className={cn("font-medium", theme.colors.textMuted)}>No explicit permissions granted yet.</p>
+                <p className={cn("font-medium", theme.colors.textMuted)}>{t('permissionsTab.noPermissions')}</p>
               </div>
             ) : (
               permissions?.map((p: any) => (
@@ -121,14 +123,14 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
 
         {/* Grant New Permission */}
         <div className={cn("p-10 rounded-[3rem] border shadow-sm space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-          <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>Grant Access</h3>
+          <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>{t('permissionsTab.grantAccess')}</h3>
           
           <div className="space-y-6">
             <div className="relative group">
               <Search className={cn("absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:" + theme.colors.accent + " transition-colors")} />
               <input
                 type="text"
-                placeholder="Find a tree member..."
+                placeholder={t('permissionsTab.searchPlaceholder')}
                 className={cn(
                   "w-full pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-bold outline-none transition-all border",
                   theme.colors.bg,
@@ -184,7 +186,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
                 )}
               >
                 {grantMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
-                Grant Access
+                {t('permissionsTab.grant')}
               </button>
             </div>
           </div>
@@ -194,9 +196,9 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
       <div className="space-y-10">
         <div className={cn("p-10 rounded-[3rem] text-white shadow-2xl transition-all duration-500", theme.isDark ? "bg-slate-800" : "bg-linear-to-br from-slate-800 to-slate-900")}>
           <ShieldCheck className={cn("w-12 h-12 mb-8 opacity-40", theme.isDark ? theme.colors.accent : "text-white")} />
-          <h3 className="text-2xl font-black mb-4">Access Control</h3>
+          <h3 className="text-2xl font-black mb-4">{t('permissionsTab.accessControl.title')}</h3>
           <p className="text-white/70 text-sm leading-relaxed font-medium">
-            Granting explicit permissions allows specific family members to manage this profile without giving them Admin rights to the entire tree.
+            {t('permissionsTab.accessControl.desc')}
           </p>
         </div>
       </div>

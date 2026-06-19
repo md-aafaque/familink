@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 interface CustomSelectProps {
   options: { label: string; value: string }[];
@@ -28,7 +29,7 @@ const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(({
   onBlur,
   name,
   id,
-  placeholder = "Select an option",
+  placeholder,
   className,
   disabled,
   size = 'md',
@@ -39,6 +40,7 @@ const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(({
   const internalRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -114,7 +116,7 @@ const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(({
         >
           <div className="max-h-60 overflow-y-auto">
             {options.length === 0 ? (
-              <div className={cn("px-4 py-3 text-xs italic", theme.colors.textMuted)}>No options available</div>
+              <div className={cn("px-4 py-3 text-xs italic", theme.colors.textMuted)}>{t('customSelect.noOptions')}</div>
             ) : (
               options.map((option) => (
                 <button
@@ -166,7 +168,7 @@ const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(({
           isOpen ? "ring-2 ring-primary/20 border-primary" : "hover:border-primary/50"
         )}
       >
-        <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+        <span className="truncate">{selectedOption ? selectedOption.label : placeholder || t('customSelect.placeholder')}</span>
         <ChevronDown className={cn("w-4 h-4 ml-2 transition-transform duration-300", isOpen ? "rotate-180" : "")} />
       </button>
 

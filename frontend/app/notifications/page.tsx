@@ -318,7 +318,7 @@ export default function NotificationsPage() {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                         className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-indigo-100 hover:text-indigo-600")}
-                        title="Mark as read"
+                        title={t('notifications.markAsRead')}
                       >
                         <Check className="w-5 h-5" />
                       </motion.button>
@@ -328,7 +328,7 @@ export default function NotificationsPage() {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-red-100 hover:text-red-600")}
-                      title="Delete"
+                      title={t('notifications.delete')}
                     >
                       <Trash2 className="w-5 h-5" />
                     </motion.button>

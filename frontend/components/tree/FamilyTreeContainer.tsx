@@ -1094,11 +1094,11 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                         className={cn("absolute bottom-11 right-0 w-40 rounded-xl overflow-hidden", t.panel)}>
                         <button onClick={() => doExport("png")}
                           className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5", t.text)}>
-                          <ImageDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PNG
+                          <ImageDown className="w-3.5 h-3.5 flex-shrink-0" /> {tLang('treePage.exportPng')}
                         </button>
                         <button onClick={() => doExport("pdf")}
                           className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5 border-t border-black/5", t.text)}>
-                          <FileDown className="w-3.5 h-3.5 flex-shrink-0" /> Export PDF
+                          <FileDown className="w-3.5 h-3.5 flex-shrink-0" /> {tLang('treePage.exportPdf')}
                         </button>
                       </motion.div>
                     )}
@@ -1207,13 +1207,13 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                     <div className={cn("w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6", t.chipOn)}>
                       <Users className="w-8 h-8" />
                     </div>
-                    <h3 className={cn("text-xl font-black mb-3", t.text)}>Build Your Family Tree</h3>
+                    <h3 className={cn("text-xl font-black mb-3", t.text)}>{tLang('treePage.empty.title')}</h3>
                     <p className={cn("text-sm font-medium mb-8 leading-relaxed", t.muted)}>
-                      Add your first family member and connect them to start visualizing your history.
+                      {tLang('treePage.empty.subtitle')}
                     </p>
                     <button onClick={() => setShowCreateModal(true)}
                       className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-lg active:scale-95", t.chipOn)}>
-                      Add First Member
+                      {tLang('treePage.empty.button')}
                     </button>
                   </div>
                 </div>

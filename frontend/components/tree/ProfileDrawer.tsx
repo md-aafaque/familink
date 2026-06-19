@@ -70,13 +70,13 @@ export default function ProfileDrawer({
     try {
       const res = await api.post(`/trees/${treeId}/people/${person.id}/claim`);
       setStatusMessage({ 
-        text: (res as any).message || "Claim request submitted for review.", 
+        text: (res as any).message || t('profileDrawer.status.claimSubmitted'), 
         type: 'success' 
       });
       setIsConfirmingClaim(false);
       queryClient.invalidateQueries({ queryKey: ["tree-visual", treeId] });
     } catch (err) {
-      setStatusMessage({ text: "Failed to submit claim request. Please try again.", type: 'error' });
+      setStatusMessage({ text: t('profileDrawer.status.claimFailed'), type: 'error' });
     } finally {
       setIsClaiming(false);
     }

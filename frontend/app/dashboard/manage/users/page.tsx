@@ -69,7 +69,7 @@ export default function ManageUsersPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">{t('admin.selectTree')}</h3>
+              <h3 className="text-2xl font-black text-white">{t('admin.selectTree.title')}</h3>
               <p className="text-slate-300 font-medium">{t('admin.selectTree.desc')}</p>
             </div>
             <div className="relative min-w-[300px]">
@@ -99,7 +99,7 @@ export default function ManageUsersPage() {
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName || 'New User'}</h3>
+                      <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName || t('admin.newUserFallback')}</h3>
                       {req.upgradeFrom && (
                         <span className="px-2 py-0.5 bg-violet-500/10 text-violet-600 rounded-md text-[10px] font-bold uppercase tracking-widest border border-violet-500/20">
                           {t('admin.upgrade')}

@@ -7,12 +7,14 @@ import api from "../../../lib/api";
 import { ArrowLeft, Loader2, Sparkles, TreeDeciduous } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function NewTreePage() {
   const [name, setName] = useState("");
   const router = useRouter();
   const queryClient = useQueryClient();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   const mutation = useMutation({
     mutationFn: async (treeName: string) => {
@@ -39,21 +41,20 @@ export default function NewTreePage() {
         className={cn("flex items-center gap-2 transition-colors mb-8 group", theme.colors.textMuted, "hover:" + theme.colors.text)}
       >
         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-        Back to Dashboard
+        {t("newTree.backToDashboard")}
       </button>
 
       <div className="space-y-12">
         <div className="space-y-4">
           <div className={cn("inline-flex items-center gap-3 px-4 py-2 rounded-full border", theme.colors.primaryMuted, "border-primary/10")}>
             <Sparkles className={cn("w-5 h-5", theme.colors.accent)} />
-            <span className={cn("text-sm font-bold", theme.colors.accent)}>Start a new journey</span>
+            <span className={cn("text-sm font-bold", theme.colors.accent)}>{t("newTree.badge")}</span>
           </div>
           <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
-            Name your <span className={theme.colors.accent}>Family Tree</span>
+            {t("newTree.title")}
           </h1>
           <p className={cn("text-lg", theme.colors.textMuted)}>
-            Every family has a story. Give yours a beautiful starting point. 
-            You can change this later.
+            {t("newTree.subtitle")}
           </p>
         </div>
 
@@ -64,7 +65,7 @@ export default function NewTreePage() {
               type="text"
               autoFocus
               required
-              placeholder="The Sharma Family..."
+              placeholder={t("newTree.placeholder")}
               className={cn(
                 "w-full pl-16 pr-6 py-5 rounded-2xl text-xl font-semibold shadow-sm focus:ring-4 transition-all outline-none border",
                 theme.colors.bg,
@@ -90,7 +91,7 @@ export default function NewTreePage() {
               <Loader2 className="w-6 h-6 animate-spin" />
             ) : (
               <>
-                Create Tree
+                {t("common.createTree")}
                 <ArrowLeft className="w-6 h-6 rotate-180 group-hover:translate-x-1 transition-transform" />
               </>
             )}
@@ -99,9 +100,7 @@ export default function NewTreePage() {
 
         <div className={cn("p-6 rounded-2xl border", theme.colors.primaryMuted, "border-primary/5")}>
           <p className={cn("text-sm leading-relaxed", theme.colors.text)}>
-            <strong className={theme.colors.accent}>Pro tip:</strong> Most families use their last name, 
-            like "The Andersons" or "Smith Ancestry". 
-            You can invite your relatives to collaborate once the tree is created.
+            <strong className={theme.colors.accent}>{t("newTree.proTip")}:</strong> {t("newTree.proTipBody")}
           </p>
         </div>
       </div>

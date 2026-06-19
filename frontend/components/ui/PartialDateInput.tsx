@@ -70,6 +70,7 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
 
     const handleCalendarPick = () => {
       dateInputRef.current?.showPicker?.();
+      dateInputRef.current?.focus();
     };
 
     const handleNativeDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,16 +149,17 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
         <div className="relative shrink-0">
           <button type="button" onClick={handleCalendarPick}
             className={cn(
-              "h-11 w-11 flex items-center justify-center rounded-xl border transition-all",
+              "h-11 w-11 flex items-center justify-center rounded-xl border transition-all cursor-pointer",
               theme.colors.border,
               "hover:bg-black/5 dark:hover:bg-white/5"
             )}
             title="Pick date from calendar"
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 pointer-events-none" />
           </button>
           <input ref={dateInputRef} type="date"
-            className="absolute inset-0 opacity-0 cursor-pointer"
+            className="absolute inset-0 opacity-0"
+            style={{ pointerEvents: 'none', colorScheme: theme.isDark ? 'dark' : 'light' }}
             onChange={handleNativeDateChange} />
         </div>
       </div>

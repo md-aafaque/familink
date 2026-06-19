@@ -1,0 +1,889 @@
+{
+  "settings": {
+    "title": "πéóπé½πéªπâ│πâêπâ¥πâ╝πé┐πâ½",
+    "subtitle": "πâçπé╕πé┐πâ½πâòπââπâêπâùπâ¬πâ│πâêπéÆτ«íτÉåπüùπÇüσ«╢τ│╗σ¢│πü«Σ╜ôΘ¿ôπéÆσ╛«Φ¬┐µò┤πüùπü╛πüÖπÇé",
+    "syncChanges": "σñëµ¢┤πéÆσÉîµ£ƒ",
+    "tab": {
+      "identity": "πâ₧πéñπéóπéñπâçπâ│πâåπéúπâåπéú",
+      "visuals": "πâôπé╕πâÑπéóπâ½",
+      "alerts": "πéóπâ⌐πâ╝πâê",
+      "security": "πé╗πé¡πâÑπâ¬πâåπéú",
+      "regional": "σ£░σƒƒΦ¿¡σ«Ü"
+    },
+    "profile": {
+      "title": "πéóπéñπâçπâ│πâåπéúπâåπéúπâùπâ¡πâòπéíπéñπâ½",
+      "desc": "σà¼Θûïπéóπéñπâçπâ│πâåπéúπâåπéúπü¿πâùπâ¡πâòπéíπéñπâ½Φ│çµá╝µâàσá▒πéÆΦ¿¡σ«Üπüùπü╛πüÖπÇé",
+      "name": "πâòπâ½πâìπâ╝πâá",
+      "phone": "ΘÇúτ╡íσàêΘ¢╗Φ⌐▒τò¬σÅ╖",
+      "bio": "σÇïΣ║║πâÉπéñπé¬",
+      "namePlaceholder": "Your full name",
+      "phonePlaceholder": "+1 (555) 000-0000",
+      "bioPlaceholder": "Brief description for your family profile..."
+    },
+    "status": {
+      "title": "πéóπé½πéªπâ│πâêπé╣πâåπâ╝πé┐πé╣",
+      "syncSuccess": "Identity and preferences synchronized.",
+      "syncFailed": "Failed to sync changes.",
+      "passwordMismatch": "Passwords do not match or are empty.",
+      "passwordSuccess": "Security keys cycled successfully.",
+      "passwordFailed": "Failed to update security keys.",
+      "terminateFailed": "Failed to terminate account.",
+      "autoScanSuccess": "Detected {lang} and {tz}.",
+      "autoScanFailed": "Auto-scan failed. Please select manually.",
+      "themeSynced": "Synchronized with {mode} OS profile."
+    },
+    "appearance": {
+      "title": "πâôπé╕πâÑπéóπâ½πé╣πé┐πéñπâ½",
+      "desc": "τÆ░σóâπü½σÉêπéÅπü¢πüªπéñπâ│πé┐πâ╝πâòπéºπâ╝πé╣πéÆπâæπâ╝πé╜πâèπâ⌐πéñπé║πüùπü╛πüÖπÇé",
+      "modes": {
+        "solaris": {
+          "label": "Solaris",
+          "desc": "Daylight optimized"
+        },
+        "midnight": {
+          "label": "Midnight",
+          "desc": "Eye-strain focused"
+        }
+      },
+      "syncWithOS": "Sync with OS",
+      "syncDesc": "Let your operating system determine when to switch between Solaris and Midnight modes."
+    },
+    "notifications": {
+      "title": "πéóπâ⌐πâ╝πâêπé▓πâ╝πâêπéªπéºπéñ",
+      "desc": "σ«╢µùÅπü«πéñπâÖπâ│πâêπü«ΘÇÜτƒÑµû╣µ│òπéÆΦ¿¡σ«Üπüùπü╛πüÖπÇé",
+      "email": {
+        "label": "Email Broadcasts",
+        "desc": "Weekly digests and critical tree modifications"
+      },
+      "push": {
+        "label": "Browser Alerts",
+        "desc": "Real-time notifications for relationship proposals"
+      },
+      "marketing": {
+        "label": "Grid Updates",
+        "desc": "New system features and development roadmap news"
+      }
+    },
+    "security": {
+      "title": "πé╖πâ╝πâ½πâëπâùπâ¡πâêπé│πâ½",
+      "desc": "πéóπé»πé╗πé╣πé¡πâ╝πü¿πé╗πé¡πâÑπâ¬πâåπéúπâæπâ⌐πâíπâ╝πé┐πéÆτ«íτÉåπüùπü╛πüÖπÇé",
+      "newPassword": "New Security Key",
+      "confirmPassword": "Confirm Security Key",
+      "proTip": {
+        "title": "Pro-Tip",
+        "body": "Using a passphrase instead of a single word makes your family data significantly harder to compromise."
+      },
+      "cycleKeys": "Cycle Security Keys"
+    },
+    "preferences": {
+      "title": "σ£░σƒƒΦ¿¡σ«Ü",
+      "desc": "πâ¡πâ╝πé½πâ½πéñπâ│πé┐πâ╝πâòπéºπâ╝πé╣τÆ░σóâπéÆΦ¿¡σ«Üπüùπü╛πüÖπÇé",
+      "autoScanDesc": "The system will attempt to derive your location and time parameters from your active browser session."
+    },
+    "termination": {
+      "title": "µá╕πé¬πâùπé╖πâºπâ│",
+      "desc": "µüÆΣ╣àτÜäπüºΣ╕ìσÅ»ΘÇåτÜäπü¬πâçπâ╝πé┐πü«τá┤σúèπÇé",
+      "sectionTitle": "Terminate Account",
+      "sectionDesc": "This will purge all your family trees, memories, and personal metadata from our servers. This action is definitive.",
+      "initiate": "Initiate Termination",
+      "confirmMessage": "WARNING: This will permanently delete your account and all associated data. This action is irreversible. Proceed?",
+      "confirmPrompt": "To confirm deletion, please type 'DELETE' below:"
+    },
+    "systemConfiguration": "システム設定",
+    "terminateSession": "セッションを終了",
+    "verified": "確認済み",
+    "googleAuth": "Google認証",
+    "memberSince": "メンバー登録日",
+    "activateAutoDetect": "自動検出を有効化",
+    "systemLanguage": "システム言語",
+    "timezoneOffset": "タイムゾーンオフセット",
+    "automaticDetection": "自動検出",
+    "rescan": "再スキャン",
+    "loadingProfile": "プロフィールを復号化中...",
+    "nav": {
+      "identity": {
+        "desc": "公開名とアバター"
+      },
+      "visuals": {
+        "desc": "テーマとインターフェース"
+      },
+      "alerts": {
+        "desc": "最新情報を入手"
+      },
+      "security": {
+        "desc": "パスワードとアクセス"
+      },
+      "regional": {
+        "desc": "言語と時計"
+      }
+    },
+    "privacy": {
+      "title": "プライバシー",
+      "desc": "プロフィールとアクティビティを表示できる人を制御",
+      "showOnlineStatus": "オンラインステータスを表示",
+      "showLastSeen": "最終アクセスを表示",
+      "showProfilePhoto": "プロフィール写真を公開表示"
+    },
+    "notificationPreferences": "通知設定",
+    "emailNotifications": "メール通知",
+    "pushNotifications": "プッシュ通知",
+    "languages": {
+      "en": "English (US)",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ja": "Japanese"
+    }
+  },
+  "nav": {
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "navigation": "πâèπâôπé▓πâ╝πé╖πâºπâ│",
+    "trees": "πâ₧πéñπâäπâ¬πâ╝",
+    "wall": "πâòπéíπâƒπâ¬πâ╝πéªπé⌐πâ╝πâ½",
+    "notifications": "ΘÇÜτƒÑ",
+    "admin": "τ«íτÉåΦÇà",
+    "accessRequests": "πéóπé»πé╗πé╣πâ¬πé»πé¿πé╣πâê",
+    "reviewProposals": "µÅÉµíêπü«τó║Φ¬ì",
+    "mergeRequests": "τ╡▒σÉêπâ¬πé»πé¿πé╣πâê",
+    "profileClaims": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒é",
+    "deletionRequests": "σëèΘÖñπâ¬πé»πé¿πé╣πâê",
+    "manageInvites": "µï¢σ╛àπü«τ«íτÉå",
+    "accountSettings": "πéóπé½πéªπâ│πâêΦ¿¡σ«Ü",
+    "signOut": "πé╡πéñπâ│πéóπéªπâê"
+  },
+  "header": {
+    "dashboard": "πâÇπââπé╖πâÑπâ£πâ╝πâë",
+    "familyTree": "σ«╢τ│╗σ¢│",
+    "notifications": "ΘÇÜτƒÑ",
+    "accountSettings": "πéóπé½πéªπâ│πâêΦ¿¡σ«Ü",
+    "accessRequests": "πéóπé»πé╗πé╣πâ¬πé»πé¿πé╣πâê",
+    "treeInvitations": "πâäπâ¬πâ╝πü╕πü«µï¢σ╛à",
+    "profileClaims": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒é",
+    "relationshipProposals": "ΘûóΣ┐éπü«µÅÉµíê",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "profile": "プロフィール",
+    "settings": "設定",
+    "help": "ヘルプ",
+    "search": "検索"
+  },
+  "dashboard": {
+    "welcome": "{name} πüòπéôπÇüπéêπüåπüôπü¥",
+    "subtitle": "σ«╢τ│╗σ¢│πÇüπéóπé»πé╗πé╣µ¿⌐ΘÖÉπÇüπüèπéêπü│µ¡┤σÅ▓τÜäΦ¿ÿΘî▓πéÆτ«íτÉåπüùπü╛πüÖπÇé",
+    "stats": {
+      "activeTrees": "µ£ëσè╣πü¬πâäπâ¬πâ╝",
+      "members": "πâíπâ│πâÉπâ╝",
+      "lastUpdate": "µ£Çτ╡éµ¢┤µû░"
+    },
+    "recentMemories": "µ£ÇΦ┐æπü«µÇ¥πüäσç║",
+    "familyTrees": "σ«╢τ│╗σ¢│",
+    "newTree": "µû░πüùπüäπâäπâ¬πâ╝",
+    "tree": {
+      "created": "{date} πü½Σ╜£µêÉ",
+      "openTree": "πâäπâ¬πâ╝πéÆΘûïπüÅ",
+      "rename": "σÉìσëìσñëµ¢┤",
+      "delete": "σëèΘÖñ",
+      "pending": "Σ┐¥τòÖΣ╕¡"
+    },
+    "noTrees": {
+      "title": "σ«╢τ│╗σ¢│πüîπü╛πüáπüéπéèπü╛πü¢πéô",
+      "subtitle": "µ£Çσê¥πü«πâäπâ¬πâ╝πéÆΣ╜£µêÉπüùπüªπÇüσ«╢µùÅπü«µ¡┤σÅ▓ of σ«╢µùÅπü«µ¡┤σÅ▓πü«Φ¿ÿΘî▓πéÆΘûïσºïπüùπü╛πüùπéçπüåπÇé",
+      "button": "µ£Çσê¥πü«πâäπâ¬πâ╝πéÆΣ╜£µêÉπüÖπéï"
+    },
+    "loading": "πâÇπââπé╖πâÑπâ£πâ╝πâëπéÆΦ¬¡πü┐Φ╛╝πü┐Σ╕¡..."
+  },
+  "memories": {
+    "title": "πâòπéíπâƒπâ¬πâ╝πâ£πâ╝πâë",
+    "subtitle": "τ»Çτ¢«πÇüτë⌐Φ¬₧πÇüσåÖτ£ƒπéÆσà▒µ£ëπüÖπéïσá┤µëÇπüºπüÖπÇéσ«╢µùÅπü«µ¡┤σÅ▓πéÆΣ╕Çτ╖Æπü½µ«ïπüùπü╛πüùπéçπüåπÇé",
+    "add": "µÇ¥πüäσç║πéÆΦ┐╜σèá",
+    "loadingTrees": "πâäπâ¬πâ╝πéÆΦ¬¡πü┐Φ╛╝πü┐Σ╕¡...",
+    "selectTree": "πâäπâ¬πâ╝πéÆΘü╕µè₧",
+    "searchPlaceholder": "µÇ¥πüäσç║πéÆµñ£τ┤ó...",
+    "filter": {
+      "all": "πüÖπü╣πüª",
+      "milestone": "τ»Çτ¢«",
+      "story": "τë⌐Φ¬₧",
+      "photo": "σåÖτ£ƒ"
+    },
+    "noMemories": {
+      "title": "µÇ¥πüäσç║πüîΦªïπüñπüïπéèπü╛πü¢πéô",
+      "searchSubtitle": "πâòπéúπâ½πé┐πâ╝πéäµñ£τ┤óΦ¬₧πéÆΦ¬┐µò┤πüùπüªπü┐πüªπüÅπüáπüòπüäπÇé",
+      "emptySubtitle": "πüôπü«πâäπâ¬πâ╝πüºµ£Çσê¥πü«σ«╢µùÅπü«µÇ¥πüäσç║πéÆΦ¿ÿΘî▓πüùπü╛πüùπéçπüå∩╝ü",
+      "button": "µ£Çσê¥πü«µÇ¥πüäσç║πéÆΦ┐╜σèá"
+    }
+  },
+  "role": {
+    "admin": "τ«íτÉåΦÇà",
+    "adminDesc": "Full access to manage the family tree",
+    "member": "πâíπâ│πâÉπâ╝",
+    "memberDesc": "Can create and edit family relationships",
+    "viewer": "Θû▓ΦªºΦÇà",
+    "viewerDesc": "Read-only access to view the family tree",
+    "editor": "τ╖¿Θ¢åΦÇà",
+    "pending": "Σ┐¥τòÖΣ╕¡"
+  },
+  "notifications": {
+    "title": "ΘÇÜτƒÑ",
+    "unreadCount": "{count} Σ╗╢πü«µ£¬Φ¬¡πâíπââπé╗πâ╝πé╕",
+    "markAllRead": "πüÖπü╣πüªµùóΦ¬¡πü½πüÖπéï",
+    "deleteAll": "πüÖπü╣πüªσëèΘÖñ",
+    "loading": "ΘÇÜτƒÑπéÆΦ¬¡πü┐Φ╛╝πü┐Σ╕¡...",
+    "noNotifications": {
+      "title": "ΘÇÜτƒÑπü»πü╛πüáπüéπéèπü╛πü¢πéô",
+      "subtitle": "πüÖπü╣πüªτó║Φ¬ìπüòπéîπü╛πüùπüƒ∩╝üσ╛îπü╗πü⌐πüöτó║Φ¬ìπüÅπüáπüòπüäπÇé",
+      "button": "πâÇπââπé╖πâÑπâ£πâ╝πâëπü╕τº╗σïò"
+    },
+    "new": "µû░ΦªÅ",
+    "readAt": "{date} πü½µùóΦ¬¡",
+    "markAsRead": "Mark as read",
+    "delete": "Delete"
+  },
+  "layout": {
+    "accessRestricted": "πéóπé»πé╗πé╣σê╢ΘÖÉ",
+    "noPermission": "πüôπü«πâÜπâ╝πé╕πéÆΦí¿τñ║πüÖπéïµ¿⌐ΘÖÉπüîπüéπéèπü╛πü¢πéôπÇé",
+    "loadingWorkspace": "πâ»πâ╝πé»πé╣πâÜπâ╝πé╣πéÆΦ¬¡πü┐Φ╛╝πü┐Σ╕¡..."
+  },
+  "tree": {
+    "loading": "πâäπâ¬πâ╝πü«πâíπé┐πâçπâ╝πé┐πéÆσÅûσ╛ùΣ╕¡ΓÇª"
+  },
+  "admin": {
+    "accessRequests": {
+      "title": "πéóπé»πé╗πé╣πâ¬πé»πé¿πé╣πâê",
+      "subtitle": "σ«╢τ│╗σ¢│πü╕πü«σÅéσèáΦÇàπü¿πü¥πü«µ¿⌐ΘÖÉπâ¼πâÖπâ½πéÆτ«íτÉåπüùπü╛πüÖπÇéµû░ΦªÅπâíπâ│πâÉπâ╝πüèπéêπü│πâ¡πâ╝πâ½πü«µÿçµá╝πâ¬πé»πé¿πé╣πâêπüîπüôπüôπü½Φí¿τñ║πüòπéîπü╛πüÖπÇé"
+    },
+    "selectTree": {
+      "desc": "Θü╕µè₧πüùπüƒπâ»πâ╝πé»πé╣πâÜπâ╝πé╣ of πâíπâ│πâÉπâ╝πéÆτ«íτÉåπüùπü╛πüÖ"
+    },
+    "chooseTree": "πâäπâ¬πâ╝πéÆΘü╕µè₧πüùπüªπüÅπüáπüòπüä...",
+    "upgrade": "πéóπââπâùπé░πâ¼πâ╝πâë",
+    "requested": "πâ¬πé»πé¿πé╣πâêπüòπéîπüƒπâ¡πâ╝πâ½: {role}",
+    "current": "τÅ╛σ£¿πü«πâ¡πâ╝πâ½: {role}",
+    "approve": "µë┐Φ¬ì",
+    "reject": "σì┤Σ╕ï",
+    "noRequests": {
+      "title": "Σ┐¥τòÖΣ╕¡πü«πâ¬πé»πé¿πé╣πâêπü»πüéπéèπü╛πü¢πéô",
+      "subtitle": "µû░πüùπüäσ«╢µùÅπâíπâ│πâÉπâ╝πüîπâäπâ¬πâ╝πü╕πü«σÅéσèáπéÆπâ¬πé»πé¿πé╣πâêπüÖπéïπü¿πÇüµë┐Φ¬ìπü«πüƒπéüπü½πüôπüôπü½Φí¿τñ║πüòπéîπü╛πüÖπÇé"
+    },
+    "invitations": {
+      "title": "πâäπâ¬πâ╝πü╕πü«µï¢σ╛à",
+      "subtitle": "Φª¬µêÜπéÆµï¢σ╛àπüÖπéïπüƒπéüπü«σ«ëσà¿πü¬πâ¬πâ│πé»πéÆΣ╜£µêÉπüùπü╛πüÖπÇéσÉäπâ¬πâ│πé»πü»7µùÑΘûôµ£ëσè╣πüºπÇüσÅéσèáπü½πü»τ«íτÉåΦÇàπü«µë┐Φ¬ìπüîσ┐àΦªüπüºπüÖπÇé",
+      "targetTree": {
+        "desc": "µï¢σ╛àπâ¬πâ│πé»πéÆΣ╜£µêÉπüÖπéïσ»╛Φ▒íπü«σ«╢µùÅπâ»πâ╝πé»πé╣πâÜπâ╝πé╣πéÆΘü╕µè₧πüùπü╛πüÖπÇé"
+      },
+      "selectToGenerate": "µï¢σ╛àπéÆτöƒµêÉπüÖπéïπü½πü»πÇüΣ╕èπüºπâäπâ¬πâ╝πéÆΘü╕µè₧πüùπüªπüÅπüáπüòπüäπÇé",
+      "selectToView": "µ£ëσè╣πü¬µï¢σ╛àπéÆΦí¿τñ║πüÖπéïπü½πü»πÇüΣ╕èπüºπâäπâ¬πâ╝πéÆΘü╕µè₧πüùπüªπüÅπüáπüòπüäπÇé",
+      "generate": "τöƒµêÉ",
+      "link": "{role} πâ¬πâ│πé»",
+      "activeLinks": "µ£ëσè╣πü¬πâ¬πâ│πé»",
+      "expires": "µ£ëσè╣µ£ƒΘÖÉ {date}",
+      "desc": {
+        "member": "πâíπâ│πâÉπâ╝πéÆΦ┐╜σèáπüùπÇüΘûóΣ┐éπéÆµÅÉµíêπüºπüìπü╛πüÖπÇé",
+        "viewer": "σ«╢τ│╗σ¢│πü╕πü«Φ¬¡πü┐σÅûπéèσ░éτö¿πéóπé»πé╗πé╣πÇé",
+        "admin": "πâäπâ¬πâ╝πü¿µï¢σ╛àπü«σ«îσà¿πü¬σê╢σ╛íπÇé"
+      },
+      "copy": "πé│πâöπâ╝",
+      "copied": "πé│πâöπâ╝πüòπéîπü╛πüùπüƒ",
+      "noLinks": "πüôπü«πâäπâ¬πâ╝πü«µ£ëσè╣πü¬µï¢σ╛àπâ¬πâ│πé»πü»πüéπéèπü╛πü¢πéôπÇéΣ╕èπüºτöƒµêÉπüùπüªπüÅπüáπüòπüäπÇé"
+    },
+    "management": {
+      "title": "πâäπâ¬πâ╝τ«íτÉå",
+      "subtitle": "πâäπâ¬πâ╝πâíπâ│πâÉπâ╝πüïπéëµÅÉµíêπüòπéîπüƒσñëµ¢┤πéÆτó║Φ¬ìπâ╗µñ£Φ¿╝πüùπü╛πüÖπÇé",
+      "sourceWorkspace": {
+        "desc": "µÅÉµíêπéÆτó║Φ¬ìπüùπüƒπüäσ«╢τ│╗σ¢│πéÆΘü╕µè₧πüùπü╛πüÖπÇé"
+      },
+      "tab": {
+        "relationships": "ΘûóΣ┐é",
+        "merges": "τ╡▒σÉê",
+        "claims": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒é",
+        "deletions": "σëèΘÖñ"
+      },
+      "proposed": "{date} πü½ {user} πü½πéêπüúπüªµÅÉµíê",
+      "label": {
+        "subject": "Σ╕╗Φ¬₧",
+        "target": "σ»╛Φ▒í",
+        "source": "τ╡▒σÉêσàâ (σëèΘÖñπüòπéîπü╛πüÖ)",
+        "destination": "τ╡▒σÉêσàê (µ«ïπüòπéîπü╛πüÖ)"
+      },
+      "mergeInto": "τ╡▒σÉêσàê",
+      "profileClaimed": "Φ½ïµ▒éσ»╛Φ▒íπü«πâùπâ¡πâòπéúπâ╝πâ½",
+      "requestingUser": "πâ¬πé»πé¿πé╣πâêπâªπâ╝πé╢πâ╝",
+      "targetRemoval": "σëèΘÖñσ»╛Φ▒í",
+      "deletionWarning": "µë┐Φ¬ìπüÖπéïπü¿πÇüπüôπü«πâùπâ¡πâòπéúπâ╝πâ½πü¿πüÖπü╣πüªπü«µÄÑτ╢Üπüîσ«îσà¿πü½σëèΘÖñπüòπéîπü╛πüÖπÇé",
+      "allCaughtUp": "πüÖπü╣πüªσçªτÉåµ╕êπü┐πüºπüÖ∩╝ü",
+      "noProposals": "πüôπü«πâäπâ¬πâ╝πü½Σ┐¥τòÖΣ╕¡πü« {type} µÅÉµíêπü»πüéπéèπü╛πü¢πéôπÇé",
+      "defaultRejectReason": "Rejected by admin"
+    },
+    "claims": {
+      "title": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒é",
+      "subtitle": "σ«╢τ│╗σ¢│σåàπü«µùóσ¡ÿπâùπâ¡πâòπéúπâ╝πâ½πü½πéóπé½πéªπâ│πâêπéÆπâ¬πâ│πé»πüùπüƒπüäπâªπâ╝πé╢πâ╝πüïπéëπü«πâ¬πé»πé¿πé╣πâêπéÆτó║Φ¬ìπüùπü╛πüÖπÇé",
+      "selectTree": {
+        "desc": "Θü╕µè₧πüùπüƒπâ»πâ╝πé»πé╣πâÜπâ╝πé╣πü«Φ½ïµ▒éπéÆτó║Φ¬ìπüùπü╛πüÖ"
+      },
+      "chooseTree": "πâäπâ¬πâ╝πéÆΘü╕µè₧πüùπüªπüÅπüáπüòπüä...",
+      "wantsToClaim": "πéÆΦ½ïµ▒éπüùπüƒπüä",
+      "requested": "{date} πü½πâ¬πé»πé¿πé╣πâê",
+      "noRequests": {
+        "title": "Σ┐¥τòÖΣ╕¡πü«Φ½ïµ▒éπâ¬πé»πé¿πé╣πâêπü»πüéπéèπü╛πü¢πéô",
+        "subtitle": "πâªπâ╝πé╢πâ╝πüîπâäπâ¬πâ╝σåàπü«πâùπâ¡πâòπéúπâ╝πâ½πéÆΦ½ïµ▒éπüÖπéïπü¿πÇüπüôπüôπü½Φí¿τñ║πüòπéîπüªτó║Φ¬ìπüºπüìπü╛πüÖπÇé"
+      }
+    },
+    "newUserFallback": "New User"
+  },
+  "relationship": {
+    "parent": "Φª¬",
+    "child": "σ¡É",
+    "spouse": "Θàìσü╢ΦÇà",
+    "sibling": "σàäσ╝ƒσºëσª╣"
+  },
+  "notification": {
+    "access_request_approved": {
+      "title": "σ«╢τ│╗σ¢│πü╕πéêπüåπüôπü¥",
+      "message": "{role} πü¿πüùπüªπü«σÅéσèáπâ¬πé»πé¿πé╣πâêπüîµë┐Φ¬ìπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "access_request_rejected": {
+      "title": "πéóπé»πé╗πé╣πâ¬πé»πé¿πé╣πâêσì┤Σ╕ï",
+      "message": "{role} πü¿πüùπüªπü«σÅéσèáπâ¬πé»πé¿πé╣πâêπüîσì┤Σ╕ïπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "access_request_pending": {
+      "title": {
+        "upgrade": "πâ¡πâ╝πâ½µÿçµá╝πâ¬πé»πé¿πé╣πâê",
+        "join": "µû░ΦªÅπéóπé»πé╗πé╣πâ¬πé»πé¿πé╣πâê"
+      },
+      "upgrade_message": "πâªπâ╝πé╢πâ╝πüî {currentRole} πüïπéë {requestedRole} πü╕πü«πéóπââπâùπé░πâ¼πâ╝πâëπéÆπâ¬πé»πé¿πé╣πâêπüùπüªπüäπü╛πüÖπÇé",
+      "join_message": "µû░πüùπüäπâªπâ╝πé╢πâ╝πüî {role} πü¿πüùπüªπüéπü¬πüƒπü«σ«╢τ│╗σ¢│πü╕πü«σÅéσèáπéÆπâ¬πé»πé¿πé╣πâêπüùπüªπüäπü╛πüÖπÇé"
+    },
+    "deletion_proposal_pending": {
+      "title": "σëèΘÖñπâ¬πé»πé¿πé╣πâê",
+      "message": "{name} πü«σëèΘÖñπüîµÅÉµíêπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "deletion_approved": {
+      "title": "σëèΘÖñπâ¬πé»πé¿πé╣πâêµë┐Φ¬ì",
+      "message": "πâùπâ¡πâòπéúπâ╝πâ½σëèΘÖñπâ¬πé»πé¿πé╣πâêπüîµë┐Φ¬ìπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "deletion_rejected": {
+      "title": "σëèΘÖñπâ¬πé»πé¿πé╣πâêσì┤Σ╕ï",
+      "message": "πâùπâ¡πâòπéúπâ╝πâ½σëèΘÖñπâ¬πé»πé¿πé╣πâêπüîσì┤Σ╕ïπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "claim_request_pending": {
+      "title": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒éπâ¬πé»πé¿πé╣πâê",
+      "message": "πâªπâ╝πé╢πâ╝πüî {name} πü«πâùπâ¡πâòπéúπâ╝πâ½πü«Φ½ïµ▒éπéÆπâ¬πé»πé¿πé╣πâêπüùπüªπüäπü╛πüÖπÇé"
+    },
+    "claim_approved": {
+      "title": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒éµë┐Φ¬ì",
+      "message": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒éπâ¬πé»πé¿πé╣πâêπüîµë┐Φ¬ìπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "claim_rejected": {
+      "title": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒éσì┤Σ╕ï",
+      "message": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒éπâ¬πé»πé¿πé╣πâêπüîσì┤Σ╕ïπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "merge_proposal_pending": {
+      "title": "τ╡▒σÉêπâ¬πé»πé¿πé╣πâê",
+      "message": "{source} πéÆ {target} πü½τ╡▒σÉêπüÖπéïµÅÉµíêπüîσç║πüòπéîπüªπüäπü╛πüÖπÇé"
+    },
+    "merge_approved": {
+      "title": "τ╡▒σÉêπâ¬πé»πé¿πé╣πâêµë┐Φ¬ì",
+      "message": "πâùπâ¡πâòπéúπâ╝πâ½τ╡▒σÉêπâ¬πé»πé¿πé╣πâêπüîµë┐Φ¬ìπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "merge_rejected": {
+      "title": "τ╡▒σÉêπâ¬πé»πé¿πé╣πâêσì┤Σ╕ï",
+      "message": "πâùπâ¡πâòπéúπâ╝πâ½τ╡▒σÉêπâ¬πé»πé¿πé╣πâêπüîσì┤Σ╕ïπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "permission_granted": {
+      "title": "µ¿⌐ΘÖÉΣ╗ÿΣ╕Ä",
+      "message": "πâùπâ¡πâòπéúπâ╝πâ½πü½σ»╛πüÖπéï {permissionType} µ¿⌐ΘÖÉπüîΣ╗ÿΣ╕Äπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "relationship_pending": {
+      "title": "µû░ΦªÅΘûóΣ┐éµÅÉµíê",
+      "message": "πâäπâ¬πâ╝σåàπü½µû░πüùπüä {relationshipType} ΘûóΣ┐éπüîµÅÉµíêπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "relationship_approved": {
+      "title": "ΘûóΣ┐éµë┐Φ¬ì",
+      "message": "µÅÉµíêπüòπéîπüƒ {relationshipType} ΘûóΣ┐éπüîµë┐Φ¬ìπüòπéîπü╛πüùπüƒπÇé"
+    },
+    "relationship_rejected": {
+      "title": "ΘûóΣ┐éσì┤Σ╕ï",
+      "message": "µÅÉµíêπüòπéîπüƒ {relationshipType} ΘûóΣ┐éπüîσì┤Σ╕ïπüòπéîπü╛πüùπüƒ: {reason}",
+      "reason": "理由: {reason}"
+    }
+  },
+  "common": {
+    "back": "Back",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "notProvided": "Not provided",
+    "notSpecified": "Not specified",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "delete": "削除",
+    "confirm": "確認",
+    "search": "検索",
+    "noResults": "結果なし",
+    "viewAll": "すべて表示",
+    "learnMore": "詳細を見る",
+    "close": "閉じる",
+    "copy": "コピー",
+    "copied": "コピーしました",
+    "upload": "アップロード",
+    "download": "ダウンロード",
+    "print": "印刷",
+    "share": "共有",
+    "refresh": "更新",
+    "filter": "フィルター",
+    "sort": "並び替え",
+    "ascending": "昇順",
+    "descending": "降順",
+    "more": "もっと見る",
+    "less": "少なく表示",
+    "all": "すべて",
+    "none": "なし",
+    "required": "必須",
+    "optional": "任意",
+    "yes": "はい",
+    "no": "いいえ",
+    "on": "オン",
+    "off": "オフ",
+    "enabled": "有効",
+    "disabled": "無効",
+    "present": "Present",
+    "unknown": "Unknown",
+    "current": "Current",
+    "defaultUserName": "User"
+  },
+  "treeSandbox": {
+    "title": "サンドボックス",
+    "unlinkedMembers": "未リンクのメンバー",
+    "searchPlaceholder": "検索...",
+    "loading": "読み込み中",
+    "allLinked": "すべてのメンバーがリンクされています。",
+    "addRelative": "新しい親族を追加",
+    "unlinked": "未リンク"
+  },
+  "createPersonModal": {
+    "title": "新しい親族を追加",
+    "subtitle": "家系図に新しいプロフィールを作成"
+  },
+  "mergeModal": {
+    "title": "プロフィールを統合",
+    "subtitle": "重複する家族メンバーを統合",
+    "source": "統合元",
+    "sourceDesc": "このプロフィールは統合済みとしてマークされ、関係はターゲットに移行されます。",
+    "selectTarget": "ターゲットプロフィールを選択",
+    "searchPlaceholder": "名前で検索...",
+    "noResults": "他のプロフィールが見つかりません。",
+    "continue": "確認に進む",
+    "warningTitle": "警告: 破壊的な操作",
+    "warningBody": "{source} を {target} に統合しようとしています。",
+    "warningOne": "ソースの既存の関係はすべて移行されます。",
+    "warningTwo": "重複する関係はスキップされます。",
+    "warningThree": "ソースプロフィールは「統合済み」としてマークされ、ツリーから非表示になります。",
+    "warningFour": "この操作は監査履歴に記録されます。",
+    "sourceLabel": "ソース",
+    "targetLabel": "ターゲット",
+    "back": "戻る",
+    "confirm": "統合を確認"
+  },
+  "memoryModal": {
+    "editTitle": "思い出を編集",
+    "createTitle": "思い出を記録",
+    "title": "思い出のタイトル",
+    "date": "日付",
+    "selectPhoto": "写真を選択",
+    "featuredImage": "注目画像（オプション）",
+    "clickUpload": "クリックして画像をアップロード",
+    "uploadHint": "JPG、PNG、10MBまで",
+    "storyTitle": "ストーリー",
+    "description": "説明",
+    "milestonePlaceholder": "この節目について詳細を共有...",
+    "linkFamilyMembers": "家族メンバーにリンク",
+    "addPerson": "人物を追加",
+    "searchPeople": "人物を検索...",
+    "noPeople": "人物が見つかりません",
+    "saving": "保存中...",
+    "save": "思い出を保存",
+    "update": "思い出を更新",
+    "titlePlaceholder": "例: 曾祖父の90歳の誕生日",
+    "uploadPhoto": "写真をアップロード"
+  },
+  "profileDrawer": {
+    "verified": "確認済み",
+    "ghost": "ゴーストプロフィール",
+    "deceased": "故人",
+    "deleteProfile": "プロフィールを削除",
+    "requestDeletion": "削除をリクエスト",
+    "confirmDelete": "完全削除を確認",
+    "proposeRemoval": "プロフィール削除を提案",
+    "deleteReason": "このプロフィールを削除する理由は何ですか？（任意）",
+    "deleteNow": "今すぐ削除",
+    "submitRequest": "リクエストを送信",
+    "viewDetailed": "詳細プロフィールを表示",
+    "viewProfile": "プロフィールを表示",
+    "linkFamily": "家族メンバーをリンク",
+    "link": "リンク",
+    "claim": "このプロフィールを申請",
+    "confirmLink": "プロフィールリンクを確認",
+    "proposeClaim": "プロフィール申請を提案",
+    "adminClaimNote": "管理者として、このプロフィールはあなたのアカウントに即座にリンクされます。",
+    "userClaimNote": "このプロフィールへのリンクを確立するには、管理上の承認が必要です。",
+    "confirmNow": "今すぐ確認",
+    "tab": {
+      "core": "基本情報",
+      "family": "家族",
+      "timeline": "タイムライン"
+    },
+    "birthInfo": "出生情報",
+    "gender": "性別",
+    "education": "学歴",
+    "occupation": "職業",
+    "contactInfo": "連絡先情報",
+    "noContactInfo": "共有された連絡先情報はありません",
+    "deathInfo": "死亡情報",
+    "parents": "両親",
+    "siblings": "兄弟姉妹",
+    "partners": "パートナー",
+    "children": "子供",
+    "noRelatives": "親族が見つかりません",
+    "lifeEvents": "ライフイベント",
+    "noEvents": "記録されたイベントはありません",
+    "viewDetailedProfile": "詳細プロフィールを表示",
+    "status": {
+      "claimSubmitted": "申請リクエストがレビューのために送信されました。",
+      "claimFailed": "申請リクエストの送信に失敗しました。もう一度お試しください。"
+    }
+  },
+  "personPage": {
+    "back": "戻る",
+    "claimProfile": "プロフィールを申請",
+    "editProfile": "プロフィールを編集",
+    "noEditPermission": "このプロフィールを編集する権限がありません",
+    "deleteProfile": "プロフィールを削除",
+    "requestRemoval": "削除をリクエスト",
+    "confirmDeletion": "完全削除を確認",
+    "proposeRemoval": "プロフィール削除を提案",
+    "permanentDeleteNote": "この操作は元に戻せません。このプロフィールのすべての関係とデータが消去されます。",
+    "removalNote": "レビューのため、ツリー管理者にリクエストが送信されます。",
+    "deleteReason": "任意: このプロフィールを削除する理由は何ですか？",
+    "deletePermanently": "完全に削除",
+    "submitRemoval": "削除リクエストを送信",
+    "claimThisProfile": "このプロフィールを申請",
+    "requestClaim": "プロフィール申請をリクエスト",
+    "confirmClaim": "申請を確認",
+    "submitClaim": "申請リクエストを送信",
+    "addedToTree": "ツリーメンバー • {date} に追加",
+    "gender": "性別",
+    "education": "学歴",
+    "occupation": "職業",
+    "tab": {
+      "about": "基本情報",
+      "family": "家族",
+      "timeline": "タイムライン",
+      "permissions": "権限"
+    },
+    "adminSection": "管理",
+    "mergeProfile": "プロフィールを統合",
+    "noMergePermission": "プロフィール統合を開始する権限がありません",
+    "visibleToFamily": "家族に表示",
+    "hiddenFromFamily": "家族から非表示",
+    "identity": "アイデンティティ",
+    "birthDate": "生年月日",
+    "contactDetails": "連絡先詳細",
+    "email": "メールアドレス",
+    "notProvided": "非公開または未提供",
+    "phone": "電話番号",
+    "dataPrivacy": {
+      "title": "データプライバシー",
+      "desc": "このプロフィールの可視性はツリー管理者によって管理されています。機密データは許可された権限に基づいてのみ表示されます。"
+    },
+    "suggestions": "提案",
+    "potentialSibling": "可能性のある兄弟",
+    "potentialSpouse": "可能性のある配偶者",
+    "status": {
+      "updated": "プロフィールが正常に更新されました。",
+      "updateFailed": "プロフィールの更新に失敗しました。",
+      "deletionProposed": "削除提案がレビューのために提出されました。",
+      "deletionFailed": "削除の処理に失敗しました。",
+      "claimSubmitted": "申請リクエストが提出されました。",
+      "claimFailed": "プロフィールの申請に失敗しました。"
+    },
+    "claimNote": {
+      "admin": "管理者として、あなたの申請は自動的に承認されます。",
+      "user": "これにより、あなたがこのプロフィールの代表者として確立されます。管理者の承認が必要です。"
+    },
+    "statusBadge": {
+      "active": "アクティブ",
+      "ghost": "ゴースト",
+      "verified": "確認済み",
+      "deceased": "故人",
+      "archived": "アーカイブ済み",
+      "merged": "統合済み"
+    }
+  },
+  "adminSettings": {
+    "back": "ダッシュボードに戻る",
+    "title": "システム設定",
+    "subtitle": "システムオプションと環境設定を構成",
+    "general": {
+      "title": "一般設定",
+      "subtitle": "一般的なシステム設定を構成"
+    },
+    "systemName": "システム名",
+    "version": "バージョン",
+    "user": {
+      "title": "ユーザー設定",
+      "subtitle": "ユーザー関連のオプションを構成"
+    },
+    "requireEmailVerification": "新規ユーザーにメール認証を要求",
+    "requireAdminApproval": "アカウントに管理者承認を要求",
+    "allowSelfDelete": "ユーザーが自分のアカウントを削除できるようにする"
+  },
+  "personForm": {
+    "picture": "プロフィール画像",
+    "pictureHint": "JPGまたはPNG、最大5MB",
+    "identity": "アイデンティティ",
+    "lifecycle": "ライフサイクル",
+    "education": "学歴",
+    "addEducation": "学歴を追加",
+    "noEducation": "学歴情報が追加されていません。",
+    "occupation": "職業",
+    "addOccupation": "職業を追加",
+    "noExperience": "職歴が追加されていません。",
+    "contactPrivacy": "連絡先とプライバシー",
+    "linkMember": "メンバーをリンク",
+    "updateProfile": "プロフィールを更新",
+    "createProfile": "プロフィールを作成",
+    "visibility": {
+      "tree": "家系図",
+      "editors": "編集者のみ",
+      "private": "非公開",
+      "label": "可視性"
+    },
+    "firstName": "名",
+    "lastName": "姓",
+    "gender": {
+      "unknown": "回答しない",
+      "male": "男性",
+      "female": "女性",
+      "other": "その他",
+      "title": "性別"
+    },
+    "status": {
+      "ghost": "ゴーストプロフィール",
+      "active": "アクティブメンバー",
+      "deceased": "故人",
+      "archived": "アーカイブ済み",
+      "title": "プロフィールステータス"
+    },
+    "birthDate": "生年月日",
+    "deathDate": "死亡日",
+    "school": "学校/大学",
+    "degree": "学位",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "currentWork": "現在の仕事",
+    "jobTitle": "役職",
+    "company": "会社",
+    "emailAddress": "メールアドレス",
+    "emailVisibility": "メールの可視性",
+    "phoneNumber": "電話番号",
+    "phoneVisibility": "電話番号の可視性",
+    "searchExisting": "既存を検索...",
+    "addPerson": "人物を追加",
+    "linkedTo": "{name} にリンク済み",
+    "socialLinks": "ソーシャルネットワーク"
+  },
+  "treePage": {
+    "expandBranch": "枝を展開",
+    "collapseBranch": "枝を折りたたむ",
+    "showPanel": "パネルを表示",
+    "hidePanel": "パネルを非表示",
+    "fullscreen": "全画面",
+    "exitFullscreen": "全画面を終了",
+    "zoomOut": "ズームアウト",
+    "fitToScreen": "画面に合わせる",
+    "zoomIn": "ズームイン",
+    "export": "エクスポート",
+    "exportPng": "Export PNG",
+    "exportPdf": "Export PDF",
+    "empty": {
+      "title": "Build Your Family Tree",
+      "subtitle": "Add your first family member and connect them to start visualizing your history.",
+      "button": "Add First Member"
+    }
+  },
+  "treeCard": {
+    "fullProfile": "完全なプロフィール",
+    "viewFullProfile": "完全なプロフィールを表示",
+    "deceased": "故人",
+    "contextMenu": {
+      "edit": "Edit Member Details",
+      "grantPermissions": "Grant Permissions",
+      "remove": "Remove from Tree"
+    }
+  },
+  "memoryDetails": {
+    "openOriginal": "オリジナルを開く",
+    "noMedia": "No Media Found",
+    "taggedFamily": "Tagged Family",
+    "familyMember": "Family Member"
+  },
+  "storyEditor": {
+    "bold": "太字",
+    "italic": "斜体",
+    "underline": "下線",
+    "bulletList": "箇条書き",
+    "numberedList": "番号付きリスト",
+    "quote": "引用",
+    "addLink": "リンクを追加",
+    "undo": "元に戻す",
+    "redo": "やり直す",
+    "placeholder": "Tell your family story...",
+    "footerLabel": "Story Editor",
+    "charCount": "{count} characters"
+  },
+  "auth": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "register": "登録",
+    "forgotPassword": "パスワードをお忘れの場合",
+    "resetPassword": "パスワードをリセット",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "confirmPassword": "パスワードを確認",
+    "rememberMe": "ログイン状態を保持",
+    "signInWithGoogle": "Googleでログイン",
+    "dontHaveAccount": "アカウントをお持ちでない場合",
+    "alreadyHaveAccount": "すでにアカウントをお持ちの場合",
+    "createAccount": "アカウント作成",
+    "or": "または"
+  },
+  "page": {
+    "title": {
+      "dashboard": "ダッシュボード",
+      "tree": "家系図",
+      "settings": "設定",
+      "admin": "管理",
+      "notifications": "通知",
+      "memories": "思い出",
+      "profile": "プロフィール"
+    }
+  },
+  "validation": {
+    "required": "このフィールドは必須です",
+    "email": "無効なメールアドレスです",
+    "minLength": "少なくとも{count}文字必要です",
+    "maxLength": "最大{count}文字までです",
+    "passwordMatch": "パスワードが一致しません"
+  },
+  "error": "Something went wrong. Please try again.",
+  "success": "You now have edit access to this family member!",
+  "hero": {
+    "badge": "Preserve Your Heritage",
+    "titleBefore": "Document your family's ",
+    "titleHighlight": "legacy",
+    "titleAfter": " for generations.",
+    "subtitle": "A minimalist, secure platform to build your family tree, share historical records, and stay connected with your roots.",
+    "cta": "Start Your Tree Free",
+    "learnMore": "Learn More"
+  },
+  "features": {
+    "collaborative": {
+      "title": "Collaborative Building",
+      "desc": "Invite family members to contribute stories, photos, and records to build a comprehensive history together."
+    },
+    "sharing": {
+      "title": "Secure Sharing",
+      "desc": "Granular permission controls ensure your family data is only visible to those you explicitly authorize."
+    },
+    "privacy": {
+      "title": "Privacy First",
+      "desc": "Industry-standard encryption protects your sensitive records. Your data belongs to you, always."
+    }
+  },
+  "footer": {
+    "copyright": "© 2026 FamiLink. All rights reserved. Built for legacy."
+  },
+  "title": {
+    "delete": "Delete Tree",
+    "rename": "Rename Tree"
+  },
+  "subtitle": {
+    "create": "Directly link family members",
+    "propose": "Link two family members together"
+  },
+  "email": "Email Address",
+  "emailPlaceholder": "you@example.com",
+  "password": "Password",
+  "passwordPlaceholder": "••••••••",
+  "signIn": "Sign In",
+  "orContinueWith": "Or continue with",
+  "google": "Google",
+  "noAccount": "Don't have an account? You'll be asked to create one on the next step.",
+  "signUp": "Sign Up",
+  "invitedTo": "You're Invited!",
+  "viewDesc": "You will be able to view the tree and its members.",
+  "memberDesc": " You can also add new family members.",
+  "expiresOn": "This invitation expires on",
+  "requestSubmitted": "Processing...",
+  "accept": "Accept Invitation",
+  "privacyNotice": "By accepting, you agree to follow the privacy guidelines set by the tree administrators.",
+  "processing": "Processing...",
+  "processingTitle": "Processing Claim",
+  "successTitle": "Claim Successful!",
+  "invalid": "This claim link is invalid or has expired. Please request a new one.",
+  "redirecting": "Redirecting to person page...",
+  "errorTitle": "Claim Failed",
+  "backToDashboard": "Back to Dashboard",
+  "badge": "Start a new journey",
+  "placeholder": "Select an option",
+  "proTip": "Pro tip",
+  "proTipBody": "Most families use their last name, like \"The Andersons\" or \"Smith Ancestry\". You can invite your relatives to collaborate once the tree is created.",
+  "goHome": "Go to Home",
+  "fullName": "Full Name",
+  "fullNamePlaceholder": "John Doe",
+  "createAccount": "Create Account",
+  "hasAccount": "Already have an account?",
+  "loading": "Loading data...",
+  "retry": "Try Again",
+  "markAllRead": "Mark all as read",
+  "empty": "No notifications",
+  "viewAll": "View all notifications",
+  "activePermissions": "Active Permissions",
+  "explicitUsers": "Explicit Users",
+  "noPermissions": "No explicit permissions granted yet.",
+  "grantAccess": "Grant Access",
+  "searchPlaceholder": "Find a tree member...",
+  "grant": "Grant Access",
+  "accessControl": {
+    "title": "Access Control",
+    "desc": "Granting explicit permissions allows specific family members to manage this profile without giving them Admin rights to the entire tree."
+  },
+  "noOptions": "No options available",
+  "creating": "Creating account...",
+  "submit": "Create Account & Join",
+  "expires": "Expires on {date}",
+  "close": "Close",
+  "subjectPerson": "Subject Person",
+  "isThe": "Is the…",
+  "of": "Of…",
+  "selectPerson": "Select person…",
+  "selfWarning": "A person cannot have a relationship with themselves.",
+  "createNow": "Create Now",
+  "submitProposal": "Submit Proposal",
+  "confirmDelete": {
+    "title": "Delete Memory?",
+    "desc": "This memory will be permanently removed. This action cannot be undone.",
+    "confirm": "Confirm Delete"
+  },
+  "confirmRename": "Enter a new name for your tree \"{treeName}\"",
+  "placeholderRename": "New name...",
+  "minLengthError": "Minimum 4 characters required.",
+  "nameMismatchError": "Tree name does not match.",
+  "confirm": {
+    "delete": "Delete Tree",
+    "rename": "Rename Tree"
+  },
+  "edit": "Edit",
+  "delete": "Delete"
+}

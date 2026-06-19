@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "./providers/LanguageProvider";
 import { X, AlertTriangle, Edit2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
@@ -16,6 +17,7 @@ interface ModalProps {
 
 export default function TreeActionModal({ isOpen, onClose, type, treeName, onConfirm }: ModalProps) {
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const [input, setInput] = useState("");
 
   if (!isOpen) return null;
@@ -44,14 +46,14 @@ export default function TreeActionModal({ isOpen, onClose, type, treeName, onCon
               {isDelete ? <AlertTriangle className="w-6 h-6" /> : <Edit2 className="w-6 h-6" />}
             </div>
             <h2 className={cn("text-lg font-black uppercase tracking-widest", theme.colors.text)}>
-              {isDelete ? "Delete Tree" : "Rename Tree"}
+              {isDelete ? t('treeActionModal.title.delete') : t('treeActionModal.title.rename')}
             </h2>
           </div>
 
           <p className={cn("text-sm mb-6", theme.colors.textMuted)}>
             {isDelete 
-              ? <span>Are you sure you want to delete "{treeName}"? This action cannot be undone. Please type the name of the tree to confirm <span className="text-red-500">*</span>:</span>
-              : <span>Enter a new name for your tree "{treeName}" <span className="text-red-500">*</span>:</span>
+              ? <span>{t('treeActionModal.confirmDelete').replace('{treeName}', treeName)} <span className="text-red-500">*</span>:</span>
+              : <span>{t('treeActionModal.confirmRename').replace('{treeName}', treeName)} <span className="text-red-500">*</span>:</span>
             }
           </p>
 
@@ -59,19 +61,19 @@ export default function TreeActionModal({ isOpen, onClose, type, treeName, onCon
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isDelete ? treeName : "New name..."}
+            placeholder={isDelete ? treeName : t('treeActionModal.placeholderRename')}
             className={cn("w-full px-4 py-3 rounded-xl border mb-2 outline-none focus:ring-2", theme.colors.bg, theme.colors.border, theme.colors.text)}
           />
           {isRename && input.length > 0 && input.length < 4 && (
-            <p className="text-red-500 text-xs mb-4">Minimum 4 characters required.</p>
+            <p className="text-red-500 text-xs mb-4">{t('treeActionModal.minLengthError')}</p>
           )}
           {isDelete && input.length > 0 && input !== treeName && (
-            <p className="text-red-500 text-xs mb-4">Tree name does not match.</p>
+            <p className="text-red-500 text-xs mb-4">{t('treeActionModal.nameMismatchError')}</p>
           )}
 
           <div className="flex gap-3">
             <button onClick={onClose} className={cn("flex-1 px-4 py-3 rounded-xl text-sm font-bold", theme.colors.bg, theme.colors.text)}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button 
               onClick={() => {
@@ -83,7 +85,7 @@ export default function TreeActionModal({ isOpen, onClose, type, treeName, onCon
               className={cn("flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white shadow-lg", isDelete ? "bg-red-600 hover:bg-red-700" : theme.colors.primary)}
               disabled={(isDelete && input !== treeName) || (isRename && input.length < 4)}
             >
-              {isDelete ? "Delete Tree" : "Rename Tree"}
+              {isDelete ? t('treeActionModal.confirm.delete') : t('treeActionModal.confirm.rename')}
             </button>
           </div>
         </motion.div>

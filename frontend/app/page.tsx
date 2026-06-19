@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Trees, Users, Share2, Shield, ArrowRight, Activity, Link as LinkIcon } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -51,13 +53,13 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-6">
           <button onClick={() => router.push('/login')} className="text-sm font-semibold hover:text-primary transition-colors">
-            Sign In
+            {t('landing.nav.signIn')}
           </button>
           <button 
             onClick={() => router.push('/signup')} 
             className="px-5 py-2 bg-primary text-primary-foreground rounded-md text-sm font-bold hover:opacity-90 transition-colors shadow-sm"
           >
-            Get Started
+            {t('landing.nav.getStarted')}
           </button>
         </div>
       </nav>
@@ -71,7 +73,7 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-[11px] font-bold uppercase tracking-widest mb-6"
           >
-            Preserve Your Heritage
+            {t('landing.hero.badge')}
           </motion.div>
           
           <motion.h1 
@@ -80,7 +82,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-5xl md:text-7xl font-bold tracking-tight mb-8 max-w-4xl mx-auto leading-[1.1]"
           >
-            Document your family's <span className="text-primary">legacy</span> for generations.
+            {t('landing.hero.titleBefore')}<span className="text-primary">{t('landing.hero.titleHighlight')}</span>{t('landing.hero.titleAfter')}
           </motion.h1>
 
           <motion.p 
@@ -89,7 +91,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed"
           >
-            A minimalist, secure platform to build your family tree, share historical records, and stay connected with your roots.
+            {t('landing.hero.subtitle')}
           </motion.p>
 
           <motion.div 
@@ -102,14 +104,14 @@ export default function Home() {
               onClick={() => router.push('/signup')} 
               className="px-8 py-4 bg-primary text-primary-foreground rounded-md text-base font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group"
             >
-              Start Your Tree Free
+              {t('landing.hero.cta')}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button 
               onClick={() => router.push('/login')} 
               className="px-8 py-4 bg-background border border-border text-foreground rounded-md text-base font-bold hover:bg-muted transition-colors shadow-sm"
             >
-              Learn More
+              {t('landing.hero.learnMore')}
             </button>
           </motion.div>
         </section>
@@ -121,9 +123,9 @@ export default function Home() {
               <div className="w-10 h-10 bg-primary/10 text-primary rounded-md flex items-center justify-center">
                 <Users className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold">Collaborative Building</h3>
+              <h3 className="text-xl font-bold">{t('landing.features.collaborative.title')}</h3>
               <p className="text-muted-foreground leading-relaxed text-sm">
-                Invite family members to contribute stories, photos, and records to build a comprehensive history together.
+                {t('landing.features.collaborative.desc')}
               </p>
             </div>
 
@@ -131,9 +133,9 @@ export default function Home() {
               <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-md flex items-center justify-center">
                 <Share2 className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold">Secure Sharing</h3>
+              <h3 className="text-xl font-bold">{t('landing.features.sharing.title')}</h3>
               <p className="text-muted-foreground leading-relaxed text-sm">
-                Granular permission controls ensure your family data is only visible to those you explicitly authorize.
+                {t('landing.features.sharing.desc')}
               </p>
             </div>
 
@@ -141,9 +143,9 @@ export default function Home() {
               <div className="w-10 h-10 bg-primary/10 text-primary rounded-md flex items-center justify-center">
                 <Shield className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold">Privacy First</h3>
+              <h3 className="text-xl font-bold">{t('landing.features.privacy.title')}</h3>
               <p className="text-muted-foreground leading-relaxed text-sm">
-                Industry-standard encryption protects your sensitive records. Your data belongs to you, always.
+                {t('landing.features.privacy.desc')}
               </p>
             </div>
           </div>
@@ -158,7 +160,7 @@ export default function Home() {
             <span className="text-sm font-bold tracking-tight">FamiLink</span>
           </div>
           <p className="text-xs text-muted-foreground font-medium">
-            © 2026 FamiLink. All rights reserved. Built for legacy.
+            {t('landing.footer.copyright')}
           </p>
         </footer>
       </main>

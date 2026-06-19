@@ -130,12 +130,12 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
-      setSuccessMessage("Identity and preferences synchronized.");
+      setSuccessMessage(t('settings.status.syncSuccess'));
       setTimeout(() => setSuccessMessage(null), 3000);
     },
     onError: (err: any) => {
         console.error("[Update Error]:", err);
-        setErrorMessage(err.message || "Failed to sync changes.");
+        setErrorMessage(err.message || t('settings.status.syncFailed'));
         setTimeout(() => setErrorMessage(null), 3000);
     }
   });
@@ -154,7 +154,7 @@ export default function SettingsPage() {
 
   const handleUpdatePassword = async () => {
     if (!securityData.password || securityData.password !== securityData.confirmPassword) {
-        setErrorMessage("Passwords do not match or are empty.");
+        setErrorMessage(t('settings.status.passwordMismatch'));
         setTimeout(() => setErrorMessage(null), 3000);
         return;
     }
@@ -166,10 +166,10 @@ export default function SettingsPage() {
         });
         if (error) throw error;
         
-        setSuccessMessage("Security keys cycled successfully.");
+        setSuccessMessage(t('settings.status.passwordSuccess'));
         setSecurityData({ password: "", confirmPassword: "" });
     } catch (err: any) {
-        setErrorMessage(err.message || "Failed to update security keys.");
+        setErrorMessage(err.message || t('settings.status.passwordFailed'));
     } finally {
         setIsUpdatingPassword(false);
         setTimeout(() => {
@@ -180,10 +180,10 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm("WARNING: This will permanently delete your account and all associated data. This action is irreversible. Proceed?");
+    const confirmed = window.confirm(t('settings.termination.confirmMessage'));
     if (!confirmed) return;
 
-    const finalConfirm = window.prompt("To confirm deletion, please type 'DELETE' below:");
+    const finalConfirm = window.prompt(t('settings.termination.confirmPrompt'));
     if (finalConfirm !== 'DELETE') return;
 
     setIsDeletingAccount(true);
@@ -191,7 +191,7 @@ export default function SettingsPage() {
         await api.delete("/auth/account");
         await signOut();
     } catch (err: any) {
-        setErrorMessage(err.message || "Failed to terminate account.");
+        setErrorMessage(err.message || t('settings.status.terminateFailed'));
         setIsDeletingAccount(false);
     }
   };
@@ -219,10 +219,10 @@ export default function SettingsPage() {
             language: detectedLang
         });
 
-        setSuccessMessage(`Detected ${detectedLang} and ${timezone}.`);
+        setSuccessMessage(t('settings.status.autoScanSuccess').replace('{lang}', detectedLang).replace('{tz}', timezone));
         setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-        setErrorMessage("Auto-scan failed. Please select manually.");
+        setErrorMessage(t('settings.status.autoScanFailed'));
         setTimeout(() => setErrorMessage(null), 3000);
     }
   };
@@ -230,7 +230,7 @@ export default function SettingsPage() {
   const handleAutoDetectTheme = () => {
       const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setTheme(isDarkMode ? 'dark' : 'light');
-      setSuccessMessage(`Synchronized with ${isDarkMode ? 'Midnight' : 'Solaris'} OS profile.`);
+      setSuccessMessage(t('settings.status.themeSynced').replace('{mode}', isDarkMode ? t('settings.appearance.modes.midnight.label') : t('settings.appearance.modes.solaris.label')));
       setTimeout(() => setSuccessMessage(null), 3000);
   };
 
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                           type="text" 
                           value={formData.name}
                           onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          placeholder="Your full name"
+                          placeholder={t('settings.profile.namePlaceholder')}
                           className={cn("w-full px-6 py-5 rounded-3xl border font-bold text-sm focus:ring-[12px] focus:ring-primary/5 outline-none transition-all shadow-sm", theme.colors.bg, theme.colors.border, theme.colors.text)}
                         />
                       </div>
@@ -414,7 +414,7 @@ export default function SettingsPage() {
                                 type="tel" 
                                 value={formData.phone}
                                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                placeholder="+1 (555) 000-0000"
+                                placeholder={t('settings.profile.phonePlaceholder')}
                                 className={cn("w-full pl-14 pr-6 py-5 rounded-3xl border font-bold text-sm focus:ring-[12px] focus:ring-primary/5 outline-none transition-all shadow-sm", theme.colors.bg, theme.colors.border, theme.colors.text)}
                             />
                         </div>
@@ -429,7 +429,7 @@ export default function SettingsPage() {
                         <textarea 
                             value={formData.bio}
                             onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                            placeholder="Brief description for your family profile..."
+                            placeholder={t('settings.profile.bioPlaceholder')}
                             maxLength={500}
                             className={cn("w-full px-8 py-7 rounded-[2.5rem] border font-medium text-sm focus:ring-[12px] focus:ring-primary/5 outline-none transition-all h-40 resize-none shadow-sm", theme.colors.bg, theme.colors.border, theme.colors.text)}
                         />
@@ -483,8 +483,8 @@ export default function SettingsPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     {[
-                      { type: 'light', label: 'Solaris', desc: 'Daylight optimized', icon: Sun, color: 'bg-orange-500', shadow: 'shadow-orange-500/20' },
-                      { type: 'dark', label: 'Midnight', desc: 'Eye-strain focused', icon: Moon, color: 'bg-indigo-600', shadow: 'shadow-indigo-600/20' }
+                      { type: 'light', label: t('settings.appearance.modes.solaris.label'), desc: t('settings.appearance.modes.solaris.desc'), icon: Sun, color: 'bg-orange-500', shadow: 'shadow-orange-500/20' },
+                      { type: 'dark', label: t('settings.appearance.modes.midnight.label'), desc: t('settings.appearance.modes.midnight.desc'), icon: Moon, color: 'bg-indigo-600', shadow: 'shadow-indigo-600/20' }
                     ].map((mode) => (
                       <button
                         key={mode.type}
@@ -516,8 +516,8 @@ export default function SettingsPage() {
                         <Smartphone className={cn("w-8 h-8 opacity-40", theme.colors.text)} />
                       </div>
                       <div className="space-y-2">
-                          <p className={cn("text-sm font-black uppercase tracking-[0.2em]", theme.colors.text)}>Sync with OS</p>
-                          <p className={cn("text-xs font-medium opacity-50 max-w-[280px] leading-relaxed", theme.colors.textMuted)}>Let your operating system determine when to switch between Solaris and Midnight modes.</p>
+                          <p className={cn("text-sm font-black uppercase tracking-[0.2em]", theme.colors.text)}>{t('settings.appearance.syncWithOS')}</p>
+                          <p className={cn("text-xs font-medium opacity-50 max-w-[280px] leading-relaxed", theme.colors.textMuted)}>{t('settings.appearance.syncDesc')}</p>
                       </div>
                       <button 
                         onClick={handleAutoDetectTheme}
@@ -543,9 +543,9 @@ export default function SettingsPage() {
 
                   <div className="space-y-6">
                     {[
-                      { id: 'email', label: 'Email Broadcasts', desc: 'Weekly digests and critical tree modifications', icon: MailQuestion, state: formData.notificationPreferences.email, key: 'email' },
-                      { id: 'push', label: 'Browser Alerts', desc: 'Real-time notifications for relationship proposals', icon: Smartphone, state: formData.notificationPreferences.push, key: 'push' },
-                      { id: 'marketing', label: 'Grid Updates', desc: 'New system features and development roadmap news', icon: Zap, state: formData.notificationPreferences.marketing, key: 'marketing' },
+                      { id: 'email', label: t('settings.notifications.email.label'), desc: t('settings.notifications.email.desc'), icon: MailQuestion, state: formData.notificationPreferences.email, key: 'email' },
+                      { id: 'push', label: t('settings.notifications.push.label'), desc: t('settings.notifications.push.desc'), icon: Smartphone, state: formData.notificationPreferences.push, key: 'push' },
+                      { id: 'marketing', label: t('settings.notifications.marketing.label'), desc: t('settings.notifications.marketing.desc'), icon: Zap, state: formData.notificationPreferences.marketing, key: 'marketing' },
                     ].map((toggle) => (
                         <div key={toggle.id} className={cn("flex items-center justify-between p-10 rounded-[3rem] border transition-all hover:scale-[1.01] hover:shadow-lg", theme.colors.bg, theme.colors.border)}>
                             <div className="flex items-center gap-8">
@@ -597,7 +597,7 @@ export default function SettingsPage() {
                         <div className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
-                                    <label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-2", theme.colors.textMuted)}>New Security Key</label>
+                                    <label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-2", theme.colors.textMuted)}>{t('settings.security.newPassword')}</label>
                                     <input 
                                         type="password" 
                                         value={securityData.password}
@@ -607,7 +607,7 @@ export default function SettingsPage() {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-2", theme.colors.textMuted)}>Confirm Security Key</label>
+                                    <label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-2", theme.colors.textMuted)}>{t('settings.security.confirmPassword')}</label>
                                     <input 
                                         type="password" 
                                         value={securityData.confirmPassword}
@@ -620,8 +620,8 @@ export default function SettingsPage() {
                             <div className={cn("p-8 rounded-[2.5rem] border bg-amber-500/5 border-amber-500/10 flex items-start gap-5")}>
                                 <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0 mt-1" />
                                 <div className="space-y-2">
-                                    <p className="font-black text-[11px] uppercase tracking-widest text-amber-600">Pro-Tip</p>
-                                    <p className={cn("text-xs font-medium leading-relaxed opacity-80", theme.colors.text)}>Using a passphrase instead of a single word makes your family data significantly harder to compromise.</p>
+                                    <p className="font-black text-[11px] uppercase tracking-widest text-amber-600">{t('settings.security.proTip.title')}</p>
+                                    <p className={cn("text-xs font-medium leading-relaxed opacity-80", theme.colors.text)}>{t('settings.security.proTip.body')}</p>
                                 </div>
                             </div>
                             <button 
@@ -630,7 +630,7 @@ export default function SettingsPage() {
                                 className={cn("w-full py-6 rounded-[2rem] border-4 font-black text-xs uppercase tracking-[0.3em] transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] flex items-center justify-center gap-3", theme.colors.border, theme.colors.text)}
                             >
                                 {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
-                                Cycle Security Keys
+                                {t('settings.security.cycleKeys')}
                             </button>
                         </div>
                     </section>
@@ -650,8 +650,8 @@ export default function SettingsPage() {
                         </div>
                         <div className="p-10 rounded-[3rem] border-2 border-red-500/20 bg-red-500/5 space-y-8 relative z-10">
                              <div className="space-y-2">
-                                <p className="font-black text-lg uppercase tracking-tight text-red-600">Terminate Account</p>
-                                <p className="text-sm font-bold opacity-60 text-red-600/60 leading-relaxed">This will purge all your family trees, memories, and personal metadata from our servers. This action is definitive.</p>
+                                <p className="font-black text-lg uppercase tracking-tight text-red-600">{t('settings.termination.sectionTitle')}</p>
+                                <p className="text-sm font-bold opacity-60 text-red-600/60 leading-relaxed">{t('settings.termination.sectionDesc')}</p>
                              </div>
                              <button 
                                 onClick={handleDeleteAccount}
@@ -659,7 +659,7 @@ export default function SettingsPage() {
                                 className="w-full py-5 rounded-[2rem] bg-red-500 text-white font-black text-xs uppercase tracking-[0.3em] hover:bg-red-600 transition-all shadow-2xl shadow-red-500/40 active:scale-95 flex items-center justify-center gap-3"
                              >
                                 {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                Initiate Termination
+                                {t('settings.termination.initiate')}
                              </button>
                         </div>
                     </section>
@@ -693,11 +693,11 @@ export default function SettingsPage() {
                                 }}
                                 className={cn("w-full px-8 py-6 rounded-[2rem] border font-bold text-sm outline-none appearance-none cursor-pointer focus:ring-[12px] focus:ring-primary/5 transition-all shadow-sm", theme.colors.bg, theme.colors.border, theme.colors.text)}
                             >
-                                <option>English (US)</option>
-                                <option>Spanish</option>
-                                <option>French</option>
-                                <option>German</option>
-                                <option>Japanese</option>
+                                <option value="English (US)">{t('settings.languages.en')}</option>
+                                <option value="Spanish">{t('settings.languages.es')}</option>
+                                <option value="French">{t('settings.languages.fr')}</option>
+                                <option value="German">{t('settings.languages.de')}</option>
+                                <option value="Japanese">{t('settings.languages.ja')}</option>
                             </select>
                         </div>
                         <div className="space-y-4">
@@ -727,7 +727,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="space-y-2">
                                 <p className={cn("font-black text-base uppercase tracking-widest", theme.colors.text)}>{t('settings.automaticDetection')}</p>
-                                <p className={cn("text-xs font-medium opacity-50 leading-relaxed max-w-[280px]", theme.colors.textMuted)}>The system will attempt to derive your location and time parameters from your active browser session.</p>
+                                <p className={cn("text-xs font-medium opacity-50 leading-relaxed max-w-[280px]", theme.colors.textMuted)}>{t('settings.preferences.autoScanDesc')}</p>
                             </div>
                         </div>
                         <button 

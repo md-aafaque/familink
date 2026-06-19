@@ -6,6 +6,7 @@ import api from '../lib/api';
 import { useRouter } from 'next/navigation';
 import { formatDateTime } from '../lib/dateUtils';
 import { useAppTheme } from './providers/ThemeProvider';
+import { useLanguage } from './providers/LanguageProvider';
 import { cn } from '@/lib/cn';
 
 type Notification = {
@@ -25,6 +26,7 @@ export default function NotificationsMenu() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadNotifications();
@@ -194,7 +196,7 @@ export default function NotificationsMenu() {
             {/* Header */}
             <div className={cn("border-b p-4 flex items-center justify-between", theme.colors.primaryMuted, theme.colors.border)}>
               <div>
-                <h3 className={cn("font-semibold", theme.colors.text)}>Notifications</h3>
+                <h3 className={cn("font-semibold", theme.colors.text)}>{t('notificationsMenu.title')}</h3>
                 <p className={cn("text-sm", theme.colors.textMuted)}>{unreadCount} unread</p>
               </div>
               {notifications.length > 0 && (
@@ -203,7 +205,7 @@ export default function NotificationsMenu() {
                     <button
                       onClick={() => markAllAsRead()}
                       className={cn("p-1.5 rounded transition-colors", theme.colors.surface, theme.colors.textMuted, "hover:" + theme.colors.accent)}
-                      title="Mark all as read"
+                      title={t('notificationsMenu.markAllRead')}
                     >
                       <Check className="w-4 h-4" />
                     </button>
@@ -227,8 +229,7 @@ export default function NotificationsMenu() {
                     <Bell className={cn("w-8 h-8 opacity-20", theme.colors.text)} />
                   </div>
                   <div className="space-y-1">
-                    <p className={cn("font-bold", theme.colors.text)}>All caught up!</p>
-                    <p className={cn("text-sm", theme.colors.textMuted)}>No new notifications to show.</p>
+                    <p className={cn("font-bold", theme.colors.text)}>{t('notificationsMenu.empty')}</p>
                   </div>
                 </div>
               ) : (
@@ -294,7 +295,7 @@ export default function NotificationsMenu() {
                   href="/notifications"
                   className={cn("text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-80 transition-colors", theme.colors.accent)}
                 >
-                  View All Notifications
+                  {t('notificationsMenu.viewAll')}
                 </a>
               </div>
             )}

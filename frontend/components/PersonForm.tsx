@@ -231,7 +231,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
             </div>
 
             <div className="space-y-1.5">
-              <label className={labelClass}>{t('personForm.gender')}</label>
+              <label className={labelClass}>{t('personForm.gender.title')}</label>
               <Controller
                   name="gender"
                   control={control}
@@ -251,7 +251,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
             </div>
 
             <div className="space-y-1.5">
-              <label className={labelClass}>{t('personForm.status')}</label>
+              <label className={labelClass}>{t('personForm.status.title')}</label>
               <Controller
                   name="status"
                   control={control}

@@ -132,7 +132,7 @@ export default function ManageProposalsPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">{t('admin.management.sourceWorkspace')}</h3>
+              <h3 className="text-2xl font-black text-white">{t('admin.management.sourceWorkspace.title')}</h3>
               <p className="text-slate-300 font-medium">{t('admin.management.sourceWorkspace.desc')}</p>
             </div>
             <div className="relative min-w-[300px]">
@@ -200,7 +200,7 @@ export default function ManageProposalsPage() {
                       {t('admin.approve')}
                     </button>
                     <button
-                      onClick={() => processMutation.mutate({ id: prop.id, type: activeType, action: 'reject', reason: 'Rejected by admin' })}
+                      onClick={() => processMutation.mutate({ id: prop.id, type: activeType, action: 'reject', reason: t('admin.management.defaultRejectReason') })}
                       disabled={processMutation.isPending}
                       className={cn(
                         "px-6 py-3 border rounded-2xl font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50",

@@ -6,8 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, User, Loader2 } from 'lucide-react';
 import { SiGoogle } from 'react-icons/si';
 import Link from 'next/link';
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 function SignupContent() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -26,7 +28,7 @@ function SignupContent() {
 
     // Basic validation to prevent common errors
     if (!email.includes('@')) {
-      setError('Please enter a valid email address');
+      setError(t('signup.error.invalidEmail'));
       setLoading(false);
       return;
     }
@@ -53,7 +55,7 @@ function SignupContent() {
       }
     } catch (err: any) {
       console.error("[Signup] Unexpected error:", err);
-      setError(err.message || "Something went wrong during signup.");
+      setError(err.message || t('signup.error.generic'));
       setLoading(false);
     }
   };
@@ -73,8 +75,8 @@ function SignupContent() {
       <div className="max-w-md w-full">
         <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
-            <p className="text-muted-foreground mt-2">Start building your family tree</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('signup.title')}</h1>
+            <p className="text-muted-foreground mt-2">{t('signup.subtitle')}</p>
           </div>
 
         {error && (
@@ -86,7 +88,7 @@ function SignupContent() {
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground/80 mb-1">
-              Full Name <span className="text-red-500">*</span>
+              {t('signup.fullName')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -94,7 +96,7 @@ function SignupContent() {
                 type="text"
                 required
                 className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="John Doe"
+                placeholder={t('signup.fullNamePlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -103,7 +105,7 @@ function SignupContent() {
 
           <div>
             <label className="block text-sm font-medium text-foreground/80 mb-1">
-              Email Address <span className="text-red-500">*</span>
+              {t('signup.email')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -111,7 +113,7 @@ function SignupContent() {
                 type="email"
                 required
                 className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="you@example.com"
+                placeholder={t('signup.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -120,7 +122,7 @@ function SignupContent() {
 
           <div>
             <label className="block text-sm font-medium text-foreground/80 mb-1">
-              Password <span className="text-red-500">*</span>
+              {t('signup.password')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -128,7 +130,7 @@ function SignupContent() {
                 type="password"
                 required
                 className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="••••••••"
+                placeholder={t('signup.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -140,7 +142,7 @@ function SignupContent() {
             disabled={loading}
             className="w-full bg-primary hover:opacity-90 text-primary-foreground font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Account'}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('signup.createAccount')}
           </button>
         </form>
 
@@ -149,7 +151,7 @@ function SignupContent() {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
+            <span className="px-2 bg-card text-muted-foreground">{t('signup.orContinueWith')}</span>
           </div>
         </div>
 
@@ -158,13 +160,13 @@ function SignupContent() {
           className="w-full border border-input hover:bg-muted text-foreground font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <SiGoogle className="w-5 h-5 text-primary" />
-          Google
+          {t('signup.google')}
         </button>
 
         <p className="text-center text-muted-foreground mt-8 text-sm">
-          Already have an account?{' '}
+          {t('signup.hasAccount')}{' '}
           <Link href={`/login?redirectTo=${encodeURIComponent(redirectTo)}`} className="text-primary font-semibold hover:opacity-80">
-            Sign In
+            {t('signup.signIn')}
           </Link>
         </p>
       </div>
@@ -174,8 +176,9 @@ function SignupContent() {
 }
 
 export default function SignupPage() {
+  const { t } = useLanguage();
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>{t('signup.loading')}</div>}>
       <SignupContent />
     </Suspense>
   );

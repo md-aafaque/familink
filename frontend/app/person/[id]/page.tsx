@@ -92,10 +92,10 @@ export default function PersonProfilePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["person", id] });
       setIsEditing(false);
-      setStatusMessage({ text: "Profile updated successfully.", type: 'success' });
+      setStatusMessage({ text: t('personPage.status.updated'), type: 'success' });
     },
     onError: () => {
-        setStatusMessage({ text: "Failed to update profile.", type: 'error' });
+        setStatusMessage({ text: t('personPage.status.updateFailed'), type: 'error' });
     }
   });
 
@@ -113,12 +113,12 @@ export default function PersonProfilePage() {
       } else {
         setIsConfirmingDelete(false);
         setDeleteReason("");
-        setStatusMessage({ text: "Deletion proposal submitted for review.", type: 'success' });
+        setStatusMessage({ text: t('personPage.status.deletionProposed'), type: 'success' });
         queryClient.invalidateQueries({ queryKey: ["person", id] });
       }
     },
     onError: () => {
-        setStatusMessage({ text: "Failed to process deletion.", type: 'error' });
+        setStatusMessage({ text: t('personPage.status.deletionFailed'), type: 'error' });
     }
   });
 
@@ -128,13 +128,13 @@ export default function PersonProfilePage() {
       return res as any;
     },
     onSuccess: (res) => {
-      setStatusMessage({ text: res?.message || "Claim request submitted.", type: 'success' });
+      setStatusMessage({ text: (res as any)?.message || t('personPage.status.claimSubmitted'), type: 'success' });
       setIsConfirmingClaim(false);
       queryClient.invalidateQueries({ queryKey: ["person", id] });
       queryClient.invalidateQueries({ queryKey: ["tree-visual", data?.treeId] });
     },
     onError: () => {
-        setStatusMessage({ text: "Failed to claim profile.", type: 'error' });
+        setStatusMessage({ text: t('personPage.status.claimFailed'), type: 'error' });
     }
   });
 
@@ -322,7 +322,7 @@ export default function PersonProfilePage() {
                     {isAdmin ? t('personPage.claimThisProfile') : t('personPage.requestClaim')}
                   </h3>
                   <p className={cn("text-sm font-medium", theme.isDark ? "text-indigo-400/60" : "text-orange-600/60")}>
-                    {isAdmin ? "As an administrator, your claim will be automatically approved." : "This will establish you as the representative of this profile. Admin approval required."}
+                    {isAdmin ? t('personPage.claimNote.admin') : t('personPage.claimNote.user')}
                   </p>
                 </div>
               </div>
@@ -380,7 +380,7 @@ export default function PersonProfilePage() {
                         "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500",
                         data.status === 'active' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : cn(theme.colors.bg, theme.colors.textMuted)
                       )}>
-                        {data.status}
+                        {t('personPage.statusBadge.' + data.status)}
                       </span>
                     </div>
                         <p className={cn("text-lg font-medium transition-colors duration-500 opacity-60", theme.colors.text)}>{t('personPage.addedToTree').replace('{date}', formatDate(data.createdAt))}</p>
@@ -402,7 +402,7 @@ export default function PersonProfilePage() {
                     activeTab === tab ? theme.colors.accent : cn(theme.colors.textMuted, "hover:" + theme.colors.text)
                   )}
                 >
-                  {tab}
+                  {t('personPage.tab.' + tab)}
                   {activeTab === tab && (
                     <motion.div layoutId="activeTab" className={cn("absolute bottom-0 left-0 right-0 h-1.5 rounded-full", theme.colors.primary)} />
                   )}
@@ -436,14 +436,14 @@ export default function PersonProfilePage() {
                   {/* Detailed Info */}
                   <div className="md:col-span-2 space-y-10">
                     <div className={cn("p-10 rounded-[3rem] border shadow-2xl space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-                      <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>Identity</h3>
+                      <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>{t('personPage.identity')}</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
                         <div className="space-y-2">
                           <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.gender')}</p>
-                          <p className={cn("text-lg font-bold capitalize transition-colors duration-500", theme.colors.text)}>{data.gender || 'Unknown'}</p>
+                          <p className={cn("text-lg font-bold capitalize transition-colors duration-500", theme.colors.text)}>{data.gender || t('common.unknown')}</p>
                         </div>
                         <div className="space-y-2">
-                          <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>Birth Date</p>
+                          <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.birthDate')}</p>
                           <p className={cn("text-lg font-bold transition-colors duration-500", theme.colors.text)}>
                             {formatDate(data.birthDate)}
                           </p>
@@ -480,7 +480,7 @@ export default function PersonProfilePage() {
                                             <span className="w-1 h-1 rounded-full bg-current opacity-30" />
                                             <span className="flex items-center gap-1.5">
                                                 <Calendar className="w-3.5 h-3.5" />
-                                                {formatDate(edu.startDate)} - {edu.endDate ? formatDate(edu.endDate) : 'Present'}
+                                                {formatDate(edu.startDate)} - {edu.endDate ? formatDate(edu.endDate) : t('common.present')}
                                             </span>
                                         </div>
                                         {edu.description && (
@@ -523,7 +523,7 @@ export default function PersonProfilePage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <h4 className={cn("text-xl font-bold leading-tight", theme.colors.text)}>{occ.title}</h4>
                                             {occ.isCurrent && (
-                                                <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest border border-green-500/20">Current</span>
+                                                <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest border border-green-500/20">{t('common.current')}</span>
                                             )}
                                         </div>
                                         <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium", theme.isDark ? "text-slate-300" : "text-slate-500")}>
@@ -531,7 +531,7 @@ export default function PersonProfilePage() {
                                             <span className="w-1 h-1 rounded-full bg-current opacity-30" />
                                             <span className="flex items-center gap-1.5">
                                                 <Clock className="w-3.5 h-3.5" />
-                                                {formatDate(occ.startDate)} - {occ.isCurrent ? 'Present' : (occ.endDate ? formatDate(occ.endDate) : '')}
+                                                {formatDate(occ.startDate)} - {occ.isCurrent ? t('common.present') : (occ.endDate ? formatDate(occ.endDate) : '')}
                                             </span>
                                         </div>
                                         {occ.description && (
@@ -545,15 +545,15 @@ export default function PersonProfilePage() {
                     )}
 
                     <div className={cn("p-10 rounded-[3rem] border shadow-2xl space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-                      <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>Contact Details</h3>
+                      <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>{t('personPage.contactDetails')}</h3>
                       <div className="space-y-6">
                         <div className={cn("flex items-center gap-6 p-6 rounded-[2rem] border transition-all duration-500", theme.colors.bg, theme.colors.border)}>
                           <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner transition-colors duration-500", theme.colors.surface)}>
                             <Mail className={cn("w-6 h-6", theme.colors.textMuted)} />
                           </div>
                           <div>
-                            <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>Email Address</p>
-                            <p className={cn("text-lg font-bold transition-colors duration-500", theme.colors.text)}>{data.email || 'Private or not provided'}</p>
+                            <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.email')}</p>
+                            <p className={cn("text-lg font-bold transition-colors duration-500", theme.colors.text)}>{data.email || t('personPage.notProvided')}</p>
                           </div>
                         </div>
                         <div className={cn("flex items-center gap-6 p-6 rounded-[2rem] border transition-all duration-500", theme.colors.bg, theme.colors.border)}>
@@ -561,8 +561,8 @@ export default function PersonProfilePage() {
                             <Phone className={cn("w-6 h-6", theme.colors.textMuted)} />
                           </div>
                           <div>
-                            <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>Phone Number</p>
-                            <p className={cn("text-lg font-bold transition-colors duration-500", theme.colors.text)}>{data.phone || 'Private or not provided'}</p>
+                            <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.phone')}</p>
+                            <p className={cn("text-lg font-bold transition-colors duration-500", theme.colors.text)}>{data.phone || t('personPage.notProvided')}</p>
                           </div>
                         </div>
                       </div>
@@ -573,10 +573,9 @@ export default function PersonProfilePage() {
                   <div className="space-y-10">
                     <div className={cn("p-10 rounded-[3rem] text-white shadow-2xl transition-all duration-500", theme.isDark ? "bg-slate-800" : "bg-linear-to-br from-slate-800 to-slate-900")}>
                       <ShieldAlert className="w-10 h-10 mb-6 opacity-40" />
-                      <h3 className="text-2xl font-black mb-3">Data Privacy</h3>
+                      <h3 className="text-2xl font-black mb-3">{t('personPage.dataPrivacy.title')}</h3>
                       <p className="text-slate-400 text-sm leading-relaxed font-medium">
-                        This profile's visibility is managed by tree administrators. 
-                        Sensitive data is only shown based on the permissions granted.
+                        {t('personPage.dataPrivacy.desc')}
                       </p>
                     </div>
 
@@ -585,14 +584,14 @@ export default function PersonProfilePage() {
                       <div className={cn("p-8 rounded-[3rem] border shadow-sm space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
                         <div className="flex items-center gap-3">
                           <Sparkles className="w-5 h-5 text-indigo-500" />
-                          <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>Suggestions</h3>
+                          <h3 className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.suggestions')}</h3>
                         </div>
                         <div className="space-y-4">
                           {suggestions.siblings.map((s: any) => (
                             <div key={s.id} className={cn("flex items-center justify-between p-4 rounded-2xl border transition-all duration-500", theme.colors.bg, theme.colors.border)}>
                               <div className="min-w-0">
                                 <p className={cn("text-sm font-black truncate transition-colors duration-500", theme.colors.text)}>{s.firstName} {s.lastName}</p>
-                                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">Potential Sibling</p>
+                                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">{t('personPage.potentialSibling')}</p>
                               </div>
                               <button
                                 onClick={() => router.push(`/person/${s.id}`)}
@@ -606,7 +605,7 @@ export default function PersonProfilePage() {
                             <div key={s.id} className={cn("flex items-center justify-between p-4 rounded-2xl border transition-all duration-500", theme.colors.bg, theme.colors.border)}>
                               <div className="min-w-0">
                                 <p className={cn("text-sm font-black truncate transition-colors duration-500", theme.colors.text)}>{s.firstName} {s.lastName}</p>
-                                <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest mt-0.5">Potential Spouse</p>
+                                <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest mt-0.5">{t('personPage.potentialSpouse')}</p>
                               </div>
                               <button
                                 onClick={() => router.push(`/person/${s.id}`)}
