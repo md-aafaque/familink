@@ -85,7 +85,7 @@ export class RelationshipRepository {
         'child': 'parent',
         'spouse': 'spouse',
         'sibling': 'sibling',
-        'adopted_child': 'parent'
+        'adopted_child': 'child'
       };
 
       const reciprocalType = reciprocalMap[type] || type;
@@ -171,7 +171,7 @@ export class RelationshipRepository {
         'child': 'parent',
         'spouse': 'spouse',
         'sibling': 'sibling',
-        'adopted_child': 'parent'
+        'adopted_child': 'child'
       };
       const reciprocalType = reciprocalMap[type] || type;
 

@@ -7,6 +7,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAppTheme } from "./providers/ThemeProvider";
+import { useLanguage } from "./providers/LanguageProvider";
 import { cn } from "@/lib/cn";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
@@ -16,6 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { theme } = useAppTheme();
+  const { t } = useLanguage();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Fetch trees to check for admin status
@@ -61,14 +63,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <>
               <ShieldAlert className="w-12 h-12 text-amber-500 mx-auto animate-pulse" />
               <div className="space-y-1">
-                <p className={cn("text-lg font-black uppercase tracking-tighter", theme.colors.text)}>Access Restricted</p>
-                <p className={cn("text-sm font-medium", theme.colors.textMuted)}>You don't have permission to view this page.</p>
+                <p className={cn("text-lg font-black uppercase tracking-tighter", theme.colors.text)}>{t('layout.accessRestricted')}</p>
+                <p className={cn("text-sm font-medium", theme.colors.textMuted)}>{t('layout.noPermission')}</p>
               </div>
             </>
           ) : (
             <>
               <Loader2 className={cn("w-10 h-10 animate-spin mx-auto", theme.colors.accent)} />
-              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>Loading your workspace...</p>
+              <p className={cn("text-sm font-medium", theme.colors.textMuted)}>{t('layout.loadingWorkspace')}</p>
             </>
           )}
         </div>

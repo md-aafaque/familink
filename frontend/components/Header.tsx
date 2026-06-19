@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAppTheme, AppThemeType } from "./providers/ThemeProvider";
 import { useSidebar } from "./providers/SidebarProvider";
 import { Maximize, Minimize, Moon, Sun, Menu } from "lucide-react";
+import { useLanguage } from "./providers/LanguageProvider";
 import { cn } from "@/lib/cn";
 import { useState } from "react";
 
@@ -13,16 +14,18 @@ export default function Header() {
   const { themeType, setTheme, theme } = useAppTheme();
   const { toggle } = useSidebar();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { t } = useLanguage();
 
   const getTitle = () => {
-    if (pathname.includes('/dashboard/manage/proposals')) return 'Relationship Proposals';
-    if (pathname.includes('/dashboard/manage/invitations')) return 'Tree Invitations';
-    if (pathname.includes('/dashboard/manage/claims')) return 'Profile Claims';
-    if (pathname.includes('/dashboard/manage/users')) return 'Access Requests';
-    if (pathname.includes('/dashboard')) return 'Dashboard';
-    if (pathname.includes('/tree/')) return 'Family Tree';
-    if (pathname.includes('/notifications')) return 'Notifications';
-    return 'Family Tree';
+    if (pathname.includes('/dashboard/manage/proposals')) return t('header.relationshipProposals');
+    if (pathname.includes('/dashboard/manage/invitations')) return t('header.treeInvitations');
+    if (pathname.includes('/dashboard/manage/claims')) return t('header.profileClaims');
+    if (pathname.includes('/dashboard/manage/users')) return t('header.accessRequests');
+    if (pathname.includes('/dashboard/settings')) return t('header.accountSettings');
+    if (pathname.includes('/dashboard')) return t('header.dashboard');
+    if (pathname.includes('/tree/')) return t('header.familyTree');
+    if (pathname.includes('/notifications')) return t('header.notifications');
+    return t('header.familyTree');
   };
 
   const toggleFullscreen = () => {

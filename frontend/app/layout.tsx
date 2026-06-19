@@ -5,6 +5,7 @@ import GlobalErrorBoundary from '../components/shared/GlobalErrorBoundary'
 import { ThemeProvider } from '../components/providers/ThemeProvider'
 import { TreeInteractionProvider } from '../components/tree/TreeInteractionProvider'
 import { SidebarProvider } from '../components/providers/SidebarProvider'
+import { LanguageProvider } from '../components/providers/LanguageProvider'
 
 export const metadata = {
   title: 'Family Tree',
@@ -17,13 +18,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GlobalErrorBoundary>
           <QueryProvider>
             <AuthProvider>
-              <ThemeProvider>
-                <SidebarProvider>
-                  <TreeInteractionProvider>
-                    {children}
-                  </TreeInteractionProvider>
-                </SidebarProvider>
-              </ThemeProvider>
+              <LanguageProvider>
+                <ThemeProvider>
+                  <SidebarProvider>
+                    <TreeInteractionProvider>
+                      {children}
+                    </TreeInteractionProvider>
+                  </SidebarProvider>
+                </ThemeProvider>
+              </LanguageProvider>
             </AuthProvider>
           </QueryProvider>
         </GlobalErrorBoundary>
