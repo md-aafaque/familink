@@ -940,7 +940,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       style={{ backgroundColor: t.canvas }}>
 
       {/* ══════════════════════════════════════════════════════════════════
-          OUTER OVERLAY — sidebar toggle + search (straddles sidebar/canvas)
+          OUTER OVERLAY — sidebar toggle (straddles sidebar/canvas)
       ══════════════════════════════════════════════════════════════════ */}
       <div className="absolute inset-0 pointer-events-none z-30">
         <div className="absolute top-4 left-4 pointer-events-auto">
@@ -948,49 +948,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
             title={showSandbox ? tLang('treePage.hidePanel') : tLang('treePage.showPanel')} className={t.iconBtn}>
             {showSandbox ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </IconBtn>
-        </div>
-
-        <div className="absolute top-4 left-16 pointer-events-auto">
-          <motion.div animate={{ width: searchOpen ? 228 : 36 }}
-            transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            className={cn("h-9 rounded-xl flex items-center overflow-hidden", t.panel)}>
-            <button onClick={searchOpen ? closeSearch : openSearch}
-              className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0", t.muted)}>
-              <Search className="w-3.5 h-3.5" />
-            </button>
-            <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search people…" className={cn("flex-1 bg-transparent outline-none text-xs font-medium", t.text)} />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0", t.muted)}>
-                <X className="w-3 h-3" />
-              </button>
-            )}
-          </motion.div>
-
-          <AnimatePresence>
-            {searchOpen && searchResults.length > 0 && (
-              <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
-                className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden shadow-2xl", t.panel)}>
-                {searchResults.map((p, i) => (
-                  <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
-                    className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5", 
-                        i && "border-t",
-                        themeKey === 'sepia' ? "border-stone-200/50" : (themeKey === 'forest' ? "border-emerald-100" : "border-slate-100/50")
-                    )}>
-                    <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                      style={{ backgroundColor: t.accent }}>
-                      {p.firstName[0]}{p.lastName?.[0] ?? ""}
-                    </span>
-                    <div className="min-w-0">
-                      <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
-                      {p.birthDate && <p className={cn("text-[10px]", t.muted)}>{p.birthDate}</p>}
-                    </div>
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
@@ -1032,6 +989,50 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         {/* Canvas overlay — inset-0 (no left-8 offset) */}
         {peopleInTree.length > 0 && (
           <div className="absolute inset-0 pointer-events-none z-20">
+
+            {/* Search — top-left of canvas */}
+            <div className="absolute top-4 left-4 pointer-events-auto">
+              <motion.div animate={{ width: searchOpen ? 228 : 36 }}
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                className={cn("h-9 rounded-xl flex items-center overflow-hidden", t.panel)}>
+                <button onClick={searchOpen ? closeSearch : openSearch}
+                  className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0", t.muted)}>
+                  <Search className="w-3.5 h-3.5" />
+                </button>
+                <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search people…" className={cn("flex-1 bg-transparent outline-none text-xs font-medium", t.text)} />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0", t.muted)}>
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </motion.div>
+
+              <AnimatePresence>
+                {searchOpen && searchResults.length > 0 && (
+                  <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
+                    className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden shadow-2xl", t.panel)}>
+                    {searchResults.map((p, i) => (
+                      <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
+                        className={cn(
+                            "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5", 
+                            i && "border-t",
+                            themeKey === 'sepia' ? "border-stone-200/50" : (themeKey === 'forest' ? "border-emerald-100" : "border-slate-100/50")
+                        )}>
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                          style={{ backgroundColor: t.accent }}>
+                          {p.firstName[0]}{p.lastName?.[0] ?? ""}
+                        </span>
+                        <div className="min-w-0">
+                          <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
+                          {p.birthDate && <p className={cn("text-[10px]", t.muted)}>{p.birthDate}</p>}
+                        </div>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Fullscreen — top-right of canvas */}
             <div className="absolute top-4 right-4 pointer-events-auto">
