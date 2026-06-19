@@ -281,31 +281,17 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className={labelClass}>{t('personForm.birthDate')} <RequiredStar /></label>
-              <div className="flex items-center gap-3">
-                  <Controller
-                      name="birthDate"
-                      control={control}
-                      render={({ field }) => (
-                          <PartialDateInput
-                              {...field}
-                              className="flex-1"
-                              error={!!errors.birthDate}
-                          />
-                      )}
-                  />
-                  <Controller
-                      name="birthDateVisibility"
-                      control={control}
-                      render={({ field }) => (
-                          <CustomSelect
-                              {...field}
-                              options={visibilityOptions}
-                              className="w-32 flex-shrink-0"
-                              size="md"
-                          />
-                      )}
-                  />
-              </div>
+              <Controller
+                  name="birthDate"
+                  control={control}
+                  render={({ field }) => (
+                      <PartialDateInput
+                          {...field}
+                          className="w-full"
+                          error={!!errors.birthDate}
+                      />
+                  )}
+              />
               {errors.birthDate && <p className="text-xs text-red-500 font-bold mt-1">{errors.birthDate.message}</p>}
             </div>
 
