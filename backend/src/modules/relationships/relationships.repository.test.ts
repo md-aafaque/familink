@@ -19,14 +19,16 @@ describe('RelationshipRepository', () => {
 
   describe('createOfficialRelationship', () => {
     it('should create reciprocal edges for parent relationship', async () => {
-      mockSession.run.mockResolvedValueOnce({ records: [{ get: () => ({ properties: {} }) }] }); // primary
-      mockSession.run.mockResolvedValueOnce({ records: [] }); // reciprocal
+      mockSession.run
+        .mockResolvedValueOnce({ records: [{ get: () => ({ properties: {} }) }] }) // primary
+        .mockResolvedValueOnce({ records: [] }) // reciprocal
+        .mockResolvedValue({ records: [] }); // all inference calls
 
       await RelationshipRepository.createOfficialRelationship(
         'tree1', 'parent1', 'child1', 'parent', 'user1', 'admin1'
       );
 
-      expect(mockSession.run).toHaveBeenCalledTimes(2);
+      expect(mockSession.run).toHaveBeenCalledTimes(6);
       
       // First call: primary (parent)
       const firstCall = mockSession.run.mock.calls[0];
@@ -37,23 +39,39 @@ describe('RelationshipRepository', () => {
       const secondCall = mockSession.run.mock.calls[1];
       expect(secondCall[0]).toContain("MERGE (b)-[r:FAMILY_RELATIONSHIP {type: $reciprocalType, treeId: $treeId}]->(a)");
       expect(secondCall[1]).toMatchObject({ reciprocalType: 'child', fromId: 'parent1', toId: 'child1' });
+
+      // Calls 3-6: inference steps 3a, 3b, 3c, 3d
+      const inferenceCalls = mockSession.run.mock.calls.slice(2);
+      expect(inferenceCalls[0][0]).toContain("collect(DISTINCT sibling) as siblings");
+      expect(inferenceCalls[1][0]).toContain("allChildren as c1");
+      expect(inferenceCalls[2][0]).toContain("spouse IS NOT NULL AND child IS NOT NULL");
+      expect(inferenceCalls[3][0]).toContain("sChild.id <> $parentId");
     });
 
     it('should infer parents when creating a sibling relationship', async () => {
-      mockSession.run.mockResolvedValueOnce({ records: [{ get: () => ({ properties: {} }) }] }); // primary
-      mockSession.run.mockResolvedValueOnce({ records: [] }); // reciprocal
-      mockSession.run.mockResolvedValueOnce({ records: [] }); // inference
+      mockSession.run
+        .mockResolvedValueOnce({ records: [{ get: () => ({ properties: {} }) }] }) // primary
+        .mockResolvedValueOnce({ records: [] }) // reciprocal
+        .mockResolvedValueOnce({ records: [] }) // 4a parent propagation
+        .mockResolvedValueOnce({ records: [] }) // 4b transitive sibling closure
+        .mockResolvedValue({ records: [{ get: () => [] }] }); // 4c parent collection + default
 
       await RelationshipRepository.createOfficialRelationship(
         'tree1', 'sibA', 'sibB', 'sibling', 'user1', 'admin1'
       );
 
-      expect(mockSession.run).toHaveBeenCalledTimes(3);
+      expect(mockSession.run).toHaveBeenCalledTimes(5);
       
       const inferenceCall = mockSession.run.mock.calls[2];
       expect(inferenceCall[0]).toContain("// Parents of A -> become parents of B");
       expect(inferenceCall[0]).toContain("// Parents of B -> become parents of A");
       expect(inferenceCall[1]).toMatchObject({ fromId: 'sibA', toId: 'sibB', treeId: 'tree1' });
+
+      const transitiveCall = mockSession.run.mock.calls[3];
+      expect(transitiveCall[0]).toContain("sA.id <> $toId");
+
+      const parentCollectionCall = mockSession.run.mock.calls[4];
+      expect(parentCollectionCall[0]).toContain("RETURN collect(DISTINCT p.id) as parentIds");
     });
   });
 
