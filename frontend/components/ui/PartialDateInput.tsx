@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, useEffect, useRef, forwardRef } from "react";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "../providers/ThemeProvider";
+import { Calendar } from "lucide-react";
 
 interface PartialDateInputProps {
   value?: string | null;
@@ -17,12 +18,12 @@ interface PartialDateInputProps {
 const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
   ({ value, onChange, onBlur, name, id, className, error }, ref) => {
     const { theme } = useAppTheme();
-    
+    const dateInputRef = useRef<HTMLInputElement>(null);
+
     const [year, setYear] = useState("");
     const [month, setMonth] = useState("");
     const [day, setDay] = useState("");
 
-    // Sync internal state with prop value
     useEffect(() => {
       if (value) {
         const parts = value.split("-");
@@ -41,13 +42,10 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
         onChange(""); 
         return;
       }
-      
       let result = y;
       if (m) {
         result += `-${m}`;
-        if (d) {
-          result += `-${d}`;
-        }
+        if (d) result += `-${d}`;
       }
       onChange(result);
     };
@@ -70,6 +68,22 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
       updateValue(year, month, val);
     };
 
+    const handleCalendarPick = () => {
+      dateInputRef.current?.showPicker();
+    };
+
+    const handleNativeDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (!val) return;
+      const parts = val.split("-");
+      if (parts.length === 3) {
+        setYear(parts[0]);
+        setMonth(parts[1]);
+        setDay(parts[2]);
+        updateValue(parts[0], parts[1], parts[2]);
+      }
+    };
+
     const months = [
       { value: "", label: "mm" },
       { value: "01", label: "January" }, { value: "02", label: "February" },
@@ -88,8 +102,8 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
       }))
     ];
 
-    const inputBaseClass = cn(
-      "h-11 px-3 py-2 border rounded-xl text-sm font-medium outline-none transition-all",
+    const cellClass = cn(
+      "h-11 border rounded-xl text-sm font-medium outline-none transition-all text-center",
       theme.colors.bg,
       theme.colors.text,
       error ? "border-red-500 focus:ring-red-500/20" : theme.colors.border,
@@ -97,41 +111,53 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
     );
 
     return (
-      <div className={cn("flex items-center gap-1", className)} onBlur={onBlur}>
-        <input
-          ref={ref}
-          type="text"
-          name={name}
-          id={id}
-          placeholder="yyyy"
-          value={year}
-          onChange={handleYearChange}
-          className={cn(inputBaseClass, "flex-1 min-w-[70px] text-center")}
-        />
-        <select
-          value={month}
-          onChange={handleMonthChange}
-          disabled={!year || year.length < 4}
-          className={cn(inputBaseClass, "flex-1 min-w-[80px] text-center disabled:opacity-30 appearance-none")}
+      <div className={cn("flex items-center gap-1.5", className)} onBlur={onBlur}>
+        <div className="grid grid-cols-3 gap-1.5 min-w-0 flex-1">
+          <input
+            ref={ref}
+            type="text"
+            name={name}
+            id={id}
+            placeholder="yyyy"
+            value={year}
+            onChange={handleYearChange}
+            className={cn(cellClass, "px-2")}
+          />
+          <select
+            value={month}
+            onChange={handleMonthChange}
+            disabled={!year || year.length < 4}
+            className={cn(cellClass, "px-1 appearance-none disabled:opacity-30")}
+          >
+            {months.map((m) => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+          </select>
+          <select
+            value={day}
+            onChange={handleDayChange}
+            disabled={!month}
+            className={cn(cellClass, "px-1 appearance-none disabled:opacity-30")}
+          >
+            {days.map((d) => (
+              <option key={d.value} value={d.value}>{d.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <button type="button" onClick={handleCalendarPick}
+          className={cn(
+            "h-11 w-11 flex items-center justify-center rounded-xl border shrink-0 transition-all",
+            theme.colors.border,
+            "hover:bg-black/5 dark:hover:bg-white/5"
+          )}
+          title="Pick date from calendar"
         >
-          {months.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={day}
-          onChange={handleDayChange}
-          disabled={!month}
-          className={cn(inputBaseClass, "flex-1 min-w-[60px] text-center disabled:opacity-30 appearance-none")}
-        >
-          {days.map((d) => (
-            <option key={d.value} value={d.value}>
-              {d.label}
-            </option>
-          ))}
-        </select>
+          <Calendar className="w-4 h-4" />
+        </button>
+
+        <input ref={dateInputRef} type="date" className="hidden"
+          onChange={handleNativeDateChange} />
       </div>
     );
   }
