@@ -429,9 +429,9 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
         connectors.push({
           id: node.data.uid,
           p1x: shiftedX, p2x: shiftedX,
-          parentBottomY: visualY,
+          parentBottomY: visualY + CARD_H,
           childXs: node.children.map(c => c.x! + xShift),
-          childTopY: visualY + V_GAP / 2 // drop halfway to next generation
+          childTopY: (node.depth) * (CARD_H + V_GAP)
         });
       }
       return;
