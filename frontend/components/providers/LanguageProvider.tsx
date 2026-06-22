@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 import enMessages from '../../messages/en.json';
 import esMessages from '../../messages/es.json';
@@ -8,7 +8,7 @@ import frMessages from '../../messages/fr.json';
 import deMessages from '../../messages/de.json';
 import jaMessages from '../../messages/ja.json';
 
-type Language = 'English (US)' | 'Spanish' | 'French' | 'German' | 'Japanese';
+export type Language = 'English (US)' | 'Spanish' | 'French' | 'German' | 'Japanese';
 
 const languageToLocale: Record<Language, string> = {
   'English (US)': 'en',
@@ -18,6 +18,14 @@ const languageToLocale: Record<Language, string> = {
   'Japanese': 'ja',
 };
 
+const localeToLanguage: Record<string, Language> = {
+  en: 'English (US)',
+  es: 'Spanish',
+  fr: 'French',
+  de: 'German',
+  ja: 'Japanese',
+};
+
 const allMessages: Record<string, Record<string, any>> = {
   en: enMessages,
   es: esMessages,
@@ -25,6 +33,19 @@ const allMessages: Record<string, Record<string, any>> = {
   de: deMessages,
   ja: jaMessages,
 };
+
+const STORAGE_KEY = 'app-language';
+
+function readLanguage(): Language {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      if (saved in localeToLanguage) return localeToLanguage[saved];
+      if (Object.values(localeToLanguage).includes(saved as Language)) return saved as Language;
+    }
+  } catch {}
+  return 'English (US)';
+}
 
 interface LanguageContextType {
   language: Language;
@@ -45,6 +66,20 @@ function deepGet(obj: Record<string, any> | null | undefined, path: string): str
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('English (US)');
   const messages = allMessages[languageToLocale[language]];
+
+  useEffect(() => {
+    const saved = readLanguage();
+    if (saved !== 'English (US)') {
+      setLanguageState(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, language);
+    } catch {}
+    document.documentElement.lang = languageToLocale[language];
+  }, [language]);
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
