@@ -16,21 +16,21 @@
       "name": "πâòπâ½πâìπâ╝πâá",
       "phone": "ΘÇúτ╡íσàêΘ¢╗Φ⌐▒τò¬σÅ╖",
       "bio": "σÇïΣ║║πâÉπéñπé¬",
-      "namePlaceholder": "Your full name",
+      "namePlaceholder": "あなたのフルネーム",
       "phonePlaceholder": "+1 (555) 000-0000",
-      "bioPlaceholder": "Brief description for your family profile..."
+      "bioPlaceholder": "家族プロフィールの簡単な説明..."
     },
     "status": {
       "title": "πéóπé½πéªπâ│πâêπé╣πâåπâ╝πé┐πé╣",
-      "syncSuccess": "Identity and preferences synchronized.",
-      "syncFailed": "Failed to sync changes.",
-      "passwordMismatch": "Passwords do not match or are empty.",
-      "passwordSuccess": "Security keys cycled successfully.",
-      "passwordFailed": "Failed to update security keys.",
-      "terminateFailed": "Failed to terminate account.",
-      "autoScanSuccess": "Detected {lang} and {tz}.",
-      "autoScanFailed": "Auto-scan failed. Please select manually.",
-      "themeSynced": "Synchronized with {mode} OS profile."
+      "syncSuccess": "IDと設定が同期されました。",
+      "syncFailed": "変更の同期に失敗しました。",
+      "passwordMismatch": "パスワードが一致しないか、空です。",
+      "passwordSuccess": "セキュリティキーが正常に更新されました。",
+      "passwordFailed": "セキュリティキーの更新に失敗しました。",
+      "terminateFailed": "アカウントの削除に失敗しました。",
+      "autoScanSuccess": "{lang}と{tz}を検出しました。",
+      "autoScanFailed": "自動スキャンに失敗しました。手動で選択してください。",
+      "themeSynced": "{mode} OSプロファイルと同期しました。"
     },
     "appearance": {
       "title": "πâôπé╕πâÑπéóπâ½πé╣πé┐πéñπâ½",
@@ -38,56 +38,56 @@
       "modes": {
         "solaris": {
           "label": "Solaris",
-          "desc": "Daylight optimized"
+          "desc": "昼光最適化"
         },
         "midnight": {
           "label": "Midnight",
-          "desc": "Eye-strain focused"
+          "desc": "目の疲れに配慮"
         }
       },
-      "syncWithOS": "Sync with OS",
-      "syncDesc": "Let your operating system determine when to switch between Solaris and Midnight modes."
+      "syncWithOS": "OSと同期",
+      "syncDesc": "SolarisモードとMidnightモードの切り替えをOSに任せます。"
     },
     "notifications": {
       "title": "πéóπâ⌐πâ╝πâêπé▓πâ╝πâêπéªπéºπéñ",
       "desc": "σ«╢µùÅπü«πéñπâÖπâ│πâêπü«ΘÇÜτƒÑµû╣µ│òπéÆΦ¿¡σ«Üπüùπü╛πüÖπÇé",
       "email": {
-        "label": "Email Broadcasts",
-        "desc": "Weekly digests and critical tree modifications"
+        "label": "メール通知",
+        "desc": "週次ダイジェストと重要なツリーの変更"
       },
       "push": {
-        "label": "Browser Alerts",
-        "desc": "Real-time notifications for relationship proposals"
+        "label": "ブラウザ通知",
+        "desc": "関係提案のリアルタイム通知"
       },
       "marketing": {
-        "label": "Grid Updates",
-        "desc": "New system features and development roadmap news"
+        "label": "アップデート情報",
+        "desc": "新機能と開発ロードマップのお知らせ"
       }
     },
     "security": {
       "title": "πé╖πâ╝πâ½πâëπâùπâ¡πâêπé│πâ½",
       "desc": "πéóπé»πé╗πé╣πé¡πâ╝πü¿πé╗πé¡πâÑπâ¬πâåπéúπâæπâ⌐πâíπâ╝πé┐πéÆτ«íτÉåπüùπü╛πüÖπÇé",
-      "newPassword": "New Security Key",
-      "confirmPassword": "Confirm Security Key",
+      "newPassword": "新しいセキュリティキー",
+      "confirmPassword": "セキュリティキーを確認",
       "proTip": {
-        "title": "Pro-Tip",
-        "body": "Using a passphrase instead of a single word makes your family data significantly harder to compromise."
+        "title": "ヒント",
+        "body": "単一の単語ではなくパスフレーズを使用すると、家族データの漏洩リスクを大幅に低減できます。"
       },
-      "cycleKeys": "Cycle Security Keys"
+      "cycleKeys": "セキュリティキーを更新"
     },
     "preferences": {
       "title": "σ£░σƒƒΦ¿¡σ«Ü",
       "desc": "πâ¡πâ╝πé½πâ½πéñπâ│πé┐πâ╝πâòπéºπâ╝πé╣τÆ░σóâπéÆΦ¿¡σ«Üπüùπü╛πüÖπÇé",
-      "autoScanDesc": "The system will attempt to derive your location and time parameters from your active browser session."
+      "autoScanDesc": "システムはアクティブなブラウザセッションから位置情報と時刻設定の取得を試みます。"
     },
     "termination": {
       "title": "µá╕πé¬πâùπé╖πâºπâ│",
       "desc": "µüÆΣ╣àτÜäπüºΣ╕ìσÅ»ΘÇåτÜäπü¬πâçπâ╝πé┐πü«τá┤σúèπÇé",
-      "sectionTitle": "Terminate Account",
-      "sectionDesc": "This will purge all your family trees, memories, and personal metadata from our servers. This action is definitive.",
-      "initiate": "Initiate Termination",
-      "confirmMessage": "WARNING: This will permanently delete your account and all associated data. This action is irreversible. Proceed?",
-      "confirmPrompt": "To confirm deletion, please type 'DELETE' below:"
+      "sectionTitle": "アカウントの削除",
+      "sectionDesc": "これにより、すべての家系図、メモリー、個人メタデータがサーバーから完全に削除されます。この操作は元に戻せません。",
+      "initiate": "削除を実行",
+      "confirmMessage": "警告：アカウントとすべての関連データが完全に削除されます。この操作は元に戻せません。続行しますか？",
+      "confirmPrompt": "削除を確認するには、以下に'DELETE'と入力してください："
     },
     "systemConfiguration": "システム設定",
     "terminateSession": "セッションを終了",
@@ -128,11 +128,11 @@
     "emailNotifications": "メール通知",
     "pushNotifications": "プッシュ通知",
     "languages": {
-      "en": "English (US)",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ja": "Japanese"
+      "en": "英語（米国）",
+      "es": "スペイン語",
+      "fr": "フランス語",
+      "de": "ドイツ語",
+      "ja": "日本語"
     }
   },
   "nav": {
@@ -161,8 +161,8 @@
     "treeInvitations": "πâäπâ¬πâ╝πü╕πü«µï¢σ╛à",
     "profileClaims": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒é",
     "relationshipProposals": "ΘûóΣ┐éπü«µÅÉµíê",
-    "lightMode": "Light Mode",
-    "darkMode": "Dark Mode",
+    "lightMode": "ライトモード",
+    "darkMode": "ダークモード",
     "profile": "プロフィール",
     "settings": "設定",
     "help": "ヘルプ",
@@ -236,8 +236,8 @@
     },
     "new": "µû░ΦªÅ",
     "readAt": "{date} πü½µùóΦ¬¡",
-    "markAsRead": "Mark as read",
-    "delete": "Delete"
+    "markAsRead": "既読にする",
+    "delete": "削除"
   },
   "layout": {
     "accessRestricted": "πéóπé»πé╗πé╣σê╢ΘÖÉ",
@@ -312,7 +312,7 @@
       "deletionWarning": "µë┐Φ¬ìπüÖπéïπü¿πÇüπüôπü«πâùπâ¡πâòπéúπâ╝πâ½πü¿πüÖπü╣πüªπü«µÄÑτ╢Üπüîσ«îσà¿πü½σëèΘÖñπüòπéîπü╛πüÖπÇé",
       "allCaughtUp": "πüÖπü╣πüªσçªτÉåµ╕êπü┐πüºπüÖ∩╝ü",
       "noProposals": "πüôπü«πâäπâ¬πâ╝πü½Σ┐¥τòÖΣ╕¡πü« {type} µÅÉµíêπü»πüéπéèπü╛πü¢πéôπÇé",
-      "defaultRejectReason": "Rejected by admin"
+      "defaultRejectReason": "管理者により却下"
     },
     "claims": {
       "title": "πâùπâ¡πâòπéúπâ╝πâ½Φ½ïµ▒é",
@@ -328,7 +328,7 @@
         "subtitle": "πâªπâ╝πé╢πâ╝πüîπâäπâ¬πâ╝σåàπü«πâùπâ¡πâòπéúπâ╝πâ½πéÆΦ½ïµ▒éπüÖπéïπü¿πÇüπüôπüôπü½Φí¿τñ║πüòπéîπüªτó║Φ¬ìπüºπüìπü╛πüÖπÇé"
       }
     },
-    "newUserFallback": "New User"
+    "newUserFallback": "新規ユーザー"
   },
   "relationship": {
     "parent": "Φª¬",
@@ -408,12 +408,12 @@
     }
   },
   "common": {
-    "back": "Back",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "save": "Save",
-    "notProvided": "Not provided",
-    "notSpecified": "Not specified",
+    "back": "戻る",
+    "edit": "編集",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "notProvided": "未提供",
+    "notSpecified": "未指定",
     "loading": "読み込み中...",
     "error": "エラー",
     "success": "成功",
@@ -447,10 +447,10 @@
     "off": "オフ",
     "enabled": "有効",
     "disabled": "無効",
-    "present": "Present",
-    "unknown": "Unknown",
-    "current": "Current",
-    "defaultUserName": "User"
+    "present": "現在",
+    "unknown": "不明",
+    "current": "現在",
+    "defaultUserName": "ユーザー"
   },
   "treeSandbox": {
     "title": "サンドボックス",
@@ -704,12 +704,12 @@
     "fitToScreen": "画面に合わせる",
     "zoomIn": "ズームイン",
     "export": "エクスポート",
-    "exportPng": "Export PNG",
-    "exportPdf": "Export PDF",
+    "exportPng": "PNGエクスポート",
+    "exportPdf": "PDFエクスポート",
     "empty": {
-      "title": "Build Your Family Tree",
-      "subtitle": "Add your first family member and connect them to start visualizing your history.",
-      "button": "Add First Member"
+      "title": "家系図を作成しましょう",
+      "subtitle": "最初の家族を追加してつなげることで、家系図の作成を始めましょう。",
+      "button": "最初のメンバーを追加"
     }
   },
   "treeCard": {
@@ -717,16 +717,16 @@
     "viewFullProfile": "完全なプロフィールを表示",
     "deceased": "故人",
     "contextMenu": {
-      "edit": "Edit Member Details",
-      "grantPermissions": "Grant Permissions",
-      "remove": "Remove from Tree"
+      "edit": "メンバー詳細を編集",
+      "grantPermissions": "権限を付与",
+      "remove": "ツリーから削除"
     }
   },
   "memoryDetails": {
     "openOriginal": "オリジナルを開く",
-    "noMedia": "No Media Found",
-    "taggedFamily": "Tagged Family",
-    "familyMember": "Family Member"
+    "noMedia": "メディアが見つかりません",
+    "taggedFamily": "タグ付けされた家族",
+    "familyMember": "家族メンバー"
   },
   "storyEditor": {
     "bold": "太字",
@@ -738,9 +738,9 @@
     "addLink": "リンクを追加",
     "undo": "元に戻す",
     "redo": "やり直す",
-    "placeholder": "Tell your family story...",
-    "footerLabel": "Story Editor",
-    "charCount": "{count} characters"
+    "placeholder": "家族のストーリーを綴ってください...",
+    "footerLabel": "ストーリーエディター",
+    "charCount": "{count}文字"
   },
   "auth": {
     "login": "ログイン",

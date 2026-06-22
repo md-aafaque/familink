@@ -207,7 +207,8 @@
     "present": "Present",
     "unknown": "Unknown",
     "current": "Current",
-    "defaultUserName": "User"
+    "defaultUserName": "User",
+    "createTree": "Create Tree"
   },
   "treeSandbox": {
     "title": "Sandbox",
@@ -327,7 +328,7 @@
     "requestClaim": "Request Profile Claim",
     "confirmClaim": "Confirm Claim",
     "submitClaim": "Submit Claim Request",
-    "addedToTree": "Tree Member • Added {date}",
+    "addedToTree": "Tree Member â€¢ Added {date}",
     "gender": "Gender",
     "education": "Education",
     "occupation": "Occupation",
@@ -525,7 +526,7 @@
     "noPermission": "You don't have permission to view this page."
   },
   "tree": {
-    "loading": "Fetching Tree Metadata…"
+    "loading": "Fetching Tree Metadataâ€¦"
   },
   "admin": {
     "accessRequests": {
@@ -719,7 +720,7 @@
       }
     },
     "footer": {
-      "copyright": "© 2026 FamiLink. All rights reserved. Built for legacy."
+      "copyright": "Â© 2026 FamiLink. All rights reserved. Built for legacy."
     }
   },
   "login": {
@@ -728,7 +729,7 @@
     "email": "Email Address",
     "emailPlaceholder": "you@example.com",
     "password": "Password",
-    "passwordPlaceholder": "••••••••",
+    "passwordPlaceholder": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
     "signIn": "Sign In",
     "orContinueWith": "Or continue with",
     "google": "Google",
@@ -783,7 +784,7 @@
     "email": "Email Address",
     "emailPlaceholder": "you@example.com",
     "password": "Password",
-    "passwordPlaceholder": "••••••••",
+    "passwordPlaceholder": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
     "createAccount": "Create Account",
     "orContinueWith": "Or continue with",
     "google": "Google",
@@ -838,7 +839,7 @@
     "email": "Email Address",
     "emailPlaceholder": "you@example.com",
     "password": "Password",
-    "passwordPlaceholder": "••••••••",
+    "passwordPlaceholder": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
     "creating": "Creating account...",
     "submit": "Create Account & Join",
     "role": {
@@ -882,9 +883,9 @@
     "close": "Close",
     "error": "Something went wrong. Please try again.",
     "subjectPerson": "Subject Person",
-    "isThe": "Is the…",
-    "of": "Of…",
-    "selectPerson": "Select person…",
+    "isThe": "Is theâ€¦",
+    "of": "Ofâ€¦",
+    "selectPerson": "Select personâ€¦",
     "selfWarning": "A person cannot have a relationship with themselves.",
     "createNow": "Create Now",
     "submitProposal": "Submit Proposal"

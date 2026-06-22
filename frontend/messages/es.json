@@ -1,7 +1,7 @@
 {
   "settings": {
     "title": "Portal de Cuenta",
-    "subtitle": "Administra tu huella digital y ajusta tu experiencia en el ├írbol geneal├│gico.",
+    "subtitle": "Administra tu huella digital y ajusta tu experiencia en el â”œÃ­rbol genealâ”œâ”‚gico.",
     "syncChanges": "Sincronizar Cambios",
     "tab": {
       "identity": "Mi Identidad",
@@ -12,25 +12,25 @@
     },
     "profile": {
       "title": "Perfil de Identidad",
-      "desc": "Establece tu identidad p├║blica y credenciales de perfil.",
+      "desc": "Establece tu identidad pâ”œâ•‘blica y credenciales de perfil.",
       "name": "Nombre Completo",
-      "phone": "Tel├⌐fono de Contacto",
-      "bio": "Biograf├¡a Personal",
-      "namePlaceholder": "Your full name",
+      "phone": "Telâ”œâŒfono de Contacto",
+      "bio": "Biografâ”œÂ¡a Personal",
+      "namePlaceholder": "Tu nombre completo",
       "phonePlaceholder": "+1 (555) 000-0000",
-      "bioPlaceholder": "Brief description for your family profile..."
+      "bioPlaceholder": "Breve descripción para tu perfil familiar..."
     },
     "status": {
       "title": "Estado de la Cuenta",
-      "syncSuccess": "Identity and preferences synchronized.",
-      "syncFailed": "Failed to sync changes.",
-      "passwordMismatch": "Passwords do not match or are empty.",
-      "passwordSuccess": "Security keys cycled successfully.",
-      "passwordFailed": "Failed to update security keys.",
-      "terminateFailed": "Failed to terminate account.",
-      "autoScanSuccess": "Detected {lang} and {tz}.",
-      "autoScanFailed": "Auto-scan failed. Please select manually.",
-      "themeSynced": "Synchronized with {mode} OS profile."
+      "syncSuccess": "Identidad y preferencias sincronizadas.",
+      "syncFailed": "Error al sincronizar los cambios.",
+      "passwordMismatch": "Las contraseñas no coinciden o están vacías.",
+      "passwordSuccess": "Claves de seguridad rotadas exitosamente.",
+      "passwordFailed": "Error al actualizar las claves de seguridad.",
+      "terminateFailed": "Error al eliminar la cuenta.",
+      "autoScanSuccess": "Se detectaron {lang} y {tz}.",
+      "autoScanFailed": "Escaneo automático fallido. Selecciona manualmente.",
+      "themeSynced": "Sincronizado con el perfil del SO {mode}."
     },
     "appearance": {
       "title": "Estilos Visuales",
@@ -38,71 +38,71 @@
       "modes": {
         "solaris": {
           "label": "Solaris",
-          "desc": "Daylight optimized"
+          "desc": "Optimizado para luz diurna"
         },
         "midnight": {
-          "label": "Midnight",
-          "desc": "Eye-strain focused"
+          "label": "Nocturno",
+          "desc": "Enfocado en reducir la fatiga visual"
         }
       },
-      "syncWithOS": "Sync with OS",
-      "syncDesc": "Let your operating system determine when to switch between Solaris and Midnight modes."
+      "syncWithOS": "Sincronizar con el SO",
+      "syncDesc": "Permite que tu sistema operativo decida cuándo alternar entre los modos Solaris y Nocturno."
     },
     "notifications": {
       "title": "Puerta de Alertas",
-      "desc": "Configura c├│mo quieres ser notificado de eventos familiares.",
+      "desc": "Configura câ”œâ”‚mo quieres ser notificado de eventos familiares.",
       "email": {
-        "label": "Email Broadcasts",
-        "desc": "Weekly digests and critical tree modifications"
+        "label": "Correos informativos",
+        "desc": "Resúmenes semanales y modificaciones importantes del árbol"
       },
       "push": {
-        "label": "Browser Alerts",
-        "desc": "Real-time notifications for relationship proposals"
+        "label": "Alertas del navegador",
+        "desc": "Notificaciones en tiempo real para propuestas de relación"
       },
       "marketing": {
-        "label": "Grid Updates",
-        "desc": "New system features and development roadmap news"
+        "label": "Novedades del sistema",
+        "desc": "Nuevas funciones del sistema y novedades del plan de desarrollo"
       }
     },
     "security": {
       "title": "Protocolos de Escudo",
-      "desc": "Administra tus llaves de acceso y par├ímetros de seguridad.",
-      "newPassword": "New Security Key",
-      "confirmPassword": "Confirm Security Key",
+      "desc": "Administra tus llaves de acceso y parâ”œÃ­metros de seguridad.",
+      "newPassword": "Nueva clave de seguridad",
+      "confirmPassword": "Confirmar clave de seguridad",
       "proTip": {
-        "title": "Pro-Tip",
-        "body": "Using a passphrase instead of a single word makes your family data significantly harder to compromise."
+        "title": "Consejo profesional",
+        "body": "Usar una frase de seguridad en lugar de una sola palabra hace que tus datos familiares sean mucho más difíciles de comprometer."
       },
-      "cycleKeys": "Cycle Security Keys"
+      "cycleKeys": "Rotar claves de seguridad"
     },
     "preferences": {
-      "title": "Configuraci├│n Regional",
+      "title": "Configuraciâ”œâ”‚n Regional",
       "desc": "Configura tu entorno de interfaz local.",
-      "autoScanDesc": "The system will attempt to derive your location and time parameters from your active browser session."
+      "autoScanDesc": "El sistema intentará obtener tu ubicación y parámetros de tiempo desde tu sesión activa del navegador."
     },
     "termination": {
-      "title": "Opci├│n Nuclear",
-      "desc": "Destrucci├│n de datos permanente e irreversible.",
-      "sectionTitle": "Terminate Account",
-      "sectionDesc": "This will purge all your family trees, memories, and personal metadata from our servers. This action is definitive.",
-      "initiate": "Initiate Termination",
-      "confirmMessage": "WARNING: This will permanently delete your account and all associated data. This action is irreversible. Proceed?",
-      "confirmPrompt": "To confirm deletion, please type 'DELETE' below:"
+      "title": "Opciâ”œâ”‚n Nuclear",
+      "desc": "Destrucciâ”œâ”‚n de datos permanente e irreversible.",
+      "sectionTitle": "Eliminar cuenta",
+      "sectionDesc": "Esto eliminará todos tus árboles familiares, recuerdos y metadatos personales de nuestros servidores. Esta acción es definitiva.",
+      "initiate": "Iniciar eliminación",
+      "confirmMessage": "ADVERTENCIA: Esto eliminará permanentemente tu cuenta y todos los datos asociados. Esta acción es irreversible. ¿Proceder?",
+      "confirmPrompt": "Para confirmar la eliminación, escribe 'DELETE' a continuación:"
     },
-    "systemConfiguration": "Configuración del Sistema",
-    "terminateSession": "Terminar Sesión",
+    "systemConfiguration": "ConfiguraciÃ³n del Sistema",
+    "terminateSession": "Terminar SesiÃ³n",
     "verified": "Verificado",
-    "googleAuth": "Autenticación de Google",
+    "googleAuth": "AutenticaciÃ³n de Google",
     "memberSince": "Miembro Desde",
-    "activateAutoDetect": "Activar Detección Automática",
+    "activateAutoDetect": "Activar DetecciÃ³n AutomÃ¡tica",
     "systemLanguage": "Idioma del Sistema",
     "timezoneOffset": "Diferencia Horaria",
-    "automaticDetection": "Detección Automática",
+    "automaticDetection": "DetecciÃ³n AutomÃ¡tica",
     "rescan": "Re-escanear",
     "loadingProfile": "Descifrando Perfil...",
     "nav": {
       "identity": {
-        "desc": "Nombre público y avatar"
+        "desc": "Nombre pÃºblico y avatar"
       },
       "visuals": {
         "desc": "Temas e interfaz"
@@ -111,85 +111,69 @@
         "desc": "Mantente actualizado"
       },
       "security": {
-        "desc": "Contraseñas y acceso"
+        "desc": "ContraseÃ±as y acceso"
       },
       "regional": {
         "desc": "Idioma y reloj"
       }
     },
-    "privacy": {
-      "title": "Privacidad",
-      "desc": "Controla quién puede ver tu perfil y actividad",
-      "showOnlineStatus": "Mostrar estado en línea",
-      "showLastSeen": "Mostrar última vez visto",
-      "showProfilePhoto": "Mostrar foto de perfil públicamente"
-    },
-    "notificationPreferences": "Preferencias de Notificación",
-    "emailNotifications": "Notificaciones por correo",
-    "pushNotifications": "Notificaciones push",
     "languages": {
-      "en": "English (US)",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ja": "Japanese"
+      "en": "Inglés (EE. UU.)",
+      "es": "Español",
+      "fr": "Francés",
+      "de": "Alemán",
+      "ja": "Japonés"
     }
   },
   "nav": {
-    "signIn": "Sign In",
-    "getStarted": "Get Started",
-    "navigation": "Navegaci├│n",
-    "trees": "Mis ├ürboles",
+    "navigation": "Navegaciâ”œâ”‚n",
+    "trees": "Mis â”œÃ¼rboles",
     "wall": "Muro Familiar",
     "notifications": "Notificaciones",
-    "admin": "Admin",
+    "admin": "Administración",
     "accessRequests": "Solicitudes de Acceso",
     "reviewProposals": "Revisar Propuestas",
-    "mergeRequests": "Solicitudes de Fusi├│n",
+    "mergeRequests": "Solicitudes de Fusiâ”œâ”‚n",
     "profileClaims": "Reclamos de Perfil",
-    "deletionRequests": "Solicitudes de Eliminaci├│n",
+    "deletionRequests": "Solicitudes de Eliminaciâ”œâ”‚n",
     "manageInvites": "Gestionar Invitaciones",
     "accountSettings": "Ajustes de Cuenta",
-    "signOut": "Cerrar Sesi├│n"
+    "signOut": "Cerrar Sesiâ”œâ”‚n"
   },
   "header": {
     "dashboard": "Tablero",
-    "familyTree": "├ürbol Geneal├│gico",
+    "familyTree": "â”œÃ¼rbol Genealâ”œâ”‚gico",
     "notifications": "Notificaciones",
     "accountSettings": "Ajustes de Cuenta",
     "accessRequests": "Solicitudes de Acceso",
-    "treeInvitations": "Invitaciones al ├ürbol",
-    "relationshipProposals": "Propuestas de Relaci├│n",
-    "lightMode": "Light Mode",
-    "darkMode": "Dark Mode",
-    "profileClaims": "Profile Claims",
-    "profile": "Perfil",
-    "settings": "Configuración",
-    "help": "Ayuda",
-    "search": "Buscar"
+    "treeInvitations": "Invitaciones al â”œÃ¼rbol",
+    "relationshipProposals": "Propuestas de Relaciâ”œâ”‚n",
+    "lightMode": "Modo claro",
+    "darkMode": "Modo oscuro",
+    "profileClaims": "Reclamos de perfil"
   },
   "dashboard": {
     "welcome": "Bienvenido/a, {name}",
-    "subtitle": "Administra tus ├írboles geneal├│gicos, permisos y registros hist├│ricos.",
+    "subtitle": "Administra tus â”œÃ­rboles genealâ”œâ”‚gicos, permisos y registros histâ”œâ”‚ricos.",
     "stats": {
-      "activeTrees": "├ürboles Activos",
+      "activeTrees": "â”œÃ¼rboles Activos",
       "members": "Miembros",
-      "lastUpdate": "├Ültima Actualizaci├│n"
+      "lastUpdate": "â”œÃœltima Actualizaciâ”œâ”‚n"
     },
     "recentMemories": "Memorias Recientes",
-    "familyTrees": "├ürboles Geneal├│gicos",
-    "newTree": "Nuevo ├ürbol",
+    "familyTrees": "â”œÃ¼rboles Genealâ”œâ”‚gicos",
+    "newTree": "Nuevo â”œÃ¼rbol",
     "tree": {
       "created": "Creado el {date}",
-      "openTree": "Abrir ├ürbol",
+      "openTree": "Abrir â”œÃ¼rbol",
       "rename": "Renombrar",
       "delete": "Eliminar",
       "pending": "Pendiente"
     },
     "noTrees": {
-      "title": "A├║n no hay ├írboles geneal├│gicos",
-      "subtitle": "Comienza a documentar tu historia familiar creando tu primer ├írbol.",
-      "button": "Crea tu primer ├írbol"
+      "title": "Aâ”œâ•‘n no hay â”œÃ­rboles genealâ”œâ”‚gicos",
+      "subtitle": "Comienza a documentar tu historia familiar creando tu primer â”œÃ­rbol.",
+      "button": "Crea tu primer â”œÃ­rbol"
     },
     "loading": "Cargando tablero..."
   },
@@ -197,8 +181,8 @@
     "title": "Muro Familiar",
     "subtitle": "Un espacio compartido para hitos, historias y fotos. Conserva tu legado juntos.",
     "add": "Agregar Recuerdo",
-    "loadingTrees": "Cargando ├írboles...",
-    "selectTree": "Seleccionar ├ürbol",
+    "loadingTrees": "Cargando â”œÃ­rboles...",
+    "selectTree": "Seleccionar â”œÃ¼rbol",
     "searchPlaceholder": "Buscar recuerdos...",
     "filter": {
       "all": "Todo",
@@ -208,54 +192,52 @@
     },
     "noMemories": {
       "title": "No se encontraron recuerdos",
-      "searchSubtitle": "Intenta ajustar tus filtros o t├⌐rminos de b├║squeda.",
-      "emptySubtitle": "┬íS├⌐ el primero en capturar un recuerdo familiar en este ├írbol!",
+      "searchSubtitle": "Intenta ajustar tus filtros o tâ”œâŒrminos de bâ”œâ•‘squeda.",
+      "emptySubtitle": "â”¬Ã­Sâ”œâŒ el primero en capturar un recuerdo familiar en este â”œÃ­rbol!",
       "button": "Agregar tu primer recuerdo"
     }
   },
   "role": {
     "admin": "Administrador",
-    "adminDesc": "Full access to manage the family tree",
     "member": "Miembro",
-    "memberDesc": "Can create and edit family relationships",
     "viewer": "Lector",
-    "viewerDesc": "Read-only access to view the family tree",
     "editor": "Editor",
     "pending": "Pendiente"
   },
   "notifications": {
     "title": "Notificaciones",
     "unreadCount": "{count} mensajes sin leer",
-    "markAllRead": "Marcar todo como le├¡do",
+    "markAllRead": "Marcar todo como leâ”œÂ¡do",
     "deleteAll": "Eliminar todo",
     "loading": "Cargando notificaciones...",
     "noNotifications": {
-      "title": "A├║n no hay notificaciones",
-      "subtitle": "┬íEst├ís al d├¡a! Vuelve m├ís tarde.",
+      "title": "Aâ”œâ•‘n no hay notificaciones",
+      "subtitle": "â”¬Ã­Estâ”œÃ­s al dâ”œÂ¡a! Vuelve mâ”œÃ­s tarde.",
       "button": "Ir al Tablero"
     },
     "new": "Nuevo",
-    "readAt": "Le├¡do el {date}",
-    "markAsRead": "Mark as read",
-    "delete": "Delete"
+    "readAt": "Leâ”œÂ¡do el {date}",
+    "markAsRead": "Marcar como leído",
+    "delete": "Eliminar"
   },
   "layout": {
     "accessRestricted": "Acceso Restringido",
-    "noPermission": "No tienes permiso para ver esta p├ígina.",
+    "noPermission": "No tienes permiso para ver esta pâ”œÃ­gina.",
     "loadingWorkspace": "Cargando tu espacio de trabajo..."
   },
   "tree": {
-    "loading": "Obteniendo metadatos del ├írbol..."
+    "loading": "Obteniendo metadatos del â”œÃ­rbol..."
   },
   "admin": {
     "accessRequests": {
       "title": "Solicitudes de Acceso",
-      "subtitle": "Administra qui├⌐n puede unirse a tu ├írbol geneal├│gico y sus niveles de permiso. Los nuevos miembros y las actualizaciones de rol aparecen aqu├¡."
+      "subtitle": "Administra quiâ”œâŒn puede unirse a tu â”œÃ­rbol genealâ”œâ”‚gico y sus niveles de permiso. Los nuevos miembros y las actualizaciones de rol aparecen aquâ”œÂ¡."
     },
     "selectTree": {
-      "desc": "Administrar miembros para el espacio de trabajo seleccionado"
+      "desc": "Administrar miembros para el espacio de trabajo seleccionado",
+      "title": "Seleccionar árbol"
     },
-    "chooseTree": "Elige un ├írbol...",
+    "chooseTree": "Elige un â”œÃ­rbol...",
     "upgrade": "Actualizar",
     "requested": "Solicitado: {role}",
     "current": "Actual: {role}",
@@ -263,34 +245,36 @@
     "reject": "Rechazar",
     "noRequests": {
       "title": "No hay solicitudes pendientes",
-      "subtitle": "Cuando nuevos miembros de la familia soliciten unirse a tu ├írbol, aparecer├ín aqu├¡ para su aprobaci├│n."
+      "subtitle": "Cuando nuevos miembros de la familia soliciten unirse a tu â”œÃ­rbol, aparecerâ”œÃ­n aquâ”œÂ¡ para su aprobaciâ”œâ”‚n."
     },
     "invitations": {
-      "title": "Invitaciones al ├ürbol",
-      "subtitle": "Crea enlaces seguros para invitar a tus familiares. Cada enlace es v├ílido por 7 d├¡as y requiere tu aprobaci├│n antes de que puedan unirse.",
+      "title": "Invitaciones al â”œÃ¼rbol",
+      "subtitle": "Crea enlaces seguros para invitar a tus familiares. Cada enlace es vâ”œÃ­lido por 7 dâ”œÂ¡as y requiere tu aprobaciâ”œâ”‚n antes de que puedan unirse.",
       "targetTree": {
-        "desc": "Selecciona para qu├⌐ espacio de trabajo familiar deseas crear enlaces de invitaci├│n seguros."
+        "desc": "Selecciona para quâ”œâŒ espacio de trabajo familiar deseas crear enlaces de invitaciâ”œâ”‚n seguros.",
+        "title": "Árbol familiar destino"
       },
-      "selectToGenerate": "Selecciona un ├írbol arriba para generar invitaciones.",
-      "selectToView": "Selecciona un ├írbol arriba para ver las invitaciones activas.",
+      "selectToGenerate": "Selecciona un â”œÃ­rbol arriba para generar invitaciones.",
+      "selectToView": "Selecciona un â”œÃ­rbol arriba para ver las invitaciones activas.",
       "generate": "Generar",
       "link": "Enlace de {role}",
       "activeLinks": "Enlaces Activos",
       "expires": "Expira el {date}",
       "desc": {
         "member": "Puede agregar personas y proponer relaciones.",
-        "viewer": "Acceso de solo lectura al ├írbol geneal├│gico.",
-        "admin": "Control total sobre el ├írbol y las invitaciones."
+        "viewer": "Acceso de solo lectura al â”œÃ­rbol genealâ”œâ”‚gico.",
+        "admin": "Control total sobre el â”œÃ­rbol y las invitaciones."
       },
       "copy": "Copiar",
       "copied": "Copiado",
-      "noLinks": "No hay enlaces de invitaci├│n activos para este ├írbol. Genera uno arriba."
+      "noLinks": "No hay enlaces de invitaciâ”œâ”‚n activos para este â”œÃ­rbol. Genera uno arriba."
     },
     "management": {
-      "title": "Gesti├│n del ├ürbol",
-      "subtitle": "Revisa y verifica los cambios propuestos por los miembros del ├írbol.",
+      "title": "Gestiâ”œâ”‚n del â”œÃ¼rbol",
+      "subtitle": "Revisa y verifica los cambios propuestos por los miembros del â”œÃ­rbol.",
       "sourceWorkspace": {
-        "desc": "Selecciona el ├írbol geneal├│gico para el cual deseas revisar las propuestas."
+        "desc": "Selecciona el â”œÃ­rbol genealâ”œâ”‚gico para el cual deseas revisar las propuestas.",
+        "title": "Espacio de trabajo origen"
       },
       "tab": {
         "relationships": "Relaciones",
@@ -302,43 +286,44 @@
       "label": {
         "subject": "Sujeto",
         "target": "Objetivo",
-        "source": "Origen (Se eliminar├í)",
-        "destination": "Destino (Se conservar├í)"
+        "source": "Origen (Se eliminarâ”œÃ­)",
+        "destination": "Destino (Se conservarâ”œÃ­)"
       },
       "mergeInto": "Fusionar en",
       "profileClaimed": "Perfil reclamado",
       "requestingUser": "Usuario Solicitante",
-      "targetRemoval": "Objetivo de Eliminaci├│n",
-      "deletionWarning": "La aprobaci├│n eliminar├í permanentemente este perfil y todas sus conexiones.",
-      "allCaughtUp": "┬íTodo al d├¡a!",
-      "noProposals": "No hay propuestas de {type} pendientes para revisar en este ├írbol.",
-      "defaultRejectReason": "Rejected by admin"
+      "targetRemoval": "Objetivo de Eliminaciâ”œâ”‚n",
+      "deletionWarning": "La aprobaciâ”œâ”‚n eliminarâ”œÃ­ permanentemente este perfil y todas sus conexiones.",
+      "allCaughtUp": "â”¬Ã­Todo al dâ”œÂ¡a!",
+      "noProposals": "No hay propuestas de {type} pendientes para revisar en este â”œÃ­rbol.",
+      "defaultRejectReason": "Rechazado por el administrador"
     },
     "claims": {
       "title": "Reclamaciones de Perfil",
-      "subtitle": "Revisa las solicitudes de usuarios que quieren vincular su cuenta a un perfil existente en el ├írbol geneal├│gico.",
+      "subtitle": "Revisa las solicitudes de usuarios que quieren vincular su cuenta a un perfil existente en el â”œÃ­rbol genealâ”œâ”‚gico.",
       "selectTree": {
-        "desc": "Revisar reclamaciones del espacio de trabajo seleccionado"
+        "desc": "Revisar reclamaciones del espacio de trabajo seleccionado",
+        "title": "Seleccionar árbol"
       },
-      "chooseTree": "Elige un ├írbol...",
+      "chooseTree": "Elige un â”œÃ­rbol...",
       "wantsToClaim": "quiere reclamar",
       "requested": "Solicitado {date}",
       "noRequests": {
-        "title": "No hay solicitudes de reclamaci├│n pendientes",
-        "subtitle": "Cuando los usuarios soliciten reclamar un perfil en tu ├írbol, aparecer├ín aqu├¡ para su verificaci├│n."
+        "title": "No hay solicitudes de reclamaciâ”œâ”‚n pendientes",
+        "subtitle": "Cuando los usuarios soliciten reclamar un perfil en tu â”œÃ­rbol, aparecerâ”œÃ­n aquâ”œÂ¡ para su verificaciâ”œâ”‚n."
       }
     },
-    "newUserFallback": "New User"
+    "newUserFallback": "Nuevo usuario"
   },
   "relationship": {
     "parent": "Padre/Madre",
     "child": "Hijo/a",
-    "spouse": "C├│nyuge",
+    "spouse": "Câ”œâ”‚nyuge",
     "sibling": "Hermano/a"
   },
   "notification": {
     "access_request_approved": {
-      "title": "Bienvenido al ├ürbol Geneal├│gico",
+      "title": "Bienvenido al â”œÃ¼rbol Genealâ”œâ”‚gico",
       "message": "Tu solicitud para unirte como {role} ha sido aprobada."
     },
     "access_request_rejected": {
@@ -347,46 +332,46 @@
     },
     "access_request_pending": {
       "title": {
-        "upgrade": "Solicitud de Actualizaci├│n de Rol",
+        "upgrade": "Solicitud de Actualizaciâ”œâ”‚n de Rol",
         "join": "Nueva Solicitud de Acceso"
       },
       "upgrade_message": "Un usuario solicita actualizar de {currentRole} a {requestedRole}",
-      "join_message": "Un nuevo usuario solicita unirse a tu ├írbol geneal├│gico como {role}"
+      "join_message": "Un nuevo usuario solicita unirse a tu â”œÃ­rbol genealâ”œâ”‚gico como {role}"
     },
     "deletion_proposal_pending": {
-      "title": "Solicitud de Eliminaci├│n",
-      "message": "Se ha propuesto la eliminaci├│n de {name}"
+      "title": "Solicitud de Eliminaciâ”œâ”‚n",
+      "message": "Se ha propuesto la eliminaciâ”œâ”‚n de {name}"
     },
     "deletion_approved": {
-      "title": "Solicitud de Eliminaci├│n Aprobada",
+      "title": "Solicitud de Eliminaciâ”œâ”‚n Aprobada",
       "message": "Tu solicitud para eliminar un perfil ha sido aprobada."
     },
     "deletion_rejected": {
-      "title": "Solicitud de Eliminaci├│n Rechazada",
+      "title": "Solicitud de Eliminaciâ”œâ”‚n Rechazada",
       "message": "Tu solicitud para eliminar un perfil fue rechazada."
     },
     "claim_request_pending": {
-      "title": "Solicitud de Reclamaci├│n de Perfil",
+      "title": "Solicitud de Reclamaciâ”œâ”‚n de Perfil",
       "message": "Un usuario solicita reclamar el perfil de {name}"
     },
     "claim_approved": {
-      "title": "Reclamaci├│n de Perfil Aprobada",
+      "title": "Reclamaciâ”œâ”‚n de Perfil Aprobada",
       "message": "Tu solicitud para reclamar un perfil ha sido aprobada."
     },
     "claim_rejected": {
-      "title": "Reclamaci├│n de Perfil Rechazada",
+      "title": "Reclamaciâ”œâ”‚n de Perfil Rechazada",
       "message": "Tu solicitud para reclamar un perfil fue rechazada."
     },
     "merge_proposal_pending": {
-      "title": "Solicitud de Fusi├│n",
+      "title": "Solicitud de Fusiâ”œâ”‚n",
       "message": "Se ha propuesto fusionar a {source} en {target}"
     },
     "merge_approved": {
-      "title": "Solicitud de Fusi├│n Aprobada",
+      "title": "Solicitud de Fusiâ”œâ”‚n Aprobada",
       "message": "Tu solicitud para fusionar perfiles ha sido aprobada."
     },
     "merge_rejected": {
-      "title": "Solicitud de Fusi├│n Rechazada",
+      "title": "Solicitud de Fusiâ”œâ”‚n Rechazada",
       "message": "Tu solicitud para fusionar perfiles fue rechazada."
     },
     "permission_granted": {
@@ -394,108 +379,75 @@
       "message": "Se te han concedido derechos de {permissionType} en un perfil."
     },
     "relationship_pending": {
-      "title": "Nueva Propuesta de Relaci├│n",
-      "message": "Se ha propuesto una nueva relaci├│n de {relationshipType} en tu ├írbol."
+      "title": "Nueva Propuesta de Relaciâ”œâ”‚n",
+      "message": "Se ha propuesto una nueva relaciâ”œâ”‚n de {relationshipType} en tu â”œÃ­rbol."
     },
     "relationship_approved": {
-      "title": "Relaci├│n Aprobada",
-      "message": "Tu propuesta de relaci├│n de {relationshipType} ha sido aprobada."
+      "title": "Relaciâ”œâ”‚n Aprobada",
+      "message": "Tu propuesta de relaciâ”œâ”‚n de {relationshipType} ha sido aprobada."
     },
     "relationship_rejected": {
-      "title": "Relaci├│n Rechazada",
-      "message": "Tu propuesta de relaci├│n de {relationshipType} fue rechazada: {reason}",
-      "reason": "Razón: {reason}"
+      "title": "Relaciâ”œâ”‚n Rechazada",
+      "message": "Tu propuesta de relaciâ”œâ”‚n de {relationshipType} fue rechazada: {reason}"
     }
   },
   "common": {
-    "back": "Back",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "save": "Save",
-    "notProvided": "Not provided",
-    "notSpecified": "Not specified",
-    "loading": "Cargando...",
-    "error": "Error",
-    "success": "Éxito",
-    "delete": "Eliminar",
-    "confirm": "Confirmar",
-    "search": "Buscar",
-    "noResults": "Sin resultados",
-    "viewAll": "Ver todo",
-    "learnMore": "Más información",
-    "close": "Cerrar",
-    "copy": "Copiar",
-    "copied": "Copiado",
-    "upload": "Subir",
-    "download": "Descargar",
-    "print": "Imprimir",
-    "share": "Compartir",
-    "refresh": "Actualizar",
-    "filter": "Filtrar",
-    "sort": "Ordenar",
-    "ascending": "Ascendente",
-    "descending": "Descendente",
-    "more": "Más",
-    "less": "Menos",
-    "all": "Todos",
-    "none": "Ninguno",
-    "required": "Requerido",
-    "optional": "Opcional",
-    "yes": "Sí",
-    "no": "No",
-    "on": "Activado",
-    "off": "Desactivado",
-    "enabled": "Habilitado",
-    "disabled": "Deshabilitado",
-    "present": "Present",
-    "unknown": "Unknown",
-    "current": "Current",
-    "defaultUserName": "User"
+    "back": "Atrás",
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "notProvided": "No proporcionado",
+    "notSpecified": "No especificado",
+    "present": "Presente",
+    "unknown": "Desconocido",
+    "current": "Actual",
+    "defaultUserName": "Usuario",
+    "createTree": "Crear árbol"
   },
   "treeSandbox": {
-    "title": "Sandbox",
+    "title": "Zona de pruebas",
     "unlinkedMembers": "Miembros No Vinculados",
     "searchPlaceholder": "Buscar...",
     "loading": "Cargando",
-    "allLinked": "Todos los miembros están vinculados.",
+    "allLinked": "Todos los miembros estÃ¡n vinculados.",
     "addRelative": "Agregar Nuevo Familiar",
     "unlinked": "No Vinculado"
   },
   "createPersonModal": {
     "title": "Agregar Nuevo Familiar",
-    "subtitle": "Crear un nuevo perfil en tu árbol familiar"
+    "subtitle": "Crear un nuevo perfil en tu Ã¡rbol familiar"
   },
   "mergeModal": {
     "title": "Fusionar Perfil",
     "subtitle": "Consolidar miembros familiares duplicados",
-    "source": "Origen de Fusión",
-    "sourceDesc": "Este perfil se marcará como fusionado y sus relaciones se trasladarán al destino.",
+    "source": "Origen de FusiÃ³n",
+    "sourceDesc": "Este perfil se marcarÃ¡ como fusionado y sus relaciones se trasladarÃ¡n al destino.",
     "selectTarget": "Seleccionar Perfil Destino",
     "searchPlaceholder": "Buscar por nombre...",
     "noResults": "No se encontraron otros perfiles.",
-    "continue": "Continuar a Confirmación",
-    "warningTitle": "Advertencia: Acción Destructiva",
-    "warningBody": "Estás a punto de fusionar {source} en {target}.",
-    "warningOne": "Todas las relaciones existentes del origen serán transferidas.",
-    "warningTwo": "Las relaciones duplicadas serán omitidas.",
-    "warningThree": "El perfil de origen se marcará como \"fusionado\" y se ocultará del árbol.",
-    "warningFour": "Esta acción queda registrada en el historial de auditoría.",
+    "continue": "Continuar a ConfirmaciÃ³n",
+    "warningTitle": "Advertencia: AcciÃ³n Destructiva",
+    "warningBody": "EstÃ¡s a punto de fusionar {source} en {target}.",
+    "warningOne": "Todas las relaciones existentes del origen serÃ¡n transferidas.",
+    "warningTwo": "Las relaciones duplicadas serÃ¡n omitidas.",
+    "warningThree": "El perfil de origen se marcarÃ¡ como \"fusionado\" y se ocultarÃ¡ del Ã¡rbol.",
+    "warningFour": "Esta acciÃ³n queda registrada en el historial de auditorÃ­a.",
     "sourceLabel": "Origen",
     "targetLabel": "Destino",
     "back": "Volver",
-    "confirm": "Confirmar Fusión"
+    "confirm": "Confirmar FusiÃ³n"
   },
   "memoryModal": {
     "editTitle": "Editar Recuerdo",
     "createTitle": "Capturar un Recuerdo",
-    "title": "Título del Recuerdo",
+    "title": "TÃ­tulo del Recuerdo",
     "date": "Fecha",
     "selectPhoto": "Seleccionar Foto",
     "featuredImage": "Imagen Destacada (Opcional)",
     "clickUpload": "Haz clic para subir imagen",
     "uploadHint": "JPG, PNG hasta 10MB",
     "storyTitle": "La Historia",
-    "description": "Descripción",
+    "description": "DescripciÃ³n",
     "milestonePlaceholder": "Comparte algunos detalles sobre este hito...",
     "linkFamilyMembers": "Vincular a Miembros de la Familia",
     "addPerson": "Agregar Persona",
@@ -504,18 +456,17 @@
     "saving": "Guardando...",
     "save": "Guardar Recuerdo",
     "update": "Actualizar Recuerdo",
-    "titlePlaceholder": "Ej., Cumpleaños 90 del Bisabuelo",
-    "uploadPhoto": "Subir Foto"
+    "titlePlaceholder": "Ej., CumpleaÃ±os 90 del Bisabuelo"
   },
   "profileDrawer": {
     "verified": "Verificado",
     "ghost": "Perfil Fantasma",
     "deceased": "Fallecido",
     "deleteProfile": "Eliminar Perfil",
-    "requestDeletion": "Solicitar Eliminación",
-    "confirmDelete": "Confirmar Eliminación Permanente",
-    "proposeRemoval": "Proponer Eliminación de Perfil",
-    "deleteReason": "¿Por qué debería eliminarse este perfil? (Opcional)",
+    "requestDeletion": "Solicitar EliminaciÃ³n",
+    "confirmDelete": "Confirmar EliminaciÃ³n Permanente",
+    "proposeRemoval": "Proponer EliminaciÃ³n de Perfil",
+    "deleteReason": "Â¿Por quÃ© deberÃ­a eliminarse este perfil? (Opcional)",
     "deleteNow": "Eliminar Ahora",
     "submitRequest": "Enviar Solicitud",
     "viewDetailed": "Ver Perfil Detallado",
@@ -523,23 +474,23 @@
     "linkFamily": "Vincular miembros de la familia",
     "link": "Vincular",
     "claim": "Reclamar Este Perfil",
-    "confirmLink": "Confirmar Vinculación de Perfil",
-    "proposeClaim": "Proponer Reclamación de Perfil",
-    "adminClaimNote": "Como administrador, este perfil se vinculará instantáneamente a tu cuenta.",
-    "userClaimNote": "Establecer un vínculo con este perfil requiere aprobación administrativa.",
+    "confirmLink": "Confirmar VinculaciÃ³n de Perfil",
+    "proposeClaim": "Proponer ReclamaciÃ³n de Perfil",
+    "adminClaimNote": "Como administrador, este perfil se vincularÃ¡ instantÃ¡neamente a tu cuenta.",
+    "userClaimNote": "Establecer un vÃ­nculo con este perfil requiere aprobaciÃ³n administrativa.",
     "confirmNow": "Confirmar Ahora",
     "tab": {
       "core": "Datos",
       "family": "Familia",
-      "timeline": "Cronología"
+      "timeline": "CronologÃ­a"
     },
-    "birthInfo": "Información de Nacimiento",
-    "gender": "Género",
-    "education": "Educación",
-    "occupation": "Ocupación",
-    "contactInfo": "Información de Contacto",
-    "noContactInfo": "Sin información de contacto compartida",
-    "deathInfo": "Información de Fallecimiento",
+    "birthInfo": "InformaciÃ³n de Nacimiento",
+    "gender": "GÃ©nero",
+    "education": "EducaciÃ³n",
+    "occupation": "OcupaciÃ³n",
+    "contactInfo": "InformaciÃ³n de Contacto",
+    "noContactInfo": "Sin informaciÃ³n de contacto compartida",
+    "deathInfo": "InformaciÃ³n de Fallecimiento",
     "parents": "Padres",
     "siblings": "Hermanos",
     "partners": "Parejas",
@@ -549,8 +500,8 @@
     "noEvents": "No hay eventos registrados",
     "viewDetailedProfile": "Ver Perfil Detallado",
     "status": {
-      "claimSubmitted": "Solicitud de reclamación enviada para revisión.",
-      "claimFailed": "Error al enviar la solicitud de reclamación. Inténtalo de nuevo."
+      "claimSubmitted": "Solicitud de reclamaciÃ³n enviada para revisiÃ³n.",
+      "claimFailed": "Error al enviar la solicitud de reclamaciÃ³n. IntÃ©ntalo de nuevo."
     }
   },
   "personPage": {
@@ -559,29 +510,29 @@
     "editProfile": "Editar Perfil",
     "noEditPermission": "No tienes permiso para editar este perfil",
     "deleteProfile": "Eliminar Perfil",
-    "requestRemoval": "Solicitar Eliminación",
-    "confirmDeletion": "Confirmar Eliminación Permanente",
-    "proposeRemoval": "Proponer Eliminación de Perfil",
-    "permanentDeleteNote": "Esta acción no se puede deshacer. Se purgarán todas las relaciones y datos de este perfil.",
-    "removalNote": "Se enviará una solicitud a los administradores del árbol para su revisión.",
-    "deleteReason": "Opcional: ¿Por qué debería eliminarse este perfil?",
+    "requestRemoval": "Solicitar EliminaciÃ³n",
+    "confirmDeletion": "Confirmar EliminaciÃ³n Permanente",
+    "proposeRemoval": "Proponer EliminaciÃ³n de Perfil",
+    "permanentDeleteNote": "Esta acciÃ³n no se puede deshacer. Se purgarÃ¡n todas las relaciones y datos de este perfil.",
+    "removalNote": "Se enviarÃ¡ una solicitud a los administradores del Ã¡rbol para su revisiÃ³n.",
+    "deleteReason": "Opcional: Â¿Por quÃ© deberÃ­a eliminarse este perfil?",
     "deletePermanently": "Eliminar Permanentemente",
-    "submitRemoval": "Enviar Solicitud de Eliminación",
+    "submitRemoval": "Enviar Solicitud de EliminaciÃ³n",
     "claimThisProfile": "Reclamar Este Perfil",
-    "requestClaim": "Solicitar Reclamación de Perfil",
-    "confirmClaim": "Confirmar Reclamación",
-    "submitClaim": "Enviar Solicitud de Reclamación",
-    "addedToTree": "Miembro del Árbol • Agregado {date}",
-    "gender": "Género",
-    "education": "Educación",
-    "occupation": "Ocupación",
+    "requestClaim": "Solicitar ReclamaciÃ³n de Perfil",
+    "confirmClaim": "Confirmar ReclamaciÃ³n",
+    "submitClaim": "Enviar Solicitud de ReclamaciÃ³n",
+    "addedToTree": "Miembro del Ãrbol â€¢ Agregado {date}",
+    "gender": "GÃ©nero",
+    "education": "EducaciÃ³n",
+    "occupation": "OcupaciÃ³n",
     "tab": {
       "about": "Datos",
       "family": "Familia",
-      "timeline": "Cronología",
+      "timeline": "CronologÃ­a",
       "permissions": "Permisos"
     },
-    "adminSection": "Administración",
+    "adminSection": "AdministraciÃ³n",
     "mergeProfile": "Fusionar Perfil",
     "noMergePermission": "No tienes permiso para iniciar fusiones de perfiles",
     "visibleToFamily": "Visible para la familia",
@@ -589,27 +540,27 @@
     "identity": "Identidad",
     "birthDate": "Fecha de Nacimiento",
     "contactDetails": "Detalles de Contacto",
-    "email": "Correo Electrónico",
+    "email": "Correo ElectrÃ³nico",
     "notProvided": "Privado o no proporcionado",
-    "phone": "Número de Teléfono",
+    "phone": "NÃºmero de TelÃ©fono",
     "dataPrivacy": {
       "title": "Privacidad de Datos",
-      "desc": "La visibilidad de este perfil es gestionada por los administradores del árbol. Los datos sensibles solo se muestran según los permisos otorgados."
+      "desc": "La visibilidad de este perfil es gestionada por los administradores del Ã¡rbol. Los datos sensibles solo se muestran segÃºn los permisos otorgados."
     },
     "suggestions": "Sugerencias",
     "potentialSibling": "Posible Hermano",
-    "potentialSpouse": "Posible Cónyuge",
+    "potentialSpouse": "Posible CÃ³nyuge",
     "status": {
       "updated": "Perfil actualizado exitosamente.",
       "updateFailed": "Error al actualizar el perfil.",
-      "deletionProposed": "Propuesta de eliminación enviada para revisión.",
-      "deletionFailed": "Error al procesar la eliminación.",
-      "claimSubmitted": "Solicitud de reclamación enviada.",
+      "deletionProposed": "Propuesta de eliminaciÃ³n enviada para revisiÃ³n.",
+      "deletionFailed": "Error al procesar la eliminaciÃ³n.",
+      "claimSubmitted": "Solicitud de reclamaciÃ³n enviada.",
       "claimFailed": "Error al reclamar el perfil."
     },
     "claimNote": {
-      "admin": "Como administrador, tu reclamación será aprobada automáticamente.",
-      "user": "Esto te establecerá como representante de este perfil. Se requiere aprobación del administrador."
+      "admin": "Como administrador, tu reclamaciÃ³n serÃ¡ aprobada automÃ¡ticamente.",
+      "user": "Esto te establecerÃ¡ como representante de este perfil. Se requiere aprobaciÃ³n del administrador."
     },
     "statusBadge": {
       "active": "Activo",
@@ -622,39 +573,39 @@
   },
   "adminSettings": {
     "back": "Volver al Tablero",
-    "title": "Configuración del Sistema",
+    "title": "ConfiguraciÃ³n del Sistema",
     "subtitle": "Configurar opciones y preferencias del sistema",
     "general": {
-      "title": "Configuración General",
+      "title": "ConfiguraciÃ³n General",
       "subtitle": "Configurar ajustes generales del sistema"
     },
     "systemName": "Nombre del Sistema",
-    "version": "Versión",
+    "version": "VersiÃ³n",
     "user": {
-      "title": "Configuración de Usuario",
+      "title": "ConfiguraciÃ³n de Usuario",
       "subtitle": "Configurar opciones relacionadas con usuarios"
     },
-    "requireEmailVerification": "Requerir verificación de correo para nuevos usuarios",
-    "requireAdminApproval": "Requerir aprobación del administrador para cuentas",
+    "requireEmailVerification": "Requerir verificaciÃ³n de correo para nuevos usuarios",
+    "requireAdminApproval": "Requerir aprobaciÃ³n del administrador para cuentas",
     "allowSelfDelete": "Permitir a usuarios eliminar sus propias cuentas"
   },
   "personForm": {
     "picture": "Foto de Perfil",
-    "pictureHint": "JPG o PNG, máximo 5MB",
+    "pictureHint": "JPG o PNG, mÃ¡ximo 5MB",
     "identity": "Identidad",
     "lifecycle": "Ciclo de Vida",
-    "education": "Educación",
-    "addEducation": "Agregar Educación",
+    "education": "EducaciÃ³n",
+    "addEducation": "Agregar EducaciÃ³n",
     "noEducation": "No se ha agregado historial educativo.",
-    "occupation": "Ocupación",
-    "addOccupation": "Agregar Ocupación",
+    "occupation": "OcupaciÃ³n",
+    "addOccupation": "Agregar OcupaciÃ³n",
     "noExperience": "No se ha agregado experiencia.",
     "contactPrivacy": "Contacto y Privacidad",
     "linkMember": "Vincular Miembro",
     "updateProfile": "Actualizar Perfil",
     "createProfile": "Crear Perfil",
     "visibility": {
-      "tree": "Árbol Familiar",
+      "tree": "Ãrbol Familiar",
       "editors": "Solo Editores",
       "private": "Privado",
       "label": "Visibilidad"
@@ -666,7 +617,7 @@
       "male": "Masculino",
       "female": "Femenino",
       "other": "Otro",
-      "title": "Género"
+      "title": "GÃ©nero"
     },
     "status": {
       "ghost": "Perfil Fantasma",
@@ -676,22 +627,21 @@
       "title": "Estado del Perfil"
     },
     "birthDate": "Fecha de Nacimiento",
-    "deathDate": "Fecha de Defunción",
+    "deathDate": "Fecha de DefunciÃ³n",
     "school": "Escuela/Universidad",
-    "degree": "Título",
+    "degree": "TÃ­tulo",
     "startDate": "Fecha de Inicio",
     "endDate": "Fecha de Fin",
     "currentWork": "Trabajo Actual",
     "jobTitle": "Puesto",
     "company": "Empresa",
-    "emailAddress": "Correo Electrónico",
+    "emailAddress": "Correo ElectrÃ³nico",
     "emailVisibility": "Visibilidad del Correo",
-    "phoneNumber": "Número de Teléfono",
-    "phoneVisibility": "Visibilidad del Teléfono",
+    "phoneNumber": "NÃºmero de TelÃ©fono",
+    "phoneVisibility": "Visibilidad del TelÃ©fono",
     "searchExisting": "Buscar existente...",
     "addPerson": "Agregar Persona",
-    "linkedTo": "Vinculado a {name}",
-    "socialLinks": "Redes Sociales"
+    "linkedTo": "Vinculado a {name}"
   },
   "treePage": {
     "expandBranch": "Expandir Rama",
@@ -704,186 +654,264 @@
     "fitToScreen": "Ajustar a Pantalla",
     "zoomIn": "Acercar",
     "export": "Exportar",
-    "exportPng": "Export PNG",
-    "exportPdf": "Export PDF",
+    "exportPng": "Exportar PNG",
+    "exportPdf": "Exportar PDF",
     "empty": {
-      "title": "Build Your Family Tree",
-      "subtitle": "Add your first family member and connect them to start visualizing your history.",
-      "button": "Add First Member"
+      "title": "Construye tu árbol familiar",
+      "subtitle": "Añade tu primer familiar y conéctalo para empezar a visualizar tu historia.",
+      "button": "Añadir primer miembro"
     }
   },
   "treeCard": {
     "fullProfile": "Perfil Completo",
     "viewFullProfile": "Ver Perfil Completo",
-    "deceased": "Fallecido",
     "contextMenu": {
-      "edit": "Edit Member Details",
-      "grantPermissions": "Grant Permissions",
-      "remove": "Remove from Tree"
+      "edit": "Editar detalles del miembro",
+      "grantPermissions": "Conceder permisos",
+      "remove": "Eliminar del árbol"
     }
   },
   "memoryDetails": {
     "openOriginal": "Abrir Original",
-    "noMedia": "No Media Found",
-    "taggedFamily": "Tagged Family",
-    "familyMember": "Family Member"
+    "noMedia": "Sin medios encontrados",
+    "taggedFamily": "Familia etiquetada",
+    "familyMember": "Familiar"
   },
   "storyEditor": {
     "bold": "Negrita",
     "italic": "Cursiva",
     "underline": "Subrayado",
-    "bulletList": "Lista con Viñetas",
+    "bulletList": "Lista con ViÃ±etas",
     "numberedList": "Lista Numerada",
     "quote": "Cita",
     "addLink": "Agregar Enlace",
     "undo": "Deshacer",
     "redo": "Rehacer",
-    "placeholder": "Tell your family story...",
-    "footerLabel": "Story Editor",
-    "charCount": "{count} characters"
+    "placeholder": "Cuenta la historia de tu familia...",
+    "footerLabel": "Editor de historias",
+    "charCount": "{count} caracteres"
   },
-  "auth": {
-    "login": "Iniciar Sesión",
-    "logout": "Cerrar Sesión",
-    "register": "Registrarse",
-    "forgotPassword": "Olvidé mi Contraseña",
-    "resetPassword": "Restablecer Contraseña",
-    "email": "Correo Electrónico",
+  "landing": {
+    "nav": {
+      "signIn": "Iniciar sesión",
+      "getStarted": "Comenzar"
+    },
+    "hero": {
+      "badge": "Preserva tu legado",
+      "titleBefore": "Documenta el ",
+      "titleHighlight": "legado",
+      "titleAfter": " de tu familia para las generaciones.",
+      "subtitle": "Una plataforma minimalista y segura para construir tu árbol familiar, compartir registros históricos y mantenerte conectado con tus raíces.",
+      "cta": "Crea tu árbol gratis",
+      "learnMore": "Más información"
+    },
+    "features": {
+      "collaborative": {
+        "title": "Construcción colaborativa",
+        "desc": "Invita a familiares a contribuir con historias, fotos y registros para construir juntos una historia completa."
+      },
+      "sharing": {
+        "title": "Uso compartido seguro",
+        "desc": "Los controles de permisos detallados garantizan que tus datos familiares solo sean visibles para quienes autorices explícitamente."
+      },
+      "privacy": {
+        "title": "Privacidad ante todo",
+        "desc": "El cifrado de nivel industrial protege tus registros sensibles. Tus datos te pertenecen, siempre."
+      }
+    },
+    "footer": {
+      "copyright": "Â© 2026 FamiLink. Todos los derechos reservados. Creado para el legado."
+    }
+  },
+  "login": {
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Inicia sesión en tu árbol familiar",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tucorreo@ejemplo.com",
     "password": "Contraseña",
-    "confirmPassword": "Confirmar Contraseña",
-    "rememberMe": "Recordarme",
-    "signInWithGoogle": "Iniciar sesión con Google",
-    "dontHaveAccount": "¿No tienes cuenta?",
-    "alreadyHaveAccount": "¿Ya tienes cuenta?",
-    "createAccount": "Crear Cuenta",
-    "or": "o"
+    "passwordPlaceholder": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
+    "signIn": "Iniciar sesión",
+    "orContinueWith": "O continúa con",
+    "google": "Google",
+    "noAccount": "¿No tienes cuenta?",
+    "signUp": "Registrarse",
+    "error": {
+      "noSession": "Inicio de sesión exitoso pero no se creó la sesión.",
+      "generic": "Ocurrió un error durante el inicio de sesión."
+    }
   },
-  "page": {
+  "join": {
+    "invitedTo": "¡Estás invitado!",
+    "subtitle": "Para unirte a un árbol familiar privado",
+    "role": "Nivel de acceso",
+    "viewDesc": "Podrás ver el árbol y sus miembros.",
+    "memberDesc": " También puedes añadir nuevos familiares.",
+    "expiresOn": "Esta invitación vence el",
+    "requestSubmitted": "Procesando...",
+    "accept": "Aceptar invitación",
+    "privacyNotice": "Al aceptar, aceptas seguir las pautas de privacidad establecidas por los administradores del árbol."
+  },
+  "claim": {
+    "processing": "Procesando tu reclamo...",
+    "processingTitle": "Procesando reclamo",
+    "success": "¡Ahora tienes acceso de edición a este familiar!",
+    "successTitle": "¡Reclamo exitoso!",
+    "invalid": "Este enlace de reclamo no es válido o ha expirado. Solicita uno nuevo.",
+    "redirecting": "Redirigiendo a la página de la persona...",
+    "errorTitle": "Reclamo fallido",
+    "backToDashboard": "Volver al panel"
+  },
+  "newTree": {
+    "backToDashboard": "Volver al panel",
+    "badge": "Comienza un nuevo viaje",
+    "title": "Nombra tu árbol familiar",
+    "subtitle": "Toda familia tiene una historia. Dale a la tuya un hermoso punto de partida. Puedes cambiarlo después.",
+    "placeholder": "La Familia García...",
+    "proTip": "Consejo",
+    "proTipBody": "La mayoría de las familias usan su apellido, como \"Los García\" o \"Ascendencia Pérez\". Puedes invitar a tus familiares a colaborar una vez creado el árbol."
+  },
+  "notFound": {
+    "title": "Perdido en el árbol familiar",
+    "subtitle": "La página que buscas se ha mudado del vecindario o nunca existió en esta rama.",
+    "goHome": "Volver",
+    "backToDashboard": "Volver al panel"
+  },
+  "signup": {
+    "title": "Crear cuenta",
+    "subtitle": "Empieza a construir tu árbol familiar",
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Juan Pérez",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tucorreo@ejemplo.com",
+    "password": "Contraseña",
+    "passwordPlaceholder": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
+    "createAccount": "Crear cuenta",
+    "orContinueWith": "O continúa con",
+    "google": "Google",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signIn": "Iniciar sesión",
+    "loading": "Cargando...",
+    "error": {
+      "invalidEmail": "Ingresa una dirección de correo electrónico válida",
+      "generic": "Ocurrió un error durante el registro."
+    }
+  },
+  "dataState": {
+    "loading": "Cargando datos...",
+    "error": {
+      "title": "Algo salió mal",
+      "subtitle": "Ocurrió un error inesperado al obtener los datos.",
+      "retry": "Intentar de nuevo"
+    }
+  },
+  "errorBoundary": {
+    "title": "¡Ups! Algo salió mal",
+    "subtitle": "La aplicación encontró un error inesperado. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo"
+  },
+  "notificationsMenu": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "empty": "Sin notificaciones",
+    "viewAll": "Ver todas las notificaciones"
+  },
+  "permissionsTab": {
+    "activePermissions": "Permisos activos",
+    "explicitUsers": "Usuarios explícitos",
+    "noPermissions": "No se han concedido permisos explícitos aún.",
+    "grantAccess": "Conceder acceso",
+    "searchPlaceholder": "Buscar un miembro del árbol...",
+    "grant": "Conceder acceso",
+    "accessControl": {
+      "title": "Control de acceso",
+      "desc": "Conceder permisos explícitos permite a familiares específicos gestionar este perfil sin otorgarles derechos de administrador sobre todo el árbol."
+    }
+  },
+  "customSelect": {
+    "placeholder": "Selecciona una opción",
+    "noOptions": "No hay opciones disponibles"
+  },
+  "signupForm": {
+    "title": "Crea tu cuenta",
+    "subtitle": "Únete a {treeName} como {role}",
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Juan Pérez",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tucorreo@ejemplo.com",
+    "password": "Contraseña",
+    "passwordPlaceholder": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
+    "creating": "Creando cuenta...",
+    "submit": "Crear cuenta y unirse",
+    "role": {
+      "admin": "Administrador",
+      "member": "Miembro (Puede crear y editar)",
+      "viewer": "Visor (Solo lectura)"
+    }
+  },
+  "errorCard": {
+    "title": "Invitación inválida",
+    "goHome": "Ir al inicio"
+  },
+  "invitationCard": {
+    "title": "¡Estás invitado!",
+    "subtitle": "Únete al árbol familiar",
+    "role": {
+      "admin": "Administrador",
+      "adminDesc": "Acceso completo para gestionar el árbol familiar",
+      "member": "Miembro",
+      "memberDesc": "Puede crear y editar relaciones familiares",
+      "viewer": "Visor",
+      "viewerDesc": "Acceso de solo lectura para ver el árbol familiar"
+    },
+    "expires": "Vence el {date}",
+    "processing": "Procesando...",
+    "accept": "Aceptar invitación",
+    "noAccount": "¿No tienes cuenta? Se te pedirá que crees una en el siguiente paso."
+  },
+  "loadingCard": {
+    "title": "Cargando invitación..."
+  },
+  "proposalModal": {
     "title": {
-      "dashboard": "Tablero",
-      "tree": "Árbol Familiar",
-      "settings": "Configuración",
-      "admin": "Administración",
-      "notifications": "Notificaciones",
-      "memories": "Recuerdos",
-      "profile": "Perfil"
+      "create": "Crear relación",
+      "propose": "Proponer relación"
+    },
+    "subtitle": {
+      "create": "Vincular familiares directamente",
+      "propose": "Vincular dos familiares"
+    },
+    "close": "Cerrar",
+    "error": "Algo salió mal. Inténtalo de nuevo.",
+    "subjectPerson": "Persona de referencia",
+    "isThe": "Esâ€¦",
+    "of": "Deâ€¦",
+    "selectPerson": "Seleccionar personaâ€¦",
+    "selfWarning": "Una persona no puede tener una relación consigo misma.",
+    "createNow": "Crear ahora",
+    "submitProposal": "Enviar propuesta"
+  },
+  "treeActionModal": {
+    "title": {
+      "delete": "Eliminar árbol",
+      "rename": "Renombrar árbol"
+    },
+    "confirmDelete": "¿Estás seguro de que deseas eliminar \"{treeName}\"? Esta acción no se puede deshacer. Escribe el nombre del árbol para confirmar",
+    "confirmRename": "Ingresa un nuevo nombre para tu árbol \"{treeName}\"",
+    "placeholderRename": "Nuevo nombre...",
+    "minLengthError": "Se requieren mínimo 4 caracteres.",
+    "nameMismatchError": "El nombre del árbol no coincide.",
+    "confirm": {
+      "delete": "Eliminar árbol",
+      "rename": "Renombrar árbol"
     }
   },
-  "validation": {
-    "required": "Este campo es requerido",
-    "email": "Correo electrónico inválido",
-    "minLength": "Debe tener al menos {count} caracteres",
-    "maxLength": "Debe tener máximo {count} caracteres",
-    "passwordMatch": "Las contraseñas no coinciden"
-  },
-  "error": "Something went wrong. Please try again.",
-  "success": "You now have edit access to this family member!",
-  "hero": {
-    "badge": "Preserve Your Heritage",
-    "titleBefore": "Document your family's ",
-    "titleHighlight": "legacy",
-    "titleAfter": " for generations.",
-    "subtitle": "A minimalist, secure platform to build your family tree, share historical records, and stay connected with your roots.",
-    "cta": "Start Your Tree Free",
-    "learnMore": "Learn More"
-  },
-  "features": {
-    "collaborative": {
-      "title": "Collaborative Building",
-      "desc": "Invite family members to contribute stories, photos, and records to build a comprehensive history together."
-    },
-    "sharing": {
-      "title": "Secure Sharing",
-      "desc": "Granular permission controls ensure your family data is only visible to those you explicitly authorize."
-    },
-    "privacy": {
-      "title": "Privacy First",
-      "desc": "Industry-standard encryption protects your sensitive records. Your data belongs to you, always."
+  "memoryCard": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": {
+      "title": "¿Eliminar recuerdo?",
+      "desc": "Este recuerdo se eliminará permanentemente. Esta acción no se puede deshacer.",
+      "confirm": "Confirmar eliminación"
     }
-  },
-  "footer": {
-    "copyright": "© 2026 FamiLink. All rights reserved. Built for legacy."
-  },
-  "title": {
-    "delete": "Delete Tree",
-    "rename": "Rename Tree"
-  },
-  "subtitle": {
-    "create": "Directly link family members",
-    "propose": "Link two family members together"
-  },
-  "email": "Email Address",
-  "emailPlaceholder": "you@example.com",
-  "password": "Password",
-  "passwordPlaceholder": "••••••••",
-  "signIn": "Sign In",
-  "orContinueWith": "Or continue with",
-  "google": "Google",
-  "noAccount": "Don't have an account? You'll be asked to create one on the next step.",
-  "signUp": "Sign Up",
-  "invitedTo": "You're Invited!",
-  "viewDesc": "You will be able to view the tree and its members.",
-  "memberDesc": " You can also add new family members.",
-  "expiresOn": "This invitation expires on",
-  "requestSubmitted": "Processing...",
-  "accept": "Accept Invitation",
-  "privacyNotice": "By accepting, you agree to follow the privacy guidelines set by the tree administrators.",
-  "processing": "Processing...",
-  "processingTitle": "Processing Claim",
-  "successTitle": "Claim Successful!",
-  "invalid": "This claim link is invalid or has expired. Please request a new one.",
-  "redirecting": "Redirecting to person page...",
-  "errorTitle": "Claim Failed",
-  "backToDashboard": "Back to Dashboard",
-  "badge": "Start a new journey",
-  "placeholder": "Select an option",
-  "proTip": "Pro tip",
-  "proTipBody": "Most families use their last name, like \"The Andersons\" or \"Smith Ancestry\". You can invite your relatives to collaborate once the tree is created.",
-  "goHome": "Go to Home",
-  "fullName": "Full Name",
-  "fullNamePlaceholder": "John Doe",
-  "createAccount": "Create Account",
-  "hasAccount": "Already have an account?",
-  "loading": "Loading data...",
-  "retry": "Try Again",
-  "markAllRead": "Mark all as read",
-  "empty": "No notifications",
-  "viewAll": "View all notifications",
-  "activePermissions": "Active Permissions",
-  "explicitUsers": "Explicit Users",
-  "noPermissions": "No explicit permissions granted yet.",
-  "grantAccess": "Grant Access",
-  "searchPlaceholder": "Find a tree member...",
-  "grant": "Grant Access",
-  "accessControl": {
-    "title": "Access Control",
-    "desc": "Granting explicit permissions allows specific family members to manage this profile without giving them Admin rights to the entire tree."
-  },
-  "noOptions": "No options available",
-  "creating": "Creating account...",
-  "submit": "Create Account & Join",
-  "expires": "Expires on {date}",
-  "close": "Close",
-  "subjectPerson": "Subject Person",
-  "isThe": "Is the…",
-  "of": "Of…",
-  "selectPerson": "Select person…",
-  "selfWarning": "A person cannot have a relationship with themselves.",
-  "createNow": "Create Now",
-  "submitProposal": "Submit Proposal",
-  "confirmDelete": {
-    "title": "Delete Memory?",
-    "desc": "This memory will be permanently removed. This action cannot be undone.",
-    "confirm": "Confirm Delete"
-  },
-  "confirmRename": "Enter a new name for your tree \"{treeName}\"",
-  "placeholderRename": "New name...",
-  "minLengthError": "Minimum 4 characters required.",
-  "nameMismatchError": "Tree name does not match.",
-  "confirm": {
-    "delete": "Delete Tree",
-    "rename": "Rename Tree"
-  },
-  "edit": "Edit",
-  "delete": "Delete"
+  }
 }
