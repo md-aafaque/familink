@@ -8,17 +8,8 @@ import { formatDateTime } from '../lib/dateUtils';
 import { useAppTheme } from './providers/ThemeProvider';
 import { useLanguage } from './providers/LanguageProvider';
 import { cn } from '@/lib/cn';
-
-type Notification = {
-  id: string;
-  userId: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: number;
-  data?: string;
-};
+import type { Notification } from '@/lib/notifications';
+import { translateNotification } from '@/lib/notifications';
 
 export default function NotificationsMenu() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -197,7 +188,7 @@ export default function NotificationsMenu() {
             <div className={cn("border-b p-4 flex items-center justify-between", theme.colors.primaryMuted, theme.colors.border)}>
               <div>
                 <h3 className={cn("font-semibold", theme.colors.text)}>{t('notificationsMenu.title')}</h3>
-                <p className={cn("text-sm", theme.colors.textMuted)}>{unreadCount} unread</p>
+                <p className={cn("text-sm", theme.colors.textMuted)}>{t('notifications.unreadCount').replace('{count}', String(unreadCount))}</p>
               </div>
               {notifications.length > 0 && (
                 <div className="flex gap-2">
@@ -213,7 +204,7 @@ export default function NotificationsMenu() {
                   <button
                     onClick={() => deleteAll()}
                     className={cn("p-1.5 rounded transition-colors", theme.colors.surface, theme.colors.textMuted, "hover:text-red-500")}
-                    title="Delete all"
+                    title={t('notifications.deleteAll')}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -234,7 +225,9 @@ export default function NotificationsMenu() {
                 </div>
               ) : (
                 <div className={cn("divide-y", theme.colors.border)}>
-                  {notifications.map((notif) => (
+                  {notifications.map((notif) => {
+                    const { title, message } = translateNotification(notif, t);
+                    return (
                     <motion.div
                       key={notif.id}
                       initial={{ opacity: 0, x: -10 }}
@@ -249,14 +242,14 @@ export default function NotificationsMenu() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h4 className={cn("font-bold text-sm", theme.colors.text)}>
-                              {notif.title}
+                              {title}
                             </h4>
                             {!notif.isRead && (
                               <div className={cn("w-2 h-2 rounded-full", theme.colors.primary)} />
                             )}
                           </div>
                           <p className={cn("text-sm mt-1 line-clamp-2", theme.colors.textMuted)}>
-                            {notif.message}
+                            {message}
                           </p>
                           <p className={cn("text-[10px] font-black uppercase tracking-widest mt-2 opacity-40", theme.colors.text)}>
                             {formatDateTime(notif.createdAt)}
@@ -268,7 +261,7 @@ export default function NotificationsMenu() {
                             <button
                               onClick={() => markAsRead(notif.id)}
                               className={cn("p-1.5 rounded transition-colors", theme.colors.bg, theme.colors.textMuted, "hover:" + theme.colors.accent)}
-                              title="Mark as read"
+                              title={t('notifications.markAsRead')}
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -276,14 +269,15 @@ export default function NotificationsMenu() {
                           <button
                             onClick={() => deleteNotification(notif.id)}
                             className={cn("p-1.5 rounded transition-colors", theme.colors.bg, theme.colors.textMuted, "hover:text-red-500")}
-                            title="Delete"
+                            title={t('notifications.delete')}
                           >
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
                     </motion.div>
-                  ))}
+                  );
+                })}
                 </div>
               )}
             </div>
