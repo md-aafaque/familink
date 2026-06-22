@@ -35,7 +35,7 @@ export default function NewTreePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-12">
+    <div className="max-w-2xl mx-auto py-4">
       <button
         onClick={() => router.back()}
         className={cn("flex items-center gap-2 transition-colors mb-8 group", theme.colors.textMuted, "hover:" + theme.colors.text)}
