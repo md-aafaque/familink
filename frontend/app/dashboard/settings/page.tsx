@@ -42,7 +42,8 @@ import { SiGoogle } from "react-icons/si";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { supabase } from "@/lib/supabaseClient";
-import { useLanguage } from "@/components/providers/LanguageProvider";
+import { useLanguage, type Language } from "@/components/providers/LanguageProvider";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'preferences';
 
@@ -90,12 +91,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (profile) {
-      setFormData({
+      const savedLang = profile.language || "English (US)";
+      setFormData(prev => ({
         name: profile.name || "",
         bio: profile.bio || "",
         avatarUrl: profile.avatarUrl || "",
         phone: profile.phone || "",
-        language: profile.language || "English (US)",
+        language: savedLang,
         timezone: profile.timezone || "UTC +05:30 (IST)",
         notificationPreferences: profile.notificationPreferences ? (
             typeof profile.notificationPreferences === 'string' 
@@ -106,7 +108,8 @@ export default function SettingsPage() {
           push: false,
           marketing: false
         }
-      });
+      }));
+      setLanguage(savedLang);
     }
   }, [profile]);
 
@@ -684,21 +687,22 @@ export default function SettingsPage() {
                                 <Languages className="w-3.5 h-3.5" />
                                 {t('settings.systemLanguage')}
                             </label>
-                            <select 
+                            <CustomSelect
                                 value={formData.language}
-                                onChange={(e) => {
-                                    const newLang = e.target.value as any;
+                                onChange={(newLang) => {
                                     setFormData({...formData, language: newLang});
-                                    setLanguage(newLang);
+                                    setLanguage(newLang as Language);
+                                    api.patch("/auth/profile", { language: newLang }).catch(() => {});
                                 }}
-                                className={cn("w-full px-8 py-6 rounded-[2rem] border font-bold text-sm outline-none appearance-none cursor-pointer focus:ring-[12px] focus:ring-primary/5 transition-all shadow-sm", theme.colors.bg, theme.colors.border, theme.colors.text)}
-                            >
-                                <option value="English (US)">{t('settings.languages.en')}</option>
-                                <option value="Spanish">{t('settings.languages.es')}</option>
-                                <option value="French">{t('settings.languages.fr')}</option>
-                                <option value="German">{t('settings.languages.de')}</option>
-                                <option value="Japanese">{t('settings.languages.ja')}</option>
-                            </select>
+                                options={[
+                                    { label: 'English (US)', value: 'English (US)' },
+                                    { label: 'Español', value: 'Spanish' },
+                                    { label: 'Français', value: 'French' },
+                                    { label: 'Deutsch', value: 'German' },
+                                    { label: '日本語', value: 'Japanese' },
+                                ]}
+                                size="lg"
+                            />
                         </div>
                         <div className="space-y-4">
                             <label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-2 flex items-center gap-2", theme.colors.textMuted)}>
