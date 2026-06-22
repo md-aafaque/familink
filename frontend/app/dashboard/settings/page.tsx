@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
 import { cn } from "@/lib/cn";
@@ -63,6 +63,11 @@ export default function SettingsPage() {
   });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  // Avatar upload states
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch full user profile from backend
   const { data: profile, isLoading: isProfileLoading } = useQuery({
@@ -143,16 +148,56 @@ export default function SettingsPage() {
     }
   });
 
-  const handleSave = () => {
-    updateProfileMutation.mutate({
-      name: formData.name,
-      bio: formData.bio,
-      avatarUrl: formData.avatarUrl,
-      phone: formData.phone,
-      language: formData.language,
-      timezone: formData.timezone,
-      notificationPreferences: formData.notificationPreferences
+  const handleSave = async () => {
+    setIsUploading(true);
+    let avatarUrl = formData.avatarUrl;
+    try {
+      if (imageFile) {
+        avatarUrl = await uploadImage(imageFile);
+        setImageFile(null);
+      }
+
+      updateProfileMutation.mutate({
+        name: formData.name,
+        bio: formData.bio,
+        avatarUrl,
+        phone: formData.phone,
+        language: formData.language,
+        timezone: formData.timezone,
+        notificationPreferences: formData.notificationPreferences
+      });
+    } catch (err: any) {
+      setErrorMessage(err.message || t('settings.status.syncFailed'));
+      setTimeout(() => setErrorMessage(null), 3000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const { data: { signedUrl, path } } = await api.post("/auth/avatar/upload-url", {
+      fileName: file.name
+    }) as any;
+
+    const uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type },
     });
+
+    if (!uploadRes.ok) throw new Error('Failed to upload image');
+    const { data } = supabase.storage.from('memories').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setFormData({ ...formData, avatarUrl: reader.result as string });
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleUpdatePassword = async () => {
@@ -373,9 +418,11 @@ export default function SettingsPage() {
                 <>
                   <section className={cn("p-10 rounded-[3rem] border shadow-2xl space-y-10 transition-colors", theme.colors.surface, theme.colors.border)}>
                     <div className="flex flex-col md:flex-row items-center gap-10">
-                        <div className="relative group cursor-pointer">
-                            <div className={cn("w-36 h-32 rounded-[2.5rem] flex items-center justify-center border-4 shadow-2xl transition-all group-hover:rotate-3 group-hover:scale-105", theme.colors.bg, theme.colors.border)}>
-                                {formData.avatarUrl ? (
+                        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                            <div className={cn("w-36 h-32 rounded-[2.5rem] flex items-center justify-center border-4 shadow-2xl transition-all group-hover:rotate-3 group-hover:scale-105 overflow-hidden", theme.colors.bg, theme.colors.border)}>
+                                {isUploading ? (
+                                    <Loader2 className={cn("w-10 h-10 animate-spin", theme.colors.text, "opacity-40")} />
+                                ) : formData.avatarUrl ? (
                                     <img src={formData.avatarUrl} className="w-full h-full object-cover rounded-[2rem]" alt="Avatar" />
                                 ) : (
                                     <User className={cn("w-14 h-14 opacity-20", theme.colors.text)} />
@@ -384,6 +431,13 @@ export default function SettingsPage() {
                             <div className={cn("absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-2xl border-4", theme.colors.primary, theme.colors.surface)}>
                                 <Camera className="w-6 h-6" />
                             </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleAvatarChange}
+                            />
                         </div>
                         <div className="space-y-2 text-center md:text-left">
                             <div className="flex items-center gap-3 justify-center md:justify-start">

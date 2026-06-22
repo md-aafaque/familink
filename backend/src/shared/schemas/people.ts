@@ -78,6 +78,8 @@ export const personSchema = z.object({
 
 export const createPersonSchema = personSchema.extend({
   treeId: z.string().uuid(),
+  linkToId: z.string().uuid().optional(),
+  linkRelationshipType: z.enum(['parent', 'child', 'spouse', 'sibling']).optional(),
 });
 
 export const updatePersonSchema = personSchema.partial();

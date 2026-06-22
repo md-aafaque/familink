@@ -641,7 +641,8 @@
     "phoneVisibility": "VisibilitÃ© du TÃ©lÃ©phone",
     "searchExisting": "Rechercher existant...",
     "addPerson": "Ajouter une Personne",
-    "linkedTo": "LiÃ© Ã  {name}"
+    "linkedTo": "LiÃ© Ã  {name}",
+    "relationshipType": "Relation"
   },
   "treePage": {
     "expandBranch": "DÃ©velopper la Branche",

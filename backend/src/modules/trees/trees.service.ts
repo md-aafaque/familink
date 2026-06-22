@@ -3,8 +3,8 @@ import { AuditService } from '../audit/audit.service';
 import { AppError } from '../../core/errors';
 
 export class TreesService {
-  static async createTree(name: string, userId: string, userEmail: string, userName: string) {
-    const tree = await TreesRepository.create(name, userId, userEmail, userName);
+  static async createTree(name: string, userId: string, userEmail: string) {
+    const tree = await TreesRepository.create(name, userId, userEmail);
     
     await AuditService.log(
       tree.id,

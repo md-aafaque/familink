@@ -35,3 +35,13 @@ export const getPublicUrl = (path: string) => {
   const { data } = supabaseAdmin.storage.from('memories').getPublicUrl(path);
   return data.publicUrl;
 };
+
+export const getUserSignedUploadUrl = async (userId: string, fileName: string) => {
+  const path = `avatars/${userId}/${Date.now()}-${fileName}`;
+  const { data, error } = await supabaseAdmin.storage
+    .from('memories')
+    .createSignedUploadUrl(path);
+
+  if (error) throw error;
+  return data;
+};

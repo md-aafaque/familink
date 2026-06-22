@@ -19,10 +19,9 @@ export default async function treeRoutes(fastify: FastifyInstance) {
     const user = request.user!;
 
     const tree = await TreesService.createTree(
-      name, 
-      user.id, 
-      user.email, 
-      user.email?.split('@')[0] || 'Admin'
+      name,
+      user.id,
+      user.email
     );
 
     return { 

@@ -641,7 +641,8 @@
     "phoneVisibility": "Visibilidad del TelÃ©fono",
     "searchExisting": "Buscar existente...",
     "addPerson": "Agregar Persona",
-    "linkedTo": "Vinculado a {name}"
+    "linkedTo": "Vinculado a {name}",
+    "relationshipType": "Relación"
   },
   "treePage": {
     "expandBranch": "Expandir Rama",

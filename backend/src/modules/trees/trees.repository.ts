@@ -3,10 +3,9 @@ import { normalizeNeo4jProperties } from '../../core/database-utils';
 import { v4 as uuidv4 } from 'uuid';
 
 export class TreesRepository {
-  static async create(name: string, userId: string, userEmail: string, userName: string) {
+  static async create(name: string, userId: string, userEmail: string) {
     const session = getSession();
     const treeId = uuidv4();
-    const personId = uuidv4();
     try {
       await session.run(
         `
@@ -20,27 +19,9 @@ export class TreesRepository {
           createdAt: timestamp()
         })
         CREATE (u)-[:MEMBER_OF {role: 'admin', joinedAt: timestamp()}]->(t)
-        
-        CREATE (p:Person {
-          id: $personId,
-          treeId: $treeId,
-          firstName: $userName,
-          status: 'active',
-          createdBy: $userId,
-          createdAt: timestamp()
-        })
-        CREATE (p)-[:BELONGS_TO_TREE]->(t)
-        CREATE (u)-[:REPRESENTS]->(p)
         RETURN t
         `,
-        { 
-          treeId, 
-          name, 
-          userId, 
-          userEmail,
-          personId,
-          userName
-        }
+        { treeId, name, userId, userEmail }
       );
       return { id: treeId, name };
     } finally {

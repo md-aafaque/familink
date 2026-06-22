@@ -691,6 +691,7 @@
     "searchExisting": "既存を検索...",
     "addPerson": "人物を追加",
     "linkedTo": "{name} にリンク済み",
+    "relationshipType": "関係",
     "socialLinks": "ソーシャルネットワーク"
   },
   "treePage": {

@@ -172,11 +172,15 @@ export default function Sidebar() {
             )}
           >
              <div className={cn(
-               "w-9 h-9 rounded-lg flex items-center justify-center border transition-colors",
+               "w-9 h-9 rounded-lg flex items-center justify-center border transition-colors overflow-hidden shrink-0",
                pathname === "/dashboard/settings" ? "border-primary bg-primary/5" : theme.colors.sidebar.border,
                theme.colors.primaryMuted
              )}>
-                <UserCircle className={cn("w-5 h-5", pathname === "/dashboard/settings" ? theme.colors.accent : "opacity-60")} />
+                {user?.user_metadata?.avatar_url ? (
+                  <img src={user.user_metadata.avatar_url} className="w-full h-full object-cover" alt="" />
+                ) : (
+                  <UserCircle className={cn("w-5 h-5", pathname === "/dashboard/settings" ? theme.colors.accent : "opacity-60")} />
+                )}
              </div>
              <div className="flex-1 min-w-0">
                 <p className={cn("text-xs font-black truncate uppercase tracking-tight", theme.colors.text)}>{user?.user_metadata.full_name || t('common.defaultUserName')}</p>

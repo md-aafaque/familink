@@ -447,7 +447,8 @@
     "phoneVisibility": "Phone Visibility",
     "searchExisting": "Search existing...",
     "addPerson": "Add Person",
-    "linkedTo": "Linked to {name}"
+    "linkedTo": "Linked to {name}",
+    "relationshipType": "Relationship"
   },
   "treePage": {
     "expandBranch": "Expand Branch",

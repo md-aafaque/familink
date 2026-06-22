@@ -641,7 +641,8 @@
     "phoneVisibility": "Telefon-Sichtbarkeit",
     "searchExisting": "Vorhandene suchen...",
     "addPerson": "Person hinzufÃ¼gen",
-    "linkedTo": "VerknÃ¼pft mit {name}"
+    "linkedTo": "VerknÃ¼pft mit {name}",
+    "relationshipType": "Beziehung"
   },
   "treePage": {
     "expandBranch": "Zweig erweitern",

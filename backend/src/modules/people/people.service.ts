@@ -4,6 +4,7 @@ import { AppError } from '../../core/errors';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { TreesRepository } from '../trees/trees.repository';
+import { RelationshipRepository } from '../relationships/relationships.repository';
 
 import { getSignedUploadUrl } from '../../core/supabase';
 
@@ -12,8 +13,8 @@ export class PeopleService {
     return getSignedUploadUrl(treeId, fileName);
   }
 
-  static async createPerson(input: CreatePersonInput & { linkToId?: string }, userId: string) {
-    const { linkToId, ...createInput } = input;
+  static async createPerson(input: CreatePersonInput & { linkToId?: string, linkRelationshipType?: string }, userId: string) {
+    const { linkToId, linkRelationshipType, ...createInput } = input;
     const person = await PeopleRepository.create({ ...createInput, createdBy: userId });
     
     await AuditService.log(
@@ -25,10 +26,16 @@ export class PeopleService {
       { firstName: person.firstName, lastName: person.lastName }
     );
 
-    // If linkToId is provided, we automatically merge this new ghost profile into the existing one
-    // This is useful for "re-using" an existing profile in a new part of the tree creation flow
-    if (linkToId) {
-      await this.mergePeople(person.id, linkToId, userId, person.treeId);
+    // If linkToId is provided, establish a relationship instead of merging
+    if (linkToId && linkRelationshipType) {
+      await RelationshipRepository.createOfficialRelationship(
+        person.treeId,
+        linkRelationshipType === 'child' ? linkToId : person.id,
+        linkRelationshipType === 'child' ? person.id : linkToId,
+        linkRelationshipType === 'child' ? 'parent' : linkRelationshipType,
+        userId,
+        userId
+      );
     }
 
     return person;

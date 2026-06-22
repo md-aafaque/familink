@@ -30,6 +30,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLinkPerson, setSelectedLinkPerson] = useState<any>(null);
+  const [linkRelationshipType, setLinkRelationshipType] = useState<string>("parent");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl || null);
   const [isUploading, setIsUploading] = useState(false);
@@ -149,7 +150,10 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       if (processed.deathDate === "") processed.deathDate = null;
 
       if (!isEditing && treeId) processed.treeId = treeId;
-      if (!isEditing && selectedLinkPerson) processed.linkToId = selectedLinkPerson.id;
+      if (!isEditing && selectedLinkPerson) {
+        processed.linkToId = selectedLinkPerson.id;
+        processed.linkRelationshipType = linkRelationshipType;
+      }
 
       onSubmit(processed);
     } catch (error) {
@@ -558,7 +562,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <div className="space-y-4">
             <div className="relative">
               <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4", theme.colors.textMuted)} />
-              <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('personForm.searchExisting')} className={inputBaseClass()} />
+              <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('personForm.searchExisting')} className={inputBaseClass() + " pl-10"} />
             </div>
             {searchTerm && filteredPeople && filteredPeople.length > 0 && (
               <div className={cn("max-h-60 overflow-y-auto border rounded-xl shadow-lg", theme.colors.border, theme.colors.surface)}>
@@ -576,12 +580,34 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               </div>
             )}
             {selectedLinkPerson && (
-              <div className={cn("flex items-center justify-between p-6 rounded-2xl border bg-primary/5", theme.colors.borderAccent)}>
-                <div className="flex items-center gap-4">
-                  <CheckCircle2 className="w-6 h-6 text-primary" />
-                  <p className={cn("text-sm font-bold", theme.colors.text)}>{t('personForm.linkedTo').replace('{name}', `${selectedLinkPerson.firstName} ${selectedLinkPerson.lastName}`)}</p>
+              <div className={cn("space-y-4 p-6 rounded-2xl border bg-primary/5", theme.colors.borderAccent)}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                    <p className={cn("text-sm font-bold", theme.colors.text)}>{t('personForm.linkedTo').replace('{name}', `${selectedLinkPerson.firstName} ${selectedLinkPerson.lastName}`)}</p>
+                  </div>
+                  <button type="button" onClick={() => setSelectedLinkPerson(null)} className="p-2 rounded-xl hover:bg-red-50 text-red-500"><X className="w-5 h-5" /></button>
                 </div>
-                <button type="button" onClick={() => setSelectedLinkPerson(null)} className="p-2 rounded-xl hover:bg-red-50 text-red-500"><X className="w-5 h-5" /></button>
+                <div className="flex items-center gap-4">
+                  <label className={cn("text-xs font-bold uppercase tracking-wider", theme.colors.textMuted)}>{t('personForm.relationshipType')}</label>
+                  <div className="flex gap-2">
+                    {['parent', 'child', 'spouse', 'sibling'].map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setLinkRelationshipType(type)}
+                        className={cn(
+                          "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all",
+                          linkRelationshipType === type
+                            ? "bg-primary text-white border-primary"
+                            : cn(theme.colors.border, theme.colors.textMuted, "hover:border-primary")
+                        )}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
