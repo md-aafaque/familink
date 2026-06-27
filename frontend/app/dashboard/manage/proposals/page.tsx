@@ -126,7 +126,7 @@ export default function ManageProposalsPage() {
 
       {/* Tree Selector */}
       <section className="relative">
-        <div className={cn("p-8 rounded-[2rem] shadow-xl transition-colors duration-500 bg-slate-900")}>
+        <div className={cn("p-8 rounded-[2rem] shadow-xl transition-colors duration-500", theme.colors.primary)}>
           <div className="absolute top-0 right-0 p-8 opacity-10">
              <GitPullRequest className="w-32 h-32 text-white" />
           </div>

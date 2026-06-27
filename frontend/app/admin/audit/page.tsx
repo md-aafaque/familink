@@ -63,8 +63,8 @@ export default function AuditLogsPage() {
       </header>
 
       {/* Tree Selector */}
-      <section className="relative">
-        <div className={cn("p-8 rounded-[2.5rem] shadow-xl overflow-hidden transition-colors", theme.isDark ? "bg-slate-900" : "bg-slate-900")}>
+      <section className="relative bg-green-100">
+        <div className={cn("p-8 rounded-[2.5rem] shadow-xl overflow-hidden transition-colors", theme.colors.primary)}>
           <div className="absolute top-0 right-0 p-8 opacity-10">
              <Activity className="w-32 h-32 text-white" />
           </div>
