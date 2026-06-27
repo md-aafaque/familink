@@ -33,28 +33,70 @@ export class TreesRepository {
     const session = getSession();
     try {
       const result = await session.run(
-        `
-        MATCH (u:User {id: $userId})
-        OPTIONAL MATCH (u)-[m:MEMBER_OF]->(t1:FamilyTree)
-        WHERE t1.deletedAt IS NULL
-        OPTIONAL MATCH (u)-[:HAS_ACCESS_REQUEST]->(ar:TreeAccessRequest {status: 'pending'})-[:REQUESTS_ACCESS_TO]->(t2:FamilyTree)
-        WHERE t2.deletedAt IS NULL
-        WITH 
-          collect({tree: t1, role: m.role, status: 'active'}) + 
-          collect({tree: t2, role: ar.requestedRole, status: 'pending'}) as entries
-        UNWIND entries as entry
-        WITH entry WHERE entry.tree IS NOT NULL
-        RETURN entry.tree as t, entry.role as role, entry.status as status
-        ORDER BY t.createdAt DESC
-        `,
+        `MATCH (u:User {id: $userId})
+         OPTIONAL MATCH (u)-[m:MEMBER_OF]->(t1:FamilyTree)
+         WHERE t1.deletedAt IS NULL
+         OPTIONAL MATCH (u)-[:HAS_ACCESS_REQUEST]->(ar:TreeAccessRequest {status: 'pending'})-[:REQUESTS_ACCESS_TO]->(t2:FamilyTree)
+         WHERE t2.deletedAt IS NULL
+         RETURN t1, m.role as activeRole, t2, ar.requestedRole as pendingRole`,
         { userId }
       );
 
-      return result.records.map(r => ({
-        ...normalizeNeo4jProperties(r.get('t').properties),
-        role: r.get('role'),
-        status: r.get('status')
-      }));
+      const seen = new Set<string>();
+      const trees: any[] = [];
+
+      for (const r of result.records) {
+        const t1 = r.get('t1');
+        const t2 = r.get('t2');
+
+        if (t1) {
+          const id = t1.properties.id;
+          if (!seen.has(id)) {
+            seen.add(id);
+            trees.push({
+              ...normalizeNeo4jProperties(t1.properties),
+              role: r.get('activeRole'),
+              status: 'active',
+              memberCount: 0,
+            });
+          }
+        }
+
+        if (t2) {
+          const id = t2.properties.id;
+          if (!seen.has(id)) {
+            seen.add(id);
+            trees.push({
+              ...normalizeNeo4jProperties(t2.properties),
+              role: r.get('pendingRole'),
+              status: 'pending',
+              memberCount: 0,
+            });
+          }
+        }
+      }
+
+      // Fetch member counts in batch
+      if (trees.length > 0) {
+        const ids = trees.map(t => t.id);
+        const countResult = await session.run(
+          `MATCH (t:FamilyTree)
+           WHERE t.id IN $ids
+           OPTIONAL MATCH (member:User)-[:MEMBER_OF]->(t)
+           RETURN t.id as tid, count(member) as memberCount`,
+          { ids }
+        );
+        const countMap = new Map<string, number>();
+        for (const r of countResult.records) {
+          countMap.set(r.get('tid'), r.get('memberCount')?.toNumber?.() ?? 0);
+        }
+        for (const t of trees) {
+          t.memberCount = countMap.get(t.id) ?? 0;
+        }
+      }
+
+      trees.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      return trees;
     } finally {
       await session.close();
     }
