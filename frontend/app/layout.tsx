@@ -6,9 +6,43 @@ import { ThemeProvider } from '../components/providers/ThemeProvider'
 import { TreeInteractionProvider } from '../components/tree/TreeInteractionProvider'
 import { SidebarProvider } from '../components/providers/SidebarProvider'
 import { LanguageProvider } from '../components/providers/LanguageProvider'
+import { ToastProvider } from '../components/providers/ToastProvider'
+import CookieConsent from '../components/ui/CookieConsent'
 
 export const metadata = {
-  title: 'Family Tree',
+  title: {
+    default: 'FamiLink — Preserve Your Heritage',
+    template: '%s | FamiLink'
+  },
+  description: 'Build your family tree collaboratively with privacy-first controls. Free for small trees. Available in 5 languages.',
+  openGraph: {
+    title: 'FamiLink — Preserve Your Heritage',
+    description: 'Build your family tree collaboratively with privacy-first controls. Free for small trees.',
+    url: 'https://familink-og.vercel.app',
+    siteName: 'FamiLink',
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FamiLink — Preserve Your Heritage',
+    description: 'Build your family tree collaboratively. Free for small trees.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    languages: {
+      'en': '/en',
+      'es': '/es',
+      'fr': '/fr',
+      'de': '/de',
+      'ja': '/ja',
+    },
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +56,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ThemeProvider>
                   <SidebarProvider>
                     <TreeInteractionProvider>
-                      {children}
+                      <ToastProvider>
+                        {children}
+                        <CookieConsent />
+                      </ToastProvider>
                     </TreeInteractionProvider>
                   </SidebarProvider>
                 </ThemeProvider>
