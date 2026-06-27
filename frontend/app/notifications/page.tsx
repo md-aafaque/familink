@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Trash2, Check, ArrowLeft } from 'lucide-react';
+import { Bell, Trash2, Check, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '../../lib/api';
 import { formatDateTime } from '../../lib/dateUtils';
@@ -14,6 +14,7 @@ import { translateNotification } from '@/lib/notifications';
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { theme } = useAppTheme();
   const { t } = useLanguage();
@@ -24,11 +25,12 @@ export default function NotificationsPage() {
 
   async function loadNotifications() {
     try {
+      setError(null);
       setLoading(true);
       const res = await api.get('/notifications');
       setNotifications(res.data || []);
     } catch (err) {
-      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to load notifications');
     } finally {
       setLoading(false);
     }
@@ -147,7 +149,19 @@ export default function NotificationsPage() {
           </div>
 
         {/* Notifications List */}
-        {loading ? (
+        {error ? (
+          <div className={cn("rounded-xl shadow-sm border p-12 text-center", theme.colors.surface, "border-red-200 bg-red-50")}>
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
+            <h2 className={cn("text-2xl font-bold mb-2", "text-red-900")}>{t('dataState.error.title')}</h2>
+            <p className="mb-6 text-red-700">{error}</p>
+            <button
+              onClick={() => { setError(null); loadNotifications(); }}
+              className="px-6 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+            >
+              {t('dataState.error.retry')}
+            </button>
+          </div>
+        ) : loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin">
               <Bell className={cn("w-8 h-8", theme.colors.textMuted)} />

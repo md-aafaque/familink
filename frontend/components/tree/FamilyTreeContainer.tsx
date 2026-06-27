@@ -926,10 +926,12 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     } finally { setIsExporting(false); }
   }, [t.canvas]);
 
-  // ── Loading / empty state ─────────────────────────────────────────────────
+  // ── Loading state ─────────────────────────────────────────────────────────
   if (isLoading) {
     return null; // Parent page handles initial loading
   }
+
+  const isLayoutComputing = peopleInTree.length > 0 && !layout;
 
   const canvasW = (layout?.totalWidth  ?? 0) + PADDING * 2;
   const canvasH = (layout?.totalHeight ?? 0) + PADDING * 2;
@@ -1198,6 +1200,19 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                     })}
                   </div>
                 </>
+              )}
+
+              {/* Layout computing spinner */}
+              {isLayoutComputing && (
+                <div className="absolute inset-0 flex items-center justify-center w-full h-full">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative w-14 h-14">
+                      <div className="absolute inset-0 rounded-full border-[2.5px] border-t-2 animate-spin border-slate-200 border-t-amber-500 dark:border-slate-700 dark:border-t-indigo-400" />
+                      <Heart className="absolute inset-0 m-auto w-4 h-4 opacity-50 text-slate-400" />
+                    </div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-400">{tLang('treePage.loading')}</p>
+                  </div>
+                </div>
               )}
 
               {/* Empty state */}
