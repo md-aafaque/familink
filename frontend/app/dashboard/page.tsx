@@ -151,7 +151,7 @@ export default function DashboardPage() {
               </div>
               <div className="space-y-0.5">
                 <p className={cn("text-2xl font-bold", theme.colors.text)}>
-                  --
+                  {trees?.filter((t: any) => t.status === 'active').reduce((sum: number, t: any) => sum + (t.memberCount || 0), 0) || 0}
                 </p>
                 <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
                   {t('dashboard.stats.members')}
@@ -167,7 +167,7 @@ export default function DashboardPage() {
               </div>
               <div className="space-y-0.5">
                 <p className={cn("text-2xl font-bold", theme.colors.text)}>
-                  --
+                  {activeTree?.createdAt ? formatDate(activeTree.createdAt) : '--'}
                 </p>
                 <p className={cn("text-xs font-medium uppercase tracking-wider", theme.colors.textMuted)}>
                   {t('dashboard.stats.lastUpdate')}

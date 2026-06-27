@@ -100,7 +100,7 @@ export default function SettingsPage() {
       setFormData(prev => ({
         name: profile.name || "",
         bio: profile.bio || "",
-        avatarUrl: profile.avatarUrl || "",
+        avatarUrl: profile.avatarUrl || user?.user_metadata?.avatar_url || "",
         phone: profile.phone || "",
         language: savedLang,
         timezone: profile.timezone || "UTC +05:30 (IST)",
