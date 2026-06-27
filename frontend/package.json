@@ -37,6 +37,7 @@
     "lodash": "^4.18.1",
     "next": "^15.5.19",
     "next-intl": "^4.13.0",
+    "next-sitemap": "^4.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.50.1",
