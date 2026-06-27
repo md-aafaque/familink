@@ -69,9 +69,54 @@ export class NotificationsRepository {
     try {
       await session.run(
         `MATCH (u:User {id: $userId})-[:HAS_NOTIFICATION]->(n:Notification {id: $notificationId})
-         SET n.isRead = true`,
+         SET n.isRead = true, n.readAt = timestamp()`,
         { userId, notificationId }
       );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async markAllAsRead(userId: string) {
+    const session = getSession();
+    try {
+      await session.run(
+        `MATCH (u:User {id: $userId})-[:HAS_NOTIFICATION]->(n:Notification {isRead: false})
+         SET n.isRead = true, n.readAt = timestamp()`,
+        { userId }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async getUnreadCount(userId: string) {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (n:Notification {userId: $userId, isRead: false})
+         RETURN count(n) as unreadCount`,
+        { userId }
+      );
+      const count = result.records[0].get('unreadCount');
+      return typeof count === 'object' && count !== null && 'toNumber' in count
+        ? (count as any).toNumber()
+        : count;
+    } finally {
+      await session.close();
+    }
+  }
+
+  static async deleteAll(userId: string) {
+    const session = getSession();
+    try {
+      const result = await session.run(
+        `MATCH (n:Notification {userId: $userId})
+         DETACH DELETE n
+         RETURN count(n) as deletedCount`,
+        { userId }
+      );
+      return result.records[0].get('deletedCount').toNumber();
     } finally {
       await session.close();
     }

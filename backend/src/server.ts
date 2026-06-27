@@ -1,5 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+import helmet from '@fastify/helmet';
 import authPlugin from './plugins/auth';
 import { config } from './core/config';
 import { handleError } from './core/errors';
@@ -17,6 +19,7 @@ import memoryRoutes from './modules/memories/memories.routes';
 
 const server = Fastify({
   logger: true,
+  bodyLimit: 1048576,
 });
 
 async function start() {
@@ -27,6 +30,15 @@ async function start() {
   await server.register(cors, { 
     origin: config.FRONTEND_URL,
     credentials: true 
+  });
+
+  await server.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+  });
+
+  await server.register(helmet, {
+    contentSecurityPolicy: false,
   });
   
   await server.register(authPlugin);
