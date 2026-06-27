@@ -7,6 +7,7 @@ import { Mail, Lock, User, Loader2 } from 'lucide-react';
 import { SiGoogle } from 'react-icons/si';
 import Link from 'next/link';
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import Footer from '../../components/shared/Footer';
 
 function SignupContent() {
   const { t } = useLanguage();
@@ -71,13 +72,14 @@ function SignupContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="max-w-md w-full">
-        <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground">{t('signup.title')}</h1>
-            <p className="text-muted-foreground mt-2">{t('signup.subtitle')}</p>
-          </div>
+    <>
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md w-full">
+          <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-foreground">{t('signup.title')}</h1>
+              <p className="text-muted-foreground mt-2">{t('signup.subtitle')}</p>
+            </div>
 
         {error && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-6 text-sm">
@@ -169,10 +171,11 @@ function SignupContent() {
             {t('signup.signIn')}
           </Link>
         </p>
+        </div>
       </div>
     </div>
-  </div>
-  );
+    <Footer />
+  </>);
 }
 
 export default function SignupPage() {

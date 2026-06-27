@@ -2,6 +2,7 @@
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import Footer from "./shared/Footer";
 import { useAuth } from "./providers/AuthProvider";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
@@ -85,10 +86,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10">
-          <div className="max-w-6xl mx-auto">
-            {children}
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-6 md:p-8 lg:p-10">
+            <div className="max-w-6xl mx-auto">
+              {children}
+            </div>
           </div>
+          <Footer />
         </main>
       </div>
     </div>
