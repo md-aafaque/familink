@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Trees, Home, ArrowLeft, SearchX } from "lucide-react";
+import { Home, ArrowLeft, SearchX } from "lucide-react";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
 import { cn } from "@/lib/cn";
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -98,10 +99,10 @@ export default function NotFound() {
           transition={{ delay: 0.5 }}
           className="pt-12"
         >
-          <div className="flex items-center justify-center gap-2 grayscale brightness-0 dark:invert opacity-50">
-             <Trees className="w-5 h-5" />
+           <div className="flex items-center justify-center gap-2 grayscale brightness-0 dark:invert opacity-50">
+             <BrandLogo className="w-5 h-5" />
              <span className="text-sm font-bold tracking-tight">FamiLink</span>
-          </div>
+           </div>
         </motion.div>
       </div>
     </div>

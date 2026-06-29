@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import { Mail, Lock, Loader, Shield, Trees } from 'lucide-react';
+import { Mail, Lock, Loader, Shield } from 'lucide-react';
+import BrandLogo from "@/components/shared/BrandLogo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -53,9 +54,7 @@ export default function AdminLoginPage() {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary rounded-xl">
-                <Trees className="w-8 h-8 text-primary-foreground" />
-              </div>
+              <BrandLogo className="w-10 h-10" />
               <h1 className="text-3xl font-bold text-foreground">
                 Fami<span className="text-primary">Link</span>
               </h1>

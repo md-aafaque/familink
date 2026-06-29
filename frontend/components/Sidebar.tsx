@@ -17,12 +17,12 @@ import {
   Menu,
   X,
   Activity,
-  Link as LinkIcon,
   ImageIcon,
   Trash2,
   Merge,
   Settings
 } from "lucide-react";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
 import { useSidebar } from "./providers/SidebarProvider";
@@ -76,9 +76,7 @@ export default function Sidebar() {
         {/* Logo Section */}
         <div className={cn("h-16 flex items-center px-6 border-b", theme.colors.sidebar.border)}>
           <Link href="/dashboard" className="flex items-center gap-2.5" onClick={close}>
-            <div className={cn("w-8 h-8 rounded flex items-center justify-center", theme.colors.primary)}>
-              <LinkIcon className="w-5 h-5 text-white" />
-            </div>
+            <BrandLogo className="w-8 h-8" />
             <span className={cn("text-lg font-bold tracking-tight", theme.colors.text)}>
               Fami<span className={theme.colors.accent}>Link</span>
             </span>
