@@ -42,7 +42,11 @@ export default function TreePage() {
   });
 
   if (treeLoading) {
-    return <UnifiedLoader text={t('tree.loading')} />;
+    return (
+      <div className={cn("absolute inset-0 top-16 flex flex-col overflow-hidden", theme.colors.bg)}>
+        <UnifiedLoader text={t('tree.loading')} />
+      </div>
+    );
   }
 
   return (

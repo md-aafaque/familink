@@ -162,7 +162,7 @@ export default function NotificationsPage() {
             </button>
           </div>
         ) : loading ? (
-          <div className="text-center py-12">
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
             <div className="inline-block animate-spin">
               <Bell className={cn("w-8 h-8", theme.colors.textMuted)} />
             </div>

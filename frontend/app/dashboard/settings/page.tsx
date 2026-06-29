@@ -292,7 +292,7 @@ export default function SettingsPage() {
 
   if (isProfileLoading) {
       return (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] space-y-4">
               <Loader2 className={cn("w-12 h-12 animate-spin", theme.colors.accent)} />
               <p className={cn("font-black text-xs uppercase tracking-widest opacity-40", theme.colors.textMuted)}>{t('settings.loadingProfile')}</p>
           </div>

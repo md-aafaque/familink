@@ -58,7 +58,7 @@ export default function DashboardPage() {
   // Wait for auth
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[calc(100vh-12rem)]">
         <div className={cn("text-sm font-medium animate-pulse", theme.colors.textMuted)}>
           {t('dashboard.loading')}
         </div>
