@@ -55,6 +55,7 @@ interface LayoutConnector {
   parentBottomY: number;
   childXs: number[];  // centre-x of each child unit (couple-midpoint or solo-centre)
   childTopY: number;
+  collapsed?: boolean;
 }
 
 interface LayoutResult {
@@ -449,9 +450,9 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
       positions.set(sid, { x: curX, y: visualY });
     });
 
-    // Push connector when node has children or was collapsed (preserve spouse
-    // line + vertical stem). Genuine leaf nodes get none.
-    if (node.children || node.data.collapsed) {
+    // Push connector when node has children, was collapsed, or has a spouse
+    // (preserve spouse line + vertical stem). Genuine leaf nodes get none.
+    if (node.children || node.data.collapsed || spouseIds.length > 0) {
       const lastSpouseX = curX;
       connectors.push({
         id: `rel-${personId}`,
@@ -459,7 +460,8 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
         p2x: lastSpouseX,
         parentBottomY: visualY + CARD_H,
         childXs: node.children ? node.children.map(c => c.x! + xShift) : [],
-        childTopY: (node.depth) * (CARD_H + V_GAP)
+        childTopY: (node.depth) * (CARD_H + V_GAP),
+        collapsed: node.data.collapsed,
       });
     }
   });
@@ -496,28 +498,41 @@ function ConnectorLayer({ connectors, lineColor, spouseColor }: {
                 stroke={spouseColor} strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" opacity={0.6} />
             )}
             
-            {/* Junction dot */}
-            <circle cx={unionX} cy={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} r={4.5} 
-              fill={hasSpouse ? spouseColor : lineColor} stroke="white" strokeWidth={2} />
-
-            {/* Vertical stem — full length when children exist, short stub to icon otherwise */}
-            <line x1={unionX}
-              y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
-              x2={unionX}
-              y2={c.childXs.length > 0 ? elbowY : c.parentBottomY + 6}
-              stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
-
-            {/* Horizontal bus */}
-            {c.childXs.length > 1 && (
-              <line x1={Math.min(...c.childXs)} y1={elbowY} x2={Math.max(...c.childXs)} y2={elbowY}
-                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+            {/* Junction dot — when children exist or collapsed */}
+            {(c.childXs.length > 0 || c.collapsed) && (
+              <circle cx={unionX} cy={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} r={4.5} 
+                fill={hasSpouse ? spouseColor : lineColor} stroke="white" strokeWidth={2} />
             )}
 
-            {/* Vertical drops */}
-            {c.childXs.map((cx, i) => (
-              <line key={i} x1={cx} y1={elbowY} x2={cx} y2={c.childTopY}
+            {/* Vertical stem + drops — single continuous line for 1 child, stem+bus+drops for many, short stub for collapsed */}
+            {c.childXs.length === 1 ? (
+              <line x1={unionX}
+                y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
+                x2={c.childXs[0]}
+                y2={c.childTopY}
                 stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
-            ))}
+            ) : c.childXs.length > 1 ? (
+              <>
+                <line x1={unionX}
+                  y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
+                  x2={unionX} y2={elbowY}
+                  stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+                <line x1={Math.min(...c.childXs)} y1={elbowY}
+                  x2={Math.max(...c.childXs)} y2={elbowY}
+                  stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+                {c.childXs.map((cx, i) => (
+                  <line key={i} x1={cx} y1={elbowY} x2={cx}
+                    y2={c.childTopY + CARD_H / 2}
+                    stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+                ))}
+              </>
+            ) : c.collapsed ? (
+              <line x1={unionX}
+                y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
+                x2={unionX}
+                y2={c.parentBottomY + 3}
+                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
+            ) : null}
           </g>
         );
       })}
