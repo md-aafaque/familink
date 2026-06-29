@@ -55,6 +55,7 @@ export const educationSchema = z.object({
 export const personSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional().nullable(),
+  nickname: z.string().optional().nullable(),
   gender: z.enum(['male', 'female', 'other', 'unknown']).default('unknown'),
   birthDate: partialDateSchema, // Mandatory: at least the year must be provided
   deathDate: partialDateSchema.optional().nullable(),
