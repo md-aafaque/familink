@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, User, Loader2 } from 'lucide-react';
+import BrandLogo from '@/components/shared/BrandLogo';
 import { SiGoogle } from 'react-icons/si';
 import Link from 'next/link';
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -77,6 +78,12 @@ function SignupContent() {
         <div className="max-w-md w-full">
           <div className="bg-card shadow-xl border border-border p-8 rounded-2xl">
             <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <BrandLogo className="w-10 h-10" />
+                <span className="text-2xl font-bold text-foreground">
+                  Fami<span className="text-primary">Link</span>
+                </span>
+              </div>
               <h1 className="text-3xl font-bold text-foreground">{t('signup.title')}</h1>
               <p className="text-muted-foreground mt-2">{t('signup.subtitle')}</p>
             </div>
