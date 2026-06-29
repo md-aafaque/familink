@@ -584,7 +584,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <CheckCircle2 className="w-6 h-6 text-primary" />
-                    <p className={cn("text-sm font-bold", theme.colors.text)}>{t('personForm.linkedTo').replace('{name}', `${selectedLinkPerson.firstName} ${selectedLinkPerson.lastName}`)}</p>
+                    <p className={cn("text-sm font-bold", theme.colors.text)}>{t('personForm.linkedTo').replace('{name}', `${selectedLinkPerson.firstName} ${selectedLinkPerson.lastName ? selectedLinkPerson.lastName : ''}`)}</p>
                   </div>
                   <button type="button" onClick={() => setSelectedLinkPerson(null)} className="p-2 rounded-xl hover:bg-red-50 text-red-500"><X className="w-5 h-5" /></button>
                 </div>
