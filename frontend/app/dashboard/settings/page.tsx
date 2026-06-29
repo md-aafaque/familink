@@ -428,7 +428,7 @@ export default function SettingsPage() {
                                     <User className={cn("w-14 h-14 opacity-20", theme.colors.text)} />
                                 )}
                             </div>
-                            <div className={cn("absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-2xl border-4", theme.colors.primary, theme.colors.surface)}>
+                            <div className={cn("absolute -bottom-3 -right-3 w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl border-4 border-primary/30", theme.colors.primaryMuted, theme.colors.accent)}>
                                 <Camera className="w-6 h-6" />
                             </div>
                             <input
@@ -517,7 +517,7 @@ export default function SettingsPage() {
                             <div>
                                 <p className={cn("font-black text-[11px] uppercase tracking-widest", theme.colors.text)}>{t('settings.memberSince')}</p>
                                 <p className={cn("text-[10px] font-bold uppercase tracking-widest", theme.colors.textMuted)}>
-                                    {new Date(profile?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                    {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : t('common.unknown')}
                                 </p>
                             </div>
                         </div>
