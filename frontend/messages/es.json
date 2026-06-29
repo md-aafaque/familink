@@ -485,6 +485,7 @@
       "timeline": "Cronología"
     },
     "birthInfo": "Información de Nacimiento",
+    "nickname": "Apodo",
     "gender": "Género",
     "education": "Educación",
     "occupation": "Ocupación",
@@ -538,6 +539,7 @@
     "visibleToFamily": "Visible para la familia",
     "hiddenFromFamily": "Oculto de la familia",
     "identity": "Identidad",
+    "nickname": "Apodo",
     "birthDate": "Fecha de Nacimiento",
     "contactDetails": "Detalles de Contacto",
     "email": "Correo Electrónico",
@@ -612,6 +614,7 @@
     },
     "firstName": "Nombre",
     "lastName": "Apellido",
+    "nickname": "Apodo",
     "gender": {
       "unknown": "Prefiero no decirlo",
       "male": "Masculino",

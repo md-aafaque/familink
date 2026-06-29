@@ -485,6 +485,7 @@
       "timeline": "Zeitstrahl"
     },
     "birthInfo": "Geburtsinformationen",
+    "nickname": "Spitzname",
     "gender": "Geschlecht",
     "education": "Bildung",
     "occupation": "Beruf",
@@ -538,6 +539,7 @@
     "visibleToFamily": "Sichtbar für die Familie",
     "hiddenFromFamily": "Vor der Familie verborgen",
     "identity": "Identität",
+    "nickname": "Spitzname",
     "birthDate": "Geburtsdatum",
     "contactDetails": "Kontaktdaten",
     "email": "E-Mail-Adresse",
@@ -612,6 +614,7 @@
     },
     "firstName": "Vorname",
     "lastName": "Nachname",
+    "nickname": "Spitzname",
     "gender": {
       "unknown": "Keine Angabe",
       "male": "Männlich",

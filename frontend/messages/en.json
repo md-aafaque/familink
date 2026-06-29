@@ -291,6 +291,7 @@
       "timeline": "Timeline"
     },
     "birthInfo": "Birth Information",
+    "nickname": "Nickname",
     "gender": "Gender",
     "education": "Education",
     "occupation": "Occupation",
@@ -328,7 +329,7 @@
     "requestClaim": "Request Profile Claim",
     "confirmClaim": "Confirm Claim",
     "submitClaim": "Submit Claim Request",
-    "addedToTree": "Tree Member â€¢ Added {date}",
+    "addedToTree": "Tree Member \u2022 Added {date}",
     "gender": "Gender",
     "education": "Education",
     "occupation": "Occupation",
@@ -344,6 +345,7 @@
     "visibleToFamily": "Visible to family",
     "hiddenFromFamily": "Hidden from family",
     "identity": "Identity",
+    "nickname": "Nickname",
     "birthDate": "Birth Date",
     "contactDetails": "Contact Details",
     "email": "Email Address",
@@ -418,6 +420,7 @@
     },
     "firstName": "First Name",
     "lastName": "Last Name",
+    "nickname": "Nickname",
     "gender": {
       "unknown": "Prefer not to say",
       "male": "Male",
@@ -527,7 +530,7 @@
     "noPermission": "You don't have permission to view this page."
   },
   "tree": {
-    "loading": "Fetching Tree Metadataâ€¦"
+    "loading": "Fetching Tree Metadata\u2026"
   },
   "admin": {
     "accessRequests": {
@@ -884,9 +887,9 @@
     "close": "Close",
     "error": "Something went wrong. Please try again.",
     "subjectPerson": "Subject Person",
-    "isThe": "Is theâ€¦",
-    "of": "Ofâ€¦",
-    "selectPerson": "Select personâ€¦",
+    "isThe": "Is the\u2026",
+    "of": "Of\u2026",
+    "selectPerson": "Select person\u2026",
     "selfWarning": "A person cannot have a relationship with themselves.",
     "createNow": "Create Now",
     "submitProposal": "Submit Proposal"

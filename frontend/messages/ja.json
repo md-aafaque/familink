@@ -534,6 +534,7 @@
       "timeline": "タイムライン"
     },
     "birthInfo": "出生情報",
+    "nickname": "ニックネーム",
     "gender": "性別",
     "education": "学歴",
     "occupation": "職業",
@@ -587,6 +588,7 @@
     "visibleToFamily": "家族に表示",
     "hiddenFromFamily": "家族から非表示",
     "identity": "アイデンティティ",
+    "nickname": "ニックネーム",
     "birthDate": "生年月日",
     "contactDetails": "連絡先詳細",
     "email": "メールアドレス",
@@ -661,6 +663,7 @@
     },
     "firstName": "名",
     "lastName": "姓",
+    "nickname": "ニックネーム",
     "gender": {
       "unknown": "回答しない",
       "male": "男性",

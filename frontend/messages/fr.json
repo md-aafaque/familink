@@ -485,6 +485,7 @@
       "timeline": "Chronologie"
     },
     "birthInfo": "Informations de Naissance",
+    "nickname": "Surnom",
     "gender": "Genre",
     "education": "Formation",
     "occupation": "Profession",
@@ -538,6 +539,7 @@
     "visibleToFamily": "Visible pour la famille",
     "hiddenFromFamily": "Caché de la famille",
     "identity": "Identité",
+    "nickname": "Surnom",
     "birthDate": "Date de Naissance",
     "contactDetails": "Coordonnées",
     "email": "Adresse Email",
@@ -612,6 +614,7 @@
     },
     "firstName": "Prénom",
     "lastName": "Nom",
+    "nickname": "Surnom",
     "gender": {
       "unknown": "Préfère ne pas dire",
       "male": "Masculin",
