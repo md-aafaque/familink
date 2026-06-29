@@ -127,6 +127,11 @@ export default function ProfileDrawer({
                     <h2 className={cn("font-black text-2xl truncate", theme.colors.text)}>
                       {person.firstName} {person.lastName}
                     </h2>
+                    {person.nickname && (
+                      <p className={cn("text-sm font-medium italic", theme.colors.textMuted)}>
+                        {person.nickname}
+                      </p>
+                    )}
                     {person.birthDate && (
                       <p className={cn("text-sm", theme.colors.textMuted)}>
                         b. {formatDate(person.birthDate)}
@@ -404,6 +409,22 @@ export default function ProfileDrawer({
                         <p className={cn("text-sm font-bold", theme.colors.text)}>
                           {person.gender || t('common.notSpecified')}
                         </p>
+                      </div>
+                    </div>
+
+                    {/* 1c. Nickname */}
+                    <div>
+                      <h3 className={cn("text-xs font-black uppercase tracking-widest mb-2", theme.colors.textMuted)}>
+                        {t('profileDrawer.nickname')}
+                      </h3>
+                      <div className={cn("p-3 rounded-lg border transition-colors", theme.colors.border)}>
+                        {person.nickname ? (
+                          <p className={cn("text-sm font-bold", theme.colors.text)}>
+                            {person.nickname}
+                          </p>
+                        ) : (
+                          <p className={cn("text-sm italic opacity-50", theme.colors.textMuted)}>{t('common.notProvided')}</p>
+                        )}
                       </div>
                     </div>
 
