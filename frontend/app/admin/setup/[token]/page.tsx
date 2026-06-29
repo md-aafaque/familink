@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import api from '../../../../lib/api';
-import { Mail, Lock, User, Loader, Shield, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Loader, AlertCircle } from 'lucide-react';
+import BrandLogo from "@/components/shared/BrandLogo";
 
 export default function AdminSetupPage() {
   const router = useRouter();
@@ -98,7 +99,7 @@ export default function AdminSetupPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Shield className="w-8 h-8 text-indigo-600" />
+              <BrandLogo className="w-10 h-10" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Set Up Admin Account</h2>
             <p className="text-slate-600">Complete your admin account setup</p>
