@@ -30,6 +30,10 @@ export const metadata = {
     description: 'Build your family tree collaboratively. Free for small trees.',
     images: ['/og-image.png'],
   },
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
   robots: {
     index: true,
     follow: true,
