@@ -143,6 +143,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
       
       // Clean empty strings to null for backend compatibility
       if (processed.lastName === "") processed.lastName = null;
+      if (processed.nickname === "") processed.nickname = null;
       if (processed.email === "") processed.email = null;
       if (processed.phone === "") processed.phone = null;
       if (processed.address === "") processed.address = null;
@@ -164,7 +165,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
   };
 
   const filteredPeople = people?.filter((p: any) => 
-    `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    `${p.firstName} ${p.lastName} ${p.nickname ?? ''}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const labelClass = cn(
@@ -232,6 +233,12 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               <label className={labelClass}>{t('personForm.lastName')}</label>
               <input {...register("lastName")} className={inputBaseClass(errors.lastName)} placeholder="Doe" />
               {errors.lastName && <p className="text-xs text-red-500 font-bold mt-1">{errors.lastName.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className={labelClass}>{t('personForm.nickname')}</label>
+              <input {...register("nickname")} className={inputBaseClass(errors.nickname)} placeholder="Johnny" />
+              {errors.nickname && <p className="text-xs text-red-500 font-bold mt-1">{errors.nickname.message}</p>}
             </div>
 
             <div className="space-y-1.5">
