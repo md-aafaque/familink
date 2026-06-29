@@ -179,7 +179,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
 
   const filteredPeople = people?.filter((p: any) => 
     !associatedPersonIds.includes(p.id) &&
-    (`${p.firstName} ${p.lastName}`.toLowerCase().includes(personSearch.toLowerCase()))
+    (`${p.firstName} ${p.lastName} ${p.nickname ?? ''}`.toLowerCase().includes(personSearch.toLowerCase()))
   );
 
   const labelClass = (isRequired = false) => cn(

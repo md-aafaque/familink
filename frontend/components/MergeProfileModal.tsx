@@ -60,7 +60,8 @@ export default function MergeProfileModal({
       p.id !== sourcePerson.id &&
       p.status !== "merged" &&
       (p.firstName.toLowerCase().includes(search.toLowerCase()) ||
-        p.lastName?.toLowerCase().includes(search.toLowerCase()))
+        p.lastName?.toLowerCase().includes(search.toLowerCase()) ||
+        p.nickname?.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
