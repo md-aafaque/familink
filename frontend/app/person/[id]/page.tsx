@@ -376,6 +376,11 @@ export default function PersonProfilePage() {
                       <h1 className={cn("text-5xl font-black tracking-tight transition-colors duration-500", theme.colors.text)}>
                         {data.firstName} {data.lastName}
                       </h1>
+                      {data.nickname && (
+                        <p className={cn("text-lg font-medium italic text-center md:text-left transition-colors duration-500", theme.colors.textMuted)}>
+                          "{data.nickname}"
+                        </p>
+                      )}
                       <span className={cn(
                         "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500",
                         data.status === 'active' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : cn(theme.colors.bg, theme.colors.textMuted)
@@ -441,6 +446,14 @@ export default function PersonProfilePage() {
                         <div className="space-y-2">
                           <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.gender')}</p>
                           <p className={cn("text-lg font-bold capitalize transition-colors duration-500", theme.colors.text)}>{data.gender || t('common.unknown')}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.nickname')}</p>
+                          {data.nickname ? (
+                            <p className={cn("text-lg font-bold transition-colors duration-500", theme.colors.text)}>{data.nickname}</p>
+                          ) : (
+                            <p className={cn("text-lg font-bold transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.notProvided')}</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500", theme.colors.textMuted)}>{t('personPage.birthDate')}</p>
