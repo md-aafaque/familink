@@ -108,6 +108,11 @@ const TreeCard = memo(({
             <h4 className={cn("font-black text-xl tracking-tight leading-tight truncate px-2", theme.colors.text)} style={{ color: treeTheme?.accent }}>
               {person.firstName} {person.lastName}
             </h4>
+            {person.nickname && (
+              <p className={cn("text-sm font-medium italic truncate px-2", theme.colors.textMuted)}>
+                {person.nickname}
+              </p>
+            )}
             
             <div className="flex flex-wrap gap-1.5 justify-center">
               {person.status === 'ghost' && (

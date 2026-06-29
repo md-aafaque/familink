@@ -35,6 +35,7 @@ interface Person {
   id: string;
   firstName: string;
   lastName?: string;
+  nickname?: string;
   status?: string;
   birthDate?: string;
   deathDate?: string;
@@ -624,14 +625,15 @@ function PersonNode({
           </div>
 
           <div className="flex-1 min-w-0 py-1">
-            <h4 className={cn("text-[14px] font-black tracking-tight leading-none truncate mb-1.5", t.text)}
+            <h4 className={cn("text-[15px] font-bold tracking-tight leading-none truncate mb-0.5", t.text)}
               style={{ opacity: isDead ? 0.6 : 1 }}>
-              {person.firstName}
+              {person.firstName} {person.lastName}
             </h4>
-            <p className={cn("text-[12px] font-bold tracking-tight truncate mb-1", t.text)}
-              style={{ opacity: isDead ? 0.4 : 0.7 }}>
-              {person.lastName || ""}
-            </p>
+            {person.nickname && (
+              <p className={cn("text-[12px] font-medium italic truncate mb-0.5", t.muted)}>
+                {person.nickname}
+              </p>
+            )}
             {dateLabel && (
               <p className={cn("text-[10px] tabular-nums font-black tracking-widest uppercase opacity-40", t.muted)}>
                 {dateLabel}
@@ -827,7 +829,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     return peopleInTree.filter(p =>
-      `${p.firstName} ${p.lastName ?? ""}`.toLowerCase().includes(q)
+      `${p.firstName} ${p.lastName ?? ""} ${p.nickname ?? ""}`.toLowerCase().includes(q)
     ).slice(0, 6);
   }, [peopleInTree, searchQuery]);
 
@@ -1042,6 +1044,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                         </span>
                         <div className="min-w-0">
                           <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
+                          {p.nickname && <p className={cn("text-[10px] italic", t.muted)}>{p.nickname}</p>}
                           {p.birthDate && <p className={cn("text-[10px]", t.muted)}>{p.birthDate}</p>}
                         </div>
                       </button>

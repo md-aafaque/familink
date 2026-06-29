@@ -42,8 +42,9 @@ export default function TreeSandboxSidebar({
   // Filter people who have zero relationships
   const unlinkedPeople = people?.filter(p => 
     (p.relationshipCount === 0) &&
-    (p.firstName.toLowerCase().includes(search.toLowerCase()) || 
-     p.lastName?.toLowerCase().includes(search.toLowerCase()))
+      (p.firstName.toLowerCase().includes(search.toLowerCase()) || 
+       p.lastName?.toLowerCase().includes(search.toLowerCase()) ||
+       p.nickname?.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -227,6 +228,11 @@ function DraggableSandboxItem({ person, isCollapsed, onClick, onDrop }: { person
               <p className={cn("font-bold text-sm truncate transition-colors duration-500", theme.colors.text)}>
                 {person.firstName} {person.lastName}
               </p>
+              {person.nickname && (
+                <p className={cn("text-[10px] font-medium italic truncate transition-colors duration-500", theme.colors.textMuted)}>
+                  {person.nickname}
+                </p>
+              )}
               <p className={cn("text-[10px] font-black uppercase tracking-tighter transition-colors duration-500", theme.colors.textMuted)}>
                 {person.status} • {t('treeSandbox.unlinked')}
               </p>
