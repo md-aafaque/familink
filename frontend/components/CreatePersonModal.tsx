@@ -55,7 +55,7 @@ export default function CreatePersonModal({
         exit={{ opacity: 0, scale: 0.93, y: 24 }}
         transition={{ type: "spring", stiffness: 320, damping: 28 }}
         className={cn(
-          "relative w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden transition-colors duration-500",
+          "relative w-full max-w-2xl rounded-[2.5rem] border-2 shadow-pop-lg overflow-hidden transition-colors duration-500",
           theme.colors.surface
         )}
       >

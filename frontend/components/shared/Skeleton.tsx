@@ -4,6 +4,6 @@ import { cn } from "../../lib/cn";
 
 export default function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("animate-pulse bg-slate-200 rounded-md", className)} />
+    <div className={cn("animate-pulse bg-muted rounded-lg", className)} />
   );
 }

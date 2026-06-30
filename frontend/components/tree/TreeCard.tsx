@@ -68,7 +68,7 @@ const TreeCard = memo(({
           onFocus?.(person.id);
         }}
         className={cn(
-          "w-64 h-[20rem] p-8 rounded-[2.5rem] border-2 transition-all cursor-pointer relative overflow-hidden shadow-2xl flex flex-col items-center justify-center gap-6",
+          "w-64 h-[20rem] p-8 rounded-3xl border-2 transition-all cursor-pointer relative overflow-hidden shadow-pop-lg flex flex-col items-center justify-center gap-6",
           treeTheme?.card || cn(theme.colors.surface, theme.colors.border),
           isFocus ? "ring-8 ring-primary/10 scale-105 border-primary/50" : "hover:border-primary/30",
           isSearchResult && !isFocus ? "ring-4 ring-blue-400/50 border-blue-400" : "",
@@ -77,14 +77,14 @@ const TreeCard = memo(({
       >
         {/* Production Detail: Background Glow */}
         {isFocus && (
-          <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-purple-500/5 pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-orange-500/5 pointer-events-none" />
         )}
 
         <div className="flex flex-col items-center text-center space-y-6">
           {/* Avatar Area */}
           <div className="relative">
             <div className={cn(
-              "w-24 h-24 rounded-[2rem] flex items-center justify-center transition-all duration-700 shadow-inner border-4 overflow-hidden",
+              "w-24 h-24 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-inner border-4 overflow-hidden",
               isFocus
                 ? "rotate-6 border-primary/20 bg-primary/5"
                 : "group-hover:-rotate-3 border-transparent bg-slate-100 dark:bg-slate-800"
@@ -100,7 +100,7 @@ const TreeCard = memo(({
             
             {/* Live Status Indicator */}
             {person.status === 'active' && (
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white dark:border-slate-900 shadow-xl" />
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white dark:border-slate-900 shadow-pop-lg" />
             )}
           </div>
           
@@ -122,7 +122,7 @@ const TreeCard = memo(({
                 <span className="px-3 py-1 bg-zinc-900 text-zinc-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/5">{t('personPage.statusBadge.deceased')}</span>
               )}
               {person.status === 'active' && (
-                <span className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors duration-500 shadow-sm bg-primary/10 text-primary border-primary/20")}>{t('personPage.statusBadge.verified')}</span>
+                <span className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors duration-500 shadow-pop-sm bg-primary/10 text-primary border-primary/20")}>{t('personPage.statusBadge.verified')}</span>
               )}
             </div>
           </div>
@@ -145,7 +145,7 @@ const TreeCard = memo(({
                router.push(`/person/${person.id}`);
              }}
              className={cn(
-               "p-2.5 rounded-xl shadow-2xl border transition-all hover:scale-110 active:scale-90",
+               "p-2.5 rounded-xl shadow-pop-lg border transition-all hover:scale-110 active:scale-90",
                theme.colors.surface,
                theme.colors.border,
                theme.colors.textMuted,
@@ -160,7 +160,7 @@ const TreeCard = memo(({
         {/* Relationship Context Marker */}
         {person.isSpouse && (
           <div className={cn(
-            "absolute -left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full border-2 shadow-2xl z-20 animate-in zoom-in duration-500",
+            "absolute -left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full border-2 shadow-pop-lg z-20 animate-in zoom-in duration-500",
             theme.colors.surface,
             theme.colors.border
           )}>

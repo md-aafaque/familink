@@ -17,25 +17,25 @@ function ErrorFallbackContent({ error }: { error: Error | null }) {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-[3rem] p-12 text-center shadow-2xl border border-slate-100 space-y-8">
-        <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto">
-          <AlertTriangle className="w-10 h-10 text-red-600" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="max-w-md w-full rounded-2xl border-2 border-border bg-card p-12 text-center shadow-pop-lg space-y-8">
+        <div className="w-20 h-20 bg-destructive/10 rounded-2xl flex items-center justify-center mx-auto border-2 border-destructive/20">
+          <AlertTriangle className="w-10 h-10 text-destructive" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('errorBoundary.title')}</h1>
-          <p className="text-slate-500 font-medium leading-relaxed">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{t('errorBoundary.title')}</h1>
+          <p className="text-muted-foreground font-medium leading-relaxed">
             {t('errorBoundary.subtitle')}
           </p>
         </div>
         {process.env.NODE_ENV === 'development' && (
-          <div className="p-4 bg-slate-50 rounded-2xl text-left font-mono text-xs text-red-600 overflow-auto max-h-40 border border-slate-100">
+          <div className="p-4 bg-muted rounded-xl text-left font-mono text-xs text-destructive overflow-auto max-h-40 border-2 border-border">
             {error?.toString()}
           </div>
         )}
         <button
           onClick={() => window.location.reload()}
-          className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
+          className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-pop-sm active:scale-[0.98]"
         >
           <RotateCcw className="w-5 h-5" />
           {t('errorBoundary.retry')}

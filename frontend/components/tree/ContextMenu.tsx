@@ -34,7 +34,7 @@ export default function ContextMenu({ x, y, onClose, items }: ContextMenuProps) 
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         className={cn(
-            "fixed z-[70] min-w-[240px] backdrop-blur-xl border rounded-[2rem] shadow-2xl overflow-hidden p-3",
+            "fixed z-[70] min-w-[240px] backdrop-blur-xl border rounded-[2rem] shadow-pop-lg overflow-hidden p-3",
             theme.colors.surface,
             theme.colors.border
         )}

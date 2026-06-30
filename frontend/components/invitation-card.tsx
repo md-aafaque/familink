@@ -40,7 +40,7 @@ export function InvitationCard({
       label: t('invitationCard.role.admin'),
       description: t('invitationCard.role.adminDesc'),
       icon: Crown,
-      color: 'text-purple-600',
+      color: 'text-amber-600 dark:text-amber-400',
     },
     member: {
       label: t('invitationCard.role.member'),
@@ -73,7 +73,7 @@ export function InvitationCard({
 
       <CardContent className="space-y-6">
         {/* Tree Info */}
-        <div className={cn("rounded-lg p-4 border", theme.colors.primaryMuted, theme.colors.border)}>
+        <div className={cn("rounded-2xl p-4 border-2", theme.colors.primaryMuted, theme.colors.border)}>
           <h3 className={cn("text-lg font-semibold mb-2", theme.colors.text)}>
             {invitation.treeName}
           </h3>

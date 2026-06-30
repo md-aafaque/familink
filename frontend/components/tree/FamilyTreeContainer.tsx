@@ -11,20 +11,25 @@ import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Loader2, Heart, ChevronRight, ChevronLeft,
-  Search, Maximize2, Minimize2, X,
-  Leaf, Grid3X3, ScrollText, Moon, ZoomIn, ZoomOut, RotateCcw,
-  Users, ChevronDown, ImageDown, FileDown,
+  Loader2, Heart,
+  Search, Maximize2, Minimize2, X, ChevronDown, Grid3X3, Leaf, ScrollText, Moon,
+  Users,
 } from "lucide-react";
-import TreeSandboxSidebar from "./TreeSandboxSidebar";
+import SandboxPanel from "./SandboxPanel";
 import RelationshipProposalModal from "../RelationshipProposalModal";
 import { useRouter } from "next/navigation";
 import CreatePersonModal from "../CreatePersonModal";
 import { cn } from "@/lib/cn";
-import { useTreeInteraction } from "./TreeInteractionProvider";
+import SoftShapes from "./backgrounds/SoftShapes";
+import Sparkles from "./backgrounds/Sparkles";
+import FamilyMotifs from "./backgrounds/FamilyMotifs";
+import TreeNodeCard, { getNodeAccent } from "./TreeNodeCard";
+import ConnectionLine from "./ConnectionLine";
+import CanvasToolbar from "./CanvasToolbar";
 import DragRelationshipIndicator from "./DragRelationshipIndicator";
 import { useAppTheme } from "../providers/ThemeProvider";
 import { useLanguage } from "../providers/LanguageProvider";
+import { useIsMobile } from "@/lib/hooks";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -69,16 +74,14 @@ interface LayoutResult {
 // ─────────────────────────────────────────────────────────────────────────────
 // Layout Constants
 // ─────────────────────────────────────────────────────────────────────────────
-const CARD_W       = 220; // Increased for better readability
-const CARD_H       = 80;  // Increased for a more premium feel
-const H_GAP        = 96;  // More breathing room
-const V_GAP        = 140; // More vertical space for connectors
-const SPOUSE_GAP   = 56;  
+const CARD_W       = 260; // Larger for premium feel
+const CARD_H       = 100; // Taller cards
+const H_GAP        = 120; // Breathing room
+const V_GAP        = 160; // Vertical space for connectors
+const SPOUSE_GAP   = 64;  
 const COUPLE_W     = CARD_W + SPOUSE_GAP + CARD_W;
-const PADDING      = 300; 
-const SIDEBAR_W    = 320;
-const SIDEBAR_COLLAPSED_W = 64;
-const INITIAL_SCALE = 0.6;
+const PADDING      = 120;
+const INITIAL_SCALE = 0.55;
 
 // Unit width used as the d3 nodeSize base and the separation denominator.
 const UNIT_W = CARD_W + H_GAP;
@@ -89,148 +92,60 @@ const UNIT_W = CARD_W + H_GAP;
 const THEMES = {
   light: {
     name: "Light", Icon: Grid3X3,
-    canvas: "#f1f5f9", gridDot: "#c8d5e3", dotR: 0.85,
+    canvas: "#FFFDF5", gridDot: "#c8d5e3", dotR: 0.85,
     line: "#94a3b8", spouseLine: "#f59e0b", accent: "#f59e0b",
-    panel:   "bg-white/80 backdrop-blur-xl border border-slate-200/80 shadow-sm",
-    toolbar: "bg-white/85 backdrop-blur-xl border border-slate-200/70 shadow-lg shadow-slate-200/50",
-    text: "text-slate-800", muted: "text-slate-400",
-    chipOn:  "bg-amber-600 text-white",
-    chipOff: "text-slate-500 hover:bg-slate-100 hover:text-slate-700",
-    iconBtn: "bg-white/80 backdrop-blur-xl border border-slate-200/70 shadow-sm text-slate-500 hover:text-slate-800",
-    cardBg: "bg-white", cardBorder: "border-slate-200/90",
+    panel:   "bg-card/80 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm",
+    toolbar: "bg-card/90 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-lg",
+    text: "text-foreground", muted: "text-muted-foreground",
+    chipOn:  "bg-primary text-primary-foreground",
+    chipOff: "text-muted-foreground hover:bg-muted hover:text-foreground",
+    iconBtn: "bg-card/80 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm text-muted-foreground hover:text-foreground",
+    cardBg: "bg-card", cardBorder: "border-muted-foreground/30",
   },
   dark: {
     name: "Dark", Icon: Moon,
-    canvas: "#0d1117", gridDot: "#1a2233", dotR: 0.75,
+    canvas: "#0F172A", gridDot: "#1a2233", dotR: 0.75,
     line: "#263045", spouseLine: "#3b82f6", accent: "#3b82f6",
-    panel:   "bg-[#161d2e]/90 backdrop-blur-xl border border-slate-700/50 shadow-md shadow-black/30",
-    toolbar: "bg-[#161d2e]/95 backdrop-blur-xl border border-slate-700/40 shadow-xl shadow-black/50",
-    text: "text-slate-100", muted: "text-slate-500",
-    chipOn:  "bg-indigo-600 text-slate-100",
-    chipOff: "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
-    iconBtn: "bg-[#161d2e]/90 backdrop-blur-xl border border-slate-700/50 shadow-sm text-slate-400 hover:text-slate-100",
-    cardBg: "bg-[#161d2e]", cardBorder: "border-slate-700/60",
+    panel:   "bg-card/90 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm shadow-black/30",
+    toolbar: "bg-card/95 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-lg shadow-black/50",
+    text: "text-foreground", muted: "text-muted-foreground",
+    chipOn:  "bg-primary text-primary-foreground",
+    chipOff: "text-muted-foreground hover:bg-muted hover:text-foreground",
+    iconBtn: "bg-card/90 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm text-muted-foreground hover:text-foreground",
+    cardBg: "bg-card", cardBorder: "border-muted-foreground/30",
   },
   sepia: {
     name: "Sepia", Icon: ScrollText,
-    canvas: "#f8f2e3", gridDot: "#d9c9a3", dotR: 0.9,
+    canvas: "#FFFDF5", gridDot: "#d9c9a3", dotR: 0.9,
     line: "#b09070", spouseLine: "#c17a3a", accent: "#9a6b2e",
-    panel:   "bg-[#fdfaf0]/90 backdrop-blur-xl border border-amber-200/60 shadow-sm shadow-amber-100/30",
-    toolbar: "bg-[#fdfaf0]/95 backdrop-blur-xl border border-amber-300/50 shadow-lg shadow-amber-100/40",
-    text: "text-stone-800", muted: "text-stone-400",
+    panel:   "bg-card/90 backdrop-blur-xl border border-amber-200/60 shadow-pop-sm shadow-amber-100/30",
+    toolbar: "bg-card/95 backdrop-blur-xl border border-amber-300/50 shadow-pop-lg shadow-amber-100/40",
+    text: "text-foreground", muted: "text-muted-foreground",
     chipOn:  "bg-amber-700 text-white",
     chipOff: "text-amber-700 hover:bg-amber-100 hover:text-amber-900",
-    iconBtn: "bg-[#fdfaf0]/90 backdrop-blur-xl border border-amber-200/60 shadow-sm text-stone-400 hover:text-stone-800",
-    cardBg: "bg-[#fdfaf0]", cardBorder: "border-amber-200/70",
+    iconBtn: "bg-card/90 backdrop-blur-xl border border-amber-200/60 shadow-pop-sm text-amber-700 hover:text-amber-900",
+    cardBg: "bg-card", cardBorder: "border-amber-200/70",
   },
   forest: {
     name: "Forest", Icon: Leaf,
-    canvas: "#ecf5ec", gridDot: "#b0ccb0", dotR: 0.85,
+    canvas: "#FFFDF5", gridDot: "#b0ccb0", dotR: 0.85,
     line: "#68966a", spouseLine: "#34d399", accent: "#16a34a",
-    panel:   "bg-white/85 backdrop-blur-xl border border-emerald-200/60 shadow-sm shadow-emerald-100/30",
-    toolbar: "bg-white/90 backdrop-blur-xl border border-emerald-200/60 shadow-lg shadow-emerald-100/40",
-    text: "text-emerald-950", muted: "text-emerald-600",
+    panel:   "bg-card/85 backdrop-blur-xl border border-emerald-200/60 shadow-pop-sm shadow-emerald-100/30",
+    toolbar: "bg-card/90 backdrop-blur-xl border border-emerald-200/60 shadow-pop-lg shadow-emerald-100/40",
+    text: "text-foreground", muted: "text-muted-foreground",
     chipOn:  "bg-emerald-600 text-white",
     chipOff: "text-emerald-600 hover:bg-emerald-100 hover:text-emerald-800",
-    iconBtn: "bg-white/85 backdrop-blur-xl border border-emerald-200/60 shadow-sm text-emerald-400 hover:text-emerald-800",
-    cardBg: "bg-white", cardBorder: "border-emerald-200/70",
+    iconBtn: "bg-card/85 backdrop-blur-xl border border-emerald-200/60 shadow-pop-sm text-emerald-600 hover:text-emerald-800",
+    cardBg: "bg-card", cardBorder: "border-emerald-200/70",
   },
 } as const;
 
-type ThemeKey = keyof typeof THEMES;
+export type ThemeKey = keyof typeof THEMES;
 type Theme    = (typeof THEMES)[ThemeKey];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme Background SVG
 // ─────────────────────────────────────────────────────────────────────────────
-function ThemeBackground({ themeKey, t, w, h }: { themeKey: ThemeKey; t: Theme; w: number; h: number }) {
-  const decorations: Record<ThemeKey, React.ReactNode> = {
-    light: (
-      <>
-        <defs>
-          <radialGradient id="bg-light-top" cx="50%" cy="0%" r="60%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="bg-light-centre" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#e0e7ff" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#e0e7ff" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <rect width={w} height={h} fill="url(#bg-light-top)" />
-        <rect width={w} height={h} fill="url(#bg-light-centre)" />
-      </>
-    ),
-    dark: (
-      <>
-        <defs>
-          <radialGradient id="bg-dark-amber" cx="75%" cy="20%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.07" />
-            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="bg-dark-indigo" cx="20%" cy="80%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <rect width={w} height={h} fill="url(#bg-dark-amber)" />
-        <rect width={w} height={h} fill="url(#bg-dark-indigo)" />
-      </>
-    ),
-    sepia: (
-      <>
-        <defs>
-          <radialGradient id="bg-sepia-glow" cx="48%" cy="40%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#fffbea" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#fffbea" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="bg-sepia-vig" cx="50%" cy="50%" r="70.7%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#92400e" stopOpacity="0" />
-            <stop offset="75%" stopColor="#92400e" stopOpacity="0.02" />
-            <stop offset="100%" stopColor="#92400e" stopOpacity="0.09" />
-          </radialGradient>
-        </defs>
-        <rect width={w} height={h} fill="url(#bg-sepia-glow)" />
-        <rect width={w} height={h} fill="url(#bg-sepia-vig)" />
-      </>
-    ),
-    forest: (
-      <>
-        <defs>
-          <radialGradient id="bg-forest-centre" cx="50%" cy="35%" r="50%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="bg-forest-tl" cx="0%" cy="0%" r="60%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#86efac" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#86efac" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="bg-forest-br" cx="100%" cy="100%" r="60%" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="#4ade80" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#4ade80" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <rect width={w} height={h} fill="url(#bg-forest-tl)" />
-        <rect width={w} height={h} fill="url(#bg-forest-br)" />
-        <rect width={w} height={h} fill="url(#bg-forest-centre)" />
-      </>
-    ),
-  };
-
-  return (
-    <svg className="absolute inset-0 pointer-events-none" width={w} height={h}>
-      <rect width={w} height={h} fill={t.canvas} />
-      <defs>
-        <pattern id={`dots-${themeKey}`} x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-          <circle cx="0.5" cy="0.5" r={t.dotR} fill={t.gridDot} />
-        </pattern>
-      </defs>
-      <rect width={w} height={h} fill={`url(#dots-${themeKey})`} />
-      {decorations[themeKey]}
-    </svg>
-  );
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // D3 Layout Engine
 // ─────────────────────────────────────────────────────────────────────────────
@@ -475,199 +390,6 @@ function applyD3Layout(genTree: GenUnit): LayoutResult {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Connector SVG Layer
-// ─────────────────────────────────────────────────────────────────────────────
-function ConnectorLayer({ connectors, lineColor, spouseColor }: {
-  connectors:  LayoutConnector[];
-  lineColor:   string;
-  spouseColor: string;
-}) {
-  return (
-    <>
-      {connectors.map(c => {
-        const hasSpouse = c.p1x !== c.p2x;
-        const p1RX   = c.p1x + CARD_W / 2;
-        const p2LX   = c.p2x - CARD_W / 2;
-        const unionX = hasSpouse ? (p1RX + p2LX) / 2 : c.p1x;
-        const elbowY = c.parentBottomY + (c.childTopY - c.parentBottomY) * 0.5;
-
-        return (
-          <g key={c.id}>
-            {/* Horizontal spouse connection */}
-            {hasSpouse && (
-              <line x1={p1RX} y1={c.parentBottomY - CARD_H/2} x2={p2LX} y2={c.parentBottomY - CARD_H/2}
-                stroke={spouseColor} strokeWidth={2.5} strokeDasharray="6 4" strokeLinecap="round" opacity={0.6} />
-            )}
-            
-            {/* Junction dot — when children exist or collapsed */}
-            {(c.childXs.length > 0 || c.collapsed) && (
-              <circle cx={unionX} cy={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY} r={4.5} 
-                fill={hasSpouse ? spouseColor : lineColor} stroke="white" strokeWidth={2} />
-            )}
-
-            {/* Vertical stem + drops — single continuous line for 1 child, stem+bus+drops for many, short stub for collapsed */}
-            {c.childXs.length === 1 ? (
-              <line x1={unionX}
-                y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
-                x2={c.childXs[0]}
-                y2={c.childTopY}
-                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
-            ) : c.childXs.length > 1 ? (
-              <>
-                <line x1={unionX}
-                  y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
-                  x2={unionX} y2={elbowY}
-                  stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
-                <line x1={Math.min(...c.childXs)} y1={elbowY}
-                  x2={Math.max(...c.childXs)} y2={elbowY}
-                  stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
-                {c.childXs.map((cx, i) => (
-                  <line key={i} x1={cx} y1={elbowY} x2={cx}
-                    y2={c.childTopY + CARD_H / 2}
-                    stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
-                ))}
-              </>
-            ) : c.collapsed ? (
-              <line x1={unionX}
-                y1={hasSpouse ? c.parentBottomY - CARD_H/2 : c.parentBottomY}
-                x2={unionX}
-                y2={c.parentBottomY + 3}
-                stroke={lineColor} strokeWidth={2} strokeLinecap="round" />
-            ) : null}
-          </g>
-        );
-      })}
-    </>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Person Node Card
-// ─────────────────────────────────────────────────────────────────────────────
-interface PersonNodeProps {
-  person:     Person;
-  t:           Theme;
-  accentHex:   string;
-  isFocus:     boolean;
-  isHit:       boolean;
-  onFocus:     (id: string) => void;
-  onDrop:      (srcId: string, tgtId: string) => void;
-}
-
-function PersonNode({
-  person, t, accentHex, isFocus, isHit,
-  onFocus, onDrop,
-}: PersonNodeProps) {
-  const { setHoveredPersonId } = useTreeInteraction();
-  const initials  = `${person.firstName[0]}${person.lastName?.[0] ?? ""}`.toUpperCase();
-  const isDead    = !!person.deathDate || person.status?.toLowerCase().includes("deceas");
-  const birthYr   = person.birthDate?.match(/\d{4}/)?.[0];
-  const deathYr   = person.deathDate?.match(/\d{4}/)?.[0];
-  const dateLabel = [birthYr && birthYr, deathYr && deathYr].filter(Boolean).join(" — ");
-
-  const onDragStart  = (e: React.DragEvent) => { e.dataTransfer.setData("text/personId", person.id); e.dataTransfer.effectAllowed = "link"; };
-  const onDragOver   = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "link"; };
-  const onDropHandle = (e: React.DragEvent) => { e.preventDefault(); const src = e.dataTransfer.getData("text/personId"); if (src && src !== person.id) onDrop(src, person.id); };
-
-  const shadow = isFocus
-    ? `0 0 0 4px ${accentHex}30, 0 12px 30px ${accentHex}20`
-    : isHit
-      ? `0 0 0 3px ${accentHex}60`
-      : "0 4px 12px rgba(0,0,0,0.03), 0 1px 4px rgba(0,0,0,0.02)";
-
-  return (
-    <div className="relative group" style={{ width: CARD_W }}>
-      <button
-        draggable
-        onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDropHandle}
-        onMouseEnter={() => setHoveredPersonId(person.id)}
-        onMouseLeave={() => setHoveredPersonId(null)}
-        onClick={() => onFocus(person.id)}
-        style={{ width: CARD_W, height: CARD_H, boxShadow: shadow }}
-        className={cn(
-          "relative flex items-center overflow-hidden text-left cursor-pointer",
-          "rounded-[1.5rem] border transition-all duration-300",
-          "hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-md",
-          t.cardBg, t.cardBorder,
-          isFocus && "ring-2 ring-primary/20",
-        )}
-      >
-        {/* Decorative Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-             style={{ backgroundImage: `radial-gradient(${accentHex} 1px, transparent 1px)`, backgroundSize: "12px 12px" }} />
-
-        {/* Left accent bar */}
-        <div className="absolute left-0 inset-y-0 w-1.5"
-          style={{ backgroundColor: accentHex, opacity: isDead ? 0.3 : 1 }} />
-
-        {/* Card Content */}
-        <div className="flex items-center w-full pl-5 pr-4 gap-4 z-10">
-          {/* Avatar Container */}
-          <div className="relative flex-shrink-0">
-            <div className={cn(
-              "rounded-2xl flex items-center justify-center text-[13px] font-black text-white shadow-sm transition-transform duration-500 group-hover:scale-105 overflow-hidden",
-              isDead ? "bg-slate-400/80" : ""
-            )}
-            style={{ 
-              width: 48, height: 48, 
-              backgroundColor: isDead ? undefined : accentHex,
-              boxShadow: isDead ? "none" : `0 4px 10px ${accentHex}40`
-            }}>
-              {(person as any).imageUrl ? (
-                <img src={(person as any).imageUrl} alt="" className="w-full h-full object-cover" />
-              ) : initials}
-            </div>
-            
-            {/* Live/Status Indicator */}
-            {!isDead && person.status === 'active' && (
-              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" />
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0 py-1">
-            <h4 className={cn("text-[15px] font-bold tracking-tight leading-none truncate mb-0.5", t.text)}
-              style={{ opacity: isDead ? 0.6 : 1 }}>
-              {person.firstName} {person.lastName}
-            </h4>
-            {person.nickname && (
-              <p className={cn("text-[12px] font-medium italic truncate mb-0.5", t.muted)}>
-                {person.nickname}
-              </p>
-            )}
-            {dateLabel && (
-              <p className={cn("text-[10px] tabular-nums font-black tracking-widest uppercase opacity-40", t.muted)}>
-                {dateLabel}
-              </p>
-            )}
-          </div>
-          
-          {/* Deceased Marker */}
-          {isDead && (
-            <div className="flex-shrink-0 opacity-20">
-              <div className="w-1.5 h-6 bg-slate-400 rounded-full" />
-            </div>
-          )}
-        </div>
-      </button>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Icon Button
-// ─────────────────────────────────────────────────────────────────────────────
-function IconBtn({ onClick, title, children, className = "" }: {
-  onClick: () => void; title?: string; children: React.ReactNode; className?: string;
-}) {
-  return (
-    <button onClick={onClick} title={title}
-      className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95", className)}>
-      {children}
-    </button>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Tree Canvas
 // ─────────────────────────────────────────────────────────────────────────────
 function TreeCanvas({ treeId }: FamilyTreeProps) {
@@ -687,7 +409,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   useEffect(() => {
     setThemeKey(appTheme.isDark ? "dark" : "light");
   }, [appTheme.isDark]);
-  const [showSandbox, setShowSandbox]       = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullScreen, setIsFullScreen]     = useState(false);
   const [focusId, setFocusId]               = useState<string | null>(null);
@@ -700,6 +421,9 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const [proposalSrc, setProposalSrc]       = useState<string | null>(null);
   const [proposalTgt, setProposalTgt]       = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [activeTool, setActiveTool] = useState<"select" | "connect" | "layout">("select");
+  const [mobileSandboxOpen, setMobileSandboxOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const t = THEMES[themeKey];
 
@@ -867,9 +591,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     const contentCX = (cMinX + cMaxX) / 2;
     const contentCY = (cMinY + cMaxY) / 2;
 
-    // Viewport = the flex-1 canvas div (not full window width)
-    const currentSidebarW = showSandbox ? (isSidebarCollapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_W) : 0;
-    const vpW = canvasDivRef.current?.clientWidth  ?? window.innerWidth - currentSidebarW;
+    // Viewport = full canvas div (sidebar floats above, doesn't steal width)
+    const vpW = canvasDivRef.current?.clientWidth  ?? window.innerWidth;
     const vpH = canvasDivRef.current?.clientHeight ?? window.innerHeight;
 
     // Scale to fill ~88% of the viewport, capped at INITIAL_SCALE (don't zoom in)
@@ -886,18 +609,18 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
       fitScale,
       centeredRef.current ? 300 : 0, // animate re-centers; snap on first load
     );
-  }, [layout, showSandbox, isSidebarCollapsed]);
+  }, [layout]);
 
   useEffect(() => {
-    if (!layout) return; // ← KEY FIX: don't attempt to center before data loads
+    if (!layout) return;
 
-    // First center: short delay lets the DOM paint before we measure
-    // Subsequent centers (sidebar toggle): longer delay for spring animation
+    // Short delay lets the DOM paint before we measure; longer on re‑centers
+
     const delay = centeredRef.current ? 380 : 150;
     centeredRef.current = true;
     const timer = setTimeout(centerTree, delay);
     return () => clearTimeout(timer);
-  }, [layout, showSandbox, isSidebarCollapsed, centerTree]); // ← layout in deps fixes the "always top-left" bug
+  }, [layout, centerTree]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCardClick = useCallback((id: string) => { setFocusId(id); setDrawerPersonId(id); }, []);
@@ -954,182 +677,78 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const canvasH = (layout?.totalHeight ?? 0) + PADDING * 2;
 
   return (
-    <div ref={containerRef}
-      className="relative flex w-full h-full overflow-hidden transition-colors duration-500"
-      style={{ backgroundColor: t.canvas }}>
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden">
 
       {/* ══════════════════════════════════════════════════════════════════
-          OUTER OVERLAY — sidebar toggle (straddles sidebar/canvas)
+          LEFT SIDEBAR — Sandbox (desktop only; mobile uses bottom sheet)
       ══════════════════════════════════════════════════════════════════ */}
-      <div className="absolute inset-0 pointer-events-none z-30">
-        <div className="absolute top-4 left-4 pointer-events-auto">
-          <IconBtn onClick={() => setShowSandbox(s => !s)}
-            title={showSandbox ? tLang('treePage.hidePanel') : tLang('treePage.showPanel')} className={t.iconBtn}>
-            {showSandbox ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </IconBtn>
+      {!isMobile && (
+        <div className={cn(
+          "absolute z-30 transition-all duration-300 rounded-2xl shadow-pop-xl overflow-hidden border",
+          "top-4 bottom-4",
+          isSidebarCollapsed ? "left-4 w-[72px]" : "left-4 w-[300px]",
+          "bg-[#FFFDF5] dark:bg-[#1E293B]",
+          "border-[#E2E8F0] dark:border-[#334155]"
+        )}>
+          <SandboxPanel 
+            treeId={treeId}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            onAddNew={() => setShowCreateModal(true)}
+            onSelectPerson={handleCardClick}
+            onDrop={handleDrop}
+            floating
+          />
         </div>
-      </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════
-          SIDEBAR
+          CANVAS  (full‑bleed)
+          All overlays are children here — canvas-relative coordinates.
+          canvasDivRef gives accurate clientWidth for centering.
       ══════════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {showSandbox && (
-          <motion.div
-            initial={{ x: -SIDEBAR_W }} 
-            animate={{ 
-              x: 0,
-              width: isSidebarCollapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_W 
-            }} 
-            exit={{ x: -SIDEBAR_W }}
-            transition={{ type: "spring", stiffness: 340, damping: 34 }}
-            className="h-full flex-shrink-0 relative z-40 overflow-hidden"
-          >
-            <TreeSandboxSidebar 
-              treeId={treeId}
-              isCollapsed={isSidebarCollapsed}
-              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              onAddNew={() => setShowCreateModal(true)}
-              onSelectPerson={handleCardClick}
-              onDrop={handleDrop} 
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div ref={canvasDivRef} className="w-full h-full relative overflow-hidden"
+        style={{ backgroundColor: "transparent" }}>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          CANVAS  (flex-1)
-          All overlays are children here → left-1/2 is canvas-relative,
-          not page-relative. The canvasDivRef gives us accurate clientWidth
-          for centering calculations.
-      ══════════════════════════════════════════════════════════════════ */}
-      <div ref={canvasDivRef} className="flex-1 relative overflow-hidden">
-
-        {/* Canvas overlay — inset-0 (no left-8 offset) */}
+        {/* Canvas overlay — inset-0 */}
         {peopleInTree.length > 0 && (
           <div className="absolute inset-0 pointer-events-none z-20">
 
-            {/* Search — top-left of canvas */}
-            <div className="absolute top-4 left-4 pointer-events-auto">
-              <motion.div animate={{ width: searchOpen ? 228 : 36 }}
-                transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                className={cn("h-9 rounded-xl flex items-center overflow-hidden", t.panel)}>
-                <button onClick={searchOpen ? closeSearch : openSearch}
-                  className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0", t.muted)}>
-                  <Search className="w-3.5 h-3.5" />
-                </button>
-                <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search people…" className={cn("flex-1 bg-transparent outline-none text-xs font-medium", t.text)} />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0", t.muted)}>
-                    <X className="w-3 h-3" />
+            {/* Stats — right of sandbox, bottom */}
+            <div className="absolute pointer-events-auto flex items-center gap-2 z-30"
+              style={{ bottom: 20, left: isSidebarCollapsed ? 96 : 324 }}>
+                <div className={cn("flex items-center gap-2 px-4 h-9 rounded-xl border-2 text-[11px] font-bold shadow-pop-sm", t.panel, t.cardBorder, t.muted)}>
+                  <Users className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{peopleInTree.length}</span>
+                  <span className="opacity-40">&middot;</span>
+                  <span>{unions.length} {tLang('treePage.connections')}</span>
+                </div>
+                {isMobile && (
+                  <button
+                    onClick={() => setMobileSandboxOpen(true)}
+                    className={cn("h-9 px-3 rounded-xl border-2 text-[11px] font-bold shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95", t.panel, t.cardBorder, t.text)}
+                    aria-label="Open people list"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="hidden xs:inline">{tLang('treeSandbox.title')}</span>
                   </button>
                 )}
-              </motion.div>
-
-              <AnimatePresence>
-                {searchOpen && searchResults.length > 0 && (
-                  <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
-                    className={cn("absolute top-11 left-0 w-56 rounded-xl overflow-hidden shadow-2xl", t.panel)}>
-                    {searchResults.map((p, i) => (
-                      <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
-                        className={cn(
-                            "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5", 
-                            i && "border-t",
-                            themeKey === 'sepia' ? "border-stone-200/50" : (themeKey === 'forest' ? "border-emerald-100" : "border-slate-100/50")
-                        )}>
-                        <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                          style={{ backgroundColor: t.accent }}>
-                          {p.firstName[0]}{p.lastName?.[0] ?? ""}
-                        </span>
-                        <div className="min-w-0">
-                          <p className={cn("text-xs font-semibold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
-                          {p.nickname && <p className={cn("text-[10px] italic", t.muted)}>{p.nickname}</p>}
-                          {p.birthDate && <p className={cn("text-[10px]", t.muted)}>{p.birthDate}</p>}
-                        </div>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Fullscreen — top-right of canvas */}
-            <div className="absolute top-4 right-4 pointer-events-auto">
-              <IconBtn onClick={toggleFS} title={isFullScreen ? tLang('treePage.exitFullscreen') : tLang('treePage.fullscreen')} className={t.iconBtn}>
-                {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-              </IconBtn>
-            </div>
-
-            {/* Stats — bottom-left */}
-            {peopleInTree.length > 0 && (
-              <div className="absolute bottom-4 left-4 pointer-events-auto">
-                <div className={cn("flex items-center gap-1.5 px-3 h-8 rounded-xl text-[11px] font-medium", t.panel, t.muted)}>
-                  <Users className="w-3 h-3 flex-shrink-0" />
-                  {peopleInTree.length} people · {unions.length} connections
-                </div>
               </div>
-            )}
 
-            {/* Bottom-centre floating toolbar */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
-              <div className={cn("flex items-center gap-0.5 px-2 h-11 rounded-2xl", t.toolbar)}>
-                <button title={tLang('treePage.zoomOut')} onClick={() => transformRef.current?.zoomOut(0.3)}
-                  className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                  <ZoomOut className="w-3.5 h-3.5" />
-                </button>
-                <button title={tLang('treePage.fitToScreen')} onClick={centerTree}
-                  className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
-                <button title={tLang('treePage.zoomIn')} onClick={() => transformRef.current?.zoomIn(0.3)}
-                  className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                  <ZoomIn className="w-3.5 h-3.5" />
-                </button>
-
-                <div className="w-px h-5 mx-1 bg-current opacity-10" />
-
-                {(Object.keys(THEMES) as ThemeKey[]).map(k => {
-                  const { Icon, name } = THEMES[k];
-                  return (
-                    <button key={k} title={name} onClick={() => setThemeKey(k)}
-                      className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95",
-                        k === themeKey ? t.chipOn : t.chipOff)}>
-                      <Icon className="w-3.5 h-3.5" />
-                    </button>
-                  );
-                })}
-
-                <div className="w-px h-5 mx-1 bg-current opacity-10" />
-
-                <div className="relative">
-                  <button title={tLang('treePage.export')} onClick={() => setExportMenuOpen(o => !o)}
-                    className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95", t.chipOff)}>
-                    {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageDown className="w-3.5 h-3.5" />}
-                  </button>
-                  <AnimatePresence>
-                    {exportMenuOpen && (
-                      <motion.div initial={{ y: 6, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: 6, opacity: 0, scale: 0.95 }} transition={{ duration: 0.13 }}
-                        className={cn("absolute bottom-11 right-0 w-40 rounded-xl overflow-hidden", t.panel)}>
-                        <button onClick={() => doExport("png")}
-                          className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5", t.text)}>
-                          <ImageDown className="w-3.5 h-3.5 flex-shrink-0" /> {tLang('treePage.exportPng')}
-                        </button>
-                        <button onClick={() => doExport("pdf")}
-                          className={cn("w-full flex items-center gap-2.5 px-4 py-3 text-xs font-medium transition-colors hover:bg-black/5 border-t border-black/5", t.text)}>
-                          <FileDown className="w-3.5 h-3.5 flex-shrink-0" /> {tLang('treePage.exportPdf')}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </div>
+            <CanvasToolbar
+              transformRef={transformRef}
+              isFullScreen={isFullScreen}
+              onToggleFullScreen={toggleFS}
+              themeKey={themeKey}
+              onThemeToggle={() => setThemeKey(k => k === 'dark' ? 'light' : 'dark')}
+              showGrid={false}
+              onToggleGrid={() => {}}
+              activeTool={activeTool}
+              onToolChange={setActiveTool}
+            />
           </div>
         )}
         {/* end canvas overlay */}
-
 
         <TransformWrapper
           onInit={ref => { transformRef.current = ref; }}
@@ -1146,21 +765,53 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               position: "relative", 
               width: peopleInTree.length === 0 ? "100%" : canvasW, 
               height: peopleInTree.length === 0 ? "100%" : canvasH,
-              minWidth: "100vw",
-              minHeight: "100vh"
+              minWidth: "100%",
+              minHeight: "100%"
             }}>
 
               {peopleInTree.length > 0 && (
                 <>
-                  {/* Layer 1 — Themed background */}
-                  <ThemeBackground themeKey={themeKey} t={t} w={canvasW} h={canvasH} />
+                  {/* Layers 1–4 — Decorative canvas background (pan/zoom with tree) */}
+                  <svg className="absolute inset-0 pointer-events-none" viewBox={`0 0 ${canvasW} ${canvasH}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                    <defs>
+                      <pattern id={`bg-dots-${themeKey}`} x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+                        <circle cx="0.5" cy="0.5" r={t.dotR} fill={t.gridDot} opacity="0.08" />
+                      </pattern>
+                      <radialGradient id={`bg-glow-${themeKey}`} cx="50%" cy="30%" r="60%">
+                        <stop offset="0%" stopColor={t.accent} stopOpacity="0.04" />
+                        <stop offset="100%" stopColor={t.accent} stopOpacity="0" />
+                      </radialGradient>
+                    </defs>
 
-                  {/* Layer 2 — Connector SVG
-                      translate(PADDING, PADDING) aligns SVG coords with the card layer */}
+                    {/* Layer 0: Canvas fill */}
+                    <rect width="100%" height="100%" fill={t.canvas} />
+
+                    {/* Layer 1: Dot grid at 0.08 opacity */}
+                    <rect width="100%" height="100%" fill={`url(#bg-dots-${themeKey})`} />
+
+                    {/* Layer 2: Soft geometric shapes */}
+                    <SoftShapes accentColor={t.accent} themeKey={themeKey} />
+
+                    {/* Layer 3: Mini decorations — sparkles */}
+                    <Sparkles accentColor={t.accent} themeKey={themeKey} />
+
+                    {/* Layer 4: Family motifs */}
+                    <FamilyMotifs accentColor={t.accent} themeKey={themeKey} />
+
+                    {/* Glow overlay */}
+                    <rect width="100%" height="100%" fill={`url(#bg-glow-${themeKey})`} />
+                  </svg>
+
+                  {/* Layer 2 — Connector SVG + connection markers */}
                   {layout && (
-                    <svg className="absolute inset-0 pointer-events-none" width={canvasW} height={canvasH}>
+                    <svg className="absolute inset-0 pointer-events-none" viewBox={`0 0 ${canvasW} ${canvasH}`} preserveAspectRatio="xMidYMid slice">
                       <g transform={`translate(${PADDING},${PADDING})`}>
-                        <ConnectorLayer connectors={layout.connectors} lineColor={t.line} spouseColor={t.spouseLine} />
+                        <ConnectionLine
+                          connectors={layout.connectors}
+                          lineColor={t.line}
+                          spouseColor={t.spouseLine}
+                          themeKey={themeKey}
+                        />
                       </g>
                     </svg>
                   )}
@@ -1178,8 +829,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                           transition={{ duration: 0.22, ease: "easeOut" }}
                           className="absolute"
                           style={{ left: pos.x - CARD_W / 2, top: pos.y }}>
-                          <PersonNode
-                            person={person} t={t} accentHex={t.accent}
+                          <TreeNodeCard
+                            person={person} accentHex={getNodeAccent(person)}
                             isFocus={focusId === pid} isHit={searchHitIds.has(pid)}
                             onFocus={handleCardClick} onDrop={handleDrop}
                           />
@@ -1199,20 +850,21 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
                       const btnY = Math.max(p1.y, p2y) + CARD_H;
                       const isCollapsed = collapsedUnions.has(u.id);
                       return (
-                        <button key={u.id}
+                          <button key={u.id}
                           onClick={() => toggleCollapse(u.id)}
                           title={isCollapsed ? 'Expand Branch' : 'Collapse Branch'}
                           className={cn(
                             "absolute z-20",
-                            "w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300",
-                            "border-2 shadow-lg hover:scale-110 active:scale-90",
+                            "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                            "border-2 shadow-pop-lg hover:scale-125 active:scale-95",
+                            "font-bold",
                             isCollapsed
-                              ? "bg-primary text-white border-primary rotate-180"
-                              : cn(t.cardBg, t.cardBorder, "text-slate-400 hover:text-primary")
+                              ? "bg-primary text-primary-foreground border-primary rotate-180"
+                              : cn(t.cardBg, "text-muted-foreground hover:text-primary", t.cardBorder)
                           )}
-                          style={{ left: midX - 14, top: btnY + 6 }}
+                          style={{ left: midX - 16, top: btnY + 6 }}
                         >
-                          <ChevronDown className="w-3.5 h-3.5" />
+                          <ChevronDown className="w-4 h-4" />
                         </button>
                       );
                     })}
@@ -1223,12 +875,14 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               {/* Layout computing spinner */}
               {isLayoutComputing && (
                 <div className="absolute inset-0 flex items-center justify-center w-full h-full">
-                  <div className="flex flex-col items-center gap-4">
+                  <div className={cn("flex flex-col items-center gap-5 px-10 py-8 rounded-2xl", t.panel)}>
                     <div className="relative w-14 h-14">
-                      <div className="absolute inset-0 rounded-full border-[2.5px] border-t-2 animate-spin border-slate-200 border-t-amber-500 dark:border-slate-700 dark:border-t-indigo-400" />
-                      <Heart className="absolute inset-0 m-auto w-4 h-4 opacity-50 text-slate-400" />
+                      <div className="absolute inset-0 rounded-full border-[3px] animate-spin"
+                        style={{ borderColor: themeKey === 'dark' ? '#334155' : '#E2E8F0',
+                                 borderTopColor: themeKey === 'dark' ? '#FB923C' : '#F97316' }} />
+                      <Heart className="absolute inset-0 m-auto w-4 h-4 text-muted-foreground/50" />
                     </div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-400">{tLang('treePage.loading')}</p>
+                    <p className={cn("text-[11px] font-black uppercase tracking-[0.3em]", t.muted)}>{tLang('treePage.loading')}</p>
                   </div>
                 </div>
               )}
@@ -1236,16 +890,16 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               {/* Empty state */}
               {peopleInTree.length === 0 && !isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center w-full h-full">
-                  <div className={cn("px-12 py-10 rounded-[2.5rem] border text-center shadow-xl max-w-md mx-auto", t.panel)}>
-                    <div className={cn("w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6", t.chipOn)}>
-                      <Users className="w-8 h-8" />
+                  <div className={cn("px-12 py-10 rounded-3xl border-2 text-center shadow-pop-xl max-w-md mx-auto", t.panel, t.cardBorder)}>
+                    <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-pop-sm", t.chipOn)}>
+                      <Users className="w-8 h-8 text-primary-foreground" />
                     </div>
                     <h3 className={cn("text-xl font-black mb-3", t.text)}>{tLang('treePage.empty.title')}</h3>
-                    <p className={cn("text-sm font-medium mb-8 leading-relaxed", t.muted)}>
+                    <p className={cn("text-sm font-bold mb-8 leading-relaxed", t.muted)}>
                       {tLang('treePage.empty.subtitle')}
                     </p>
                     <button onClick={() => setShowCreateModal(true)}
-                      className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-lg active:scale-95", t.chipOn)}>
+                      className={cn("px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white transition-all shadow-pop-lg hover:scale-105 active:scale-95", t.chipOn)}>
                       {tLang('treePage.empty.button')}
                     </button>
                   </div>
@@ -1257,21 +911,190 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         </TransformWrapper>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          DRAWERS & MODALS
-      ══════════════════════════════════════════════════════════════════ */}
-      <ProfileDrawer
-        person={drawerPersonId ? (allPeopleMap.get(drawerPersonId) ?? null) : null}
-        peopleMap={allPeopleMap}
-        isOpen={Boolean(drawerPersonId)}
-        onClose={() => setDrawerPersonId(null)}
-        onEdit={() => { if (drawerPersonId) router.push(`/person/${drawerPersonId}`); }}
-        onDelete={handleDeletePerson}
-        userRole={userRole}
-        onProposeRelationship={() => { if (drawerPersonId) { setProposalSrc(drawerPersonId); setProposalTgt(""); } }}
-        treeId={treeId}
-      />
+      {/* Search — right side of sandbox panel */}
+      {peopleInTree.length > 0 && (
+        <div className="absolute z-40 pointer-events-auto"
+          style={{ top: 16, left: isSidebarCollapsed ? 88 : 316 }}>
+          <motion.div animate={{ width: searchOpen ? 240 : 36 }}
+            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+            className={cn("h-10 rounded-xl border-2 flex items-center overflow-hidden transition-shadow", t.panel, t.cardBorder, "focus-within:shadow-pop-sm")}>
+            <button onClick={searchOpen ? closeSearch : openSearch}
+              className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0 transition-colors", t.muted, "hover:opacity-70")}>
+              <Search className="w-4 h-4" />
+            </button>
+            <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search people&hellip;" className={cn("flex-1 bg-transparent outline-none text-xs font-semibold pr-2", t.text)} />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors", t.muted)}>
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </motion.div>
 
+          <AnimatePresence>
+            {searchOpen && searchResults.length > 0 && (
+              <motion.div initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -6, opacity: 0 }}
+                className={cn("absolute top-12 left-0 w-60 rounded-2xl overflow-hidden shadow-pop-lg border-2", t.panel, t.cardBorder)}>
+                <div className="py-1">
+                  {searchResults.map((p) => (
+                    <button key={p.id} onClick={() => { handleCardClick(p.id); closeSearch(); }}
+                      className={cn("w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted")}>
+                      <span className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 shadow-pop-sm"
+                        style={{ backgroundColor: t.accent }}>
+                        {p.firstName[0]}{p.lastName?.[0] ?? ""}
+                      </span>
+                      <div className="min-w-0">
+                        <p className={cn("text-xs font-bold truncate leading-tight", t.text)}>{p.firstName} {p.lastName}</p>
+                        {p.nickname && <p className={cn("text-[9px] italic font-medium", t.muted)}>{p.nickname}</p>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Fullscreen — left of profile drawer, or top-right when closed */}
+      <div className="absolute z-40 pointer-events-auto"
+        style={{ top: 16, right: drawerPersonId ? 428 : 16 }}>
+        <button onClick={toggleFS} title={isFullScreen ? tLang('treePage.exitFullscreen') : tLang('treePage.fullscreen')}
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 bg-card/80 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm text-muted-foreground hover:text-primary">
+          {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          RIGHT DRAWER — Profile floating card (desktop only; mobile uses full-screen)
+      ══════════════════════════════════════════════════════════════════ */}
+      {!isMobile && (
+        <AnimatePresence>
+          {drawerPersonId && (
+            <motion.div
+              key="profile-drawer"
+              initial={{ x: 420, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 420, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="absolute z-30 right-4 top-4 bottom-4 w-[420px] rounded-2xl shadow-pop-xl overflow-hidden"
+              style={{
+                backgroundColor: appTheme.isDark ? '#1E293B' : '#FFFDF5',
+                border: `1px solid ${appTheme.isDark ? '#334155' : '#E2E8F0'}`
+              }}
+            >
+              <div className="w-full h-full overflow-y-auto">
+                <ProfileDrawer
+                  person={allPeopleMap.get(drawerPersonId) ?? null}
+                  peopleMap={allPeopleMap}
+                  isOpen={true}
+                  onClose={() => setDrawerPersonId(null)}
+                  onEdit={() => { if (drawerPersonId) router.push(`/person/${drawerPersonId}`); }}
+                  onDelete={handleDeletePerson}
+                  userRole={userRole}
+                  onProposeRelationship={() => { if (drawerPersonId) { setProposalSrc(drawerPersonId); setProposalTgt(""); } }}
+                  treeId={treeId}
+                  placement="panel"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          MOBILE — Bottom sheet for Sandbox
+      ══════════════════════════════════════════════════════════════════ */}
+      {isMobile && (
+        <AnimatePresence>
+          {mobileSandboxOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileSandboxOpen(false)}
+                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+              />
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                className="fixed bottom-0 left-0 right-0 z-50 max-h-[90vh] min-h-[75vh] rounded-t-3xl overflow-hidden"
+                style={{ backgroundColor: appTheme.isDark ? '#1E293B' : '#FFFFFF' }}
+              >
+                <div className="flex justify-center pt-3 pb-1">
+                  <div className="w-10 h-1.5 rounded-full bg-muted-foreground/40" />
+                </div>
+                <div className="h-full overflow-y-auto pb-8">
+                  <SandboxPanel 
+                    treeId={treeId}
+                    isCollapsed={false}
+                    onToggleCollapse={() => {}}
+                    onAddNew={() => setShowCreateModal(true)}
+                    onSelectPerson={(id) => { handleCardClick(id); setMobileSandboxOpen(false); }}
+                    onDrop={handleDrop}
+                  />
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          MOBILE — Full-screen Profile drawer
+      ══════════════════════════════════════════════════════════════════ */}
+      {isMobile && (
+        <AnimatePresence>
+          {drawerPersonId && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setDrawerPersonId(null)}
+                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+              />
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 28, stiffness: 250 }}
+                className="fixed inset-0 z-50 overflow-y-auto"
+                style={{ backgroundColor: appTheme.isDark ? '#0F172A' : '#FFFDF5' }}
+              >
+                <div className="relative min-h-full">
+                  <button
+                    onClick={() => setDrawerPersonId(null)}
+                    className="absolute top-4 left-4 z-10 p-2.5 rounded-xl bg-background/90 backdrop-blur-sm border border-muted-foreground/30 text-foreground shadow-pop-sm"
+                    aria-label="Back"
+                  >
+                    <ChevronDown className="w-5 h-5 rotate-90" />
+                  </button>
+                  <ProfileDrawer
+                    person={allPeopleMap.get(drawerPersonId) ?? null}
+                    peopleMap={allPeopleMap}
+                    isOpen={true}
+                    onClose={() => setDrawerPersonId(null)}
+                    onEdit={() => { if (drawerPersonId) router.push(`/person/${drawerPersonId}`); }}
+                    onDelete={handleDeletePerson}
+                    userRole={userRole}
+                    onProposeRelationship={() => { if (drawerPersonId) { setProposalSrc(drawerPersonId); setProposalTgt(""); } }}
+                    treeId={treeId}
+                    placement="panel"
+                  />
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          MODALS (not part of the 3-panel layout)
+      ══════════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {proposalSrc && proposalTgt !== null && (
           <RelationshipProposalModal sourceId={proposalSrc} targetId={proposalTgt} treeId={treeId}

@@ -2,7 +2,7 @@
 
 import NotificationsMenu from "@/components/NotificationsMenu";
 import { usePathname } from "next/navigation";
-import { useAppTheme, AppThemeType } from "./providers/ThemeProvider";
+import { useAppTheme } from "./providers/ThemeProvider";
 import { useSidebar } from "./providers/SidebarProvider";
 import { Maximize, Minimize, Moon, Sun, Menu } from "lucide-react";
 import { useLanguage } from "./providers/LanguageProvider";
@@ -17,7 +17,7 @@ export default function Header() {
   const { t } = useLanguage();
 
   const getTitle = () => {
-    if (pathname.includes('/dashboard/manage/proposals')) return t('header.relationshipProposals');
+    if (pathname.includes('/dashboard/manage/proposals')) return t('header.reviewProposals');
     if (pathname.includes('/dashboard/manage/invitations')) return t('header.treeInvitations');
     if (pathname.includes('/dashboard/manage/claims')) return t('header.profileClaims');
     if (pathname.includes('/dashboard/manage/users')) return t('header.accessRequests');
@@ -51,7 +51,7 @@ export default function Header() {
         <button
           onClick={toggle}
           className={cn(
-            "lg:hidden p-2 rounded-md transition-colors",
+            "lg:hidden p-2 rounded-lg transition-colors",
             theme.colors.hover,
             theme.colors.text
           )}
@@ -64,14 +64,14 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
-        <div className={cn("flex items-center p-1 rounded-md border", theme.colors.bg, theme.colors.border)}>
+        <div className={cn("flex items-center p-1 rounded-xl border-2", theme.colors.bg, theme.colors.border)}>
           <button
             onClick={() => setTheme('light')}
             className={cn(
-              "p-1.5 rounded transition-colors",
-              themeType === 'light' 
-                ? cn("bg-white shadow-sm border border-slate-200", theme.colors.accent)
-                : "text-slate-400 hover:text-slate-600"
+              "p-1.5 rounded-lg transition-colors",
+              themeType === 'light'
+                ? "bg-primary text-primary-foreground shadow-pop-sm"
+                : "text-muted-foreground hover:text-foreground"
             )}
             title={t('header.lightMode')}
           >
@@ -80,10 +80,10 @@ export default function Header() {
           <button
             onClick={() => setTheme('dark')}
             className={cn(
-              "p-1.5 rounded transition-colors",
-              themeType === 'dark' 
-                ? cn("bg-slate-800 shadow-sm border border-slate-700", theme.colors.accent) 
-                : "text-slate-500 hover:text-slate-300"
+              "p-1.5 rounded-lg transition-colors",
+              themeType === 'dark'
+                ? "bg-primary text-primary-foreground shadow-pop-sm"
+                : "text-muted-foreground hover:text-foreground"
             )}
             title={t('header.darkMode')}
           >
@@ -92,19 +92,19 @@ export default function Header() {
         </div>
 
         {pathname.includes('/tree/') && (
-          <button 
+          <button
             onClick={toggleFullscreen}
             className={cn(
-              "p-2 rounded-md border transition-colors",
+              "p-2 rounded-xl border-2 transition-colors",
               theme.colors.bg,
               theme.colors.border,
-              "text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              "text-muted-foreground hover:text-foreground"
             )}
           >
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </button>
         )}
-        <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1" />
+        <div className="w-px h-6 bg-border mx-1" />
         <NotificationsMenu />
       </div>
     </header>

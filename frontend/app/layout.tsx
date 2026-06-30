@@ -1,4 +1,5 @@
 import './globals.css'
+import { Outfit, Plus_Jakarta_Sans } from 'next/font/google'
 import QueryProvider from '../components/providers/QueryProvider'
 import { AuthProvider } from '../components/providers/AuthProvider'
 import GlobalErrorBoundary from '../components/shared/GlobalErrorBoundary'
@@ -8,6 +9,19 @@ import { SidebarProvider } from '../components/providers/SidebarProvider'
 import { LanguageProvider } from '../components/providers/LanguageProvider'
 import { ToastProvider } from '../components/providers/ToastProvider'
 import CookieConsent from '../components/ui/CookieConsent'
+import MotionProvider from '../components/providers/MotionProvider'
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+})
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+  display: 'swap',
+})
 
 export const metadata = {
   title: {
@@ -51,8 +65,8 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="antialiased font-sans transition-colors duration-500">
+    <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable}`}>
+      <body className="antialiased font-sans transition-colors duration-500" style={{ fontFamily: 'var(--font-plus-jakarta), system-ui, sans-serif' }}>
         <GlobalErrorBoundary>
           <QueryProvider>
             <AuthProvider>
@@ -60,10 +74,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ThemeProvider>
                   <SidebarProvider>
                     <TreeInteractionProvider>
+                      <MotionProvider>
                       <ToastProvider>
                         {children}
                         <CookieConsent />
                       </ToastProvider>
+                      </MotionProvider>
                     </TreeInteractionProvider>
                   </SidebarProvider>
                 </ThemeProvider>

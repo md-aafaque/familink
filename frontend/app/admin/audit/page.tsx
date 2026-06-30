@@ -11,6 +11,7 @@ import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
 import CustomSelect from "@/components/ui/CustomSelect";
 
+
 export default function AuditLogsPage() {
   const [selectedTreeId, setSelectedTreeId] = useState<string | null>(null);
   const { theme } = useAppTheme();
@@ -51,7 +52,9 @@ export default function AuditLogsPage() {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="relative space-y-12 overflow-hidden">
+
+      <div className="relative z-10">
       <header className="space-y-4">
         <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
           Audit <span className={theme.colors.accent}>History</span>
@@ -63,15 +66,15 @@ export default function AuditLogsPage() {
       </header>
 
       {/* Tree Selector */}
-      <section className="relative bg-green-100">
-        <div className={cn("p-8 rounded-[2.5rem] shadow-xl overflow-hidden transition-colors", theme.colors.primary)}>
+      <section className="relative">
+        <div className={cn("p-8 rounded-[2.5rem] shadow-pop-lg overflow-hidden transition-colors border-2 border-foreground", "bg-primary")}>
           <div className="absolute top-0 right-0 p-8 opacity-10">
              <Activity className="w-32 h-32 text-white" />
           </div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
               <h3 className="text-2xl font-black text-white">Select Family Tree</h3>
-              <p className="text-slate-300 font-medium">Viewing history for the selected workspace</p>
+              <p className="text-white/70 font-medium">Viewing history for the selected workspace</p>
             </div>
             <div className="min-w-[300px]">
               <CustomSelect
@@ -98,7 +101,7 @@ export default function AuditLogsPage() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className={cn("p-6 rounded-3xl border shadow-xs hover:shadow-md transition-all flex flex-col lg:flex-row items-center justify-between gap-6", theme.colors.surface, theme.colors.border)}
+                className={cn("p-6 rounded-3xl border-2 shadow-pop-sm transition-all flex flex-col lg:flex-row items-center justify-between gap-6", theme.colors.surface, theme.colors.border)}
               >
                 <div className="flex items-center gap-6 flex-1">
                   <div className={cn(
@@ -147,6 +150,7 @@ export default function AuditLogsPage() {
           )}
         </div>
       </DataState>
+    </div>
     </div>
   );
 }

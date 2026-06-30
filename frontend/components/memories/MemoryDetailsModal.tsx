@@ -59,7 +59,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={onClose}
             className={cn(
-                "relative w-full h-full flex flex-col overflow-hidden shadow-2xl md:rounded-3xl md:h-[90vh] md:w-[90vw] md:max-w-6xl md:border",
+                "relative w-full h-full flex flex-col overflow-hidden shadow-pop-lg md:rounded-3xl md:h-[90vh] md:w-[90vw] md:max-w-6xl md:border",
                 theme.colors.bg,
                 theme.colors.border
             )}
@@ -121,7 +121,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                         src={memory.imageUrl} 
                         alt={memory.title} 
                         onClick={(e) => e.stopPropagation()}
-                        className="max-w-full max-h-full object-contain z-10 shadow-2xl rounded-lg cursor-default"
+                        className="max-w-full max-h-full object-contain z-10 shadow-pop-lg rounded-lg cursor-default"
                     />
                   </div>
                 ) : isStory ? (
@@ -129,7 +129,7 @@ export default function MemoryDetailsModal({ memory, isOpen, onClose }: MemoryDe
                         <div 
                             onClick={(e) => e.stopPropagation()}
                             className={cn(
-                                "p-8 md:p-16 rounded-3xl border shadow-xl cursor-default transition-colors",
+                                "p-8 md:p-16 rounded-3xl border shadow-pop-lg cursor-default transition-colors",
                                 theme.colors.surface,
                                 theme.colors.border
                             )}

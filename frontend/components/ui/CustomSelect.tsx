@@ -109,7 +109,7 @@ const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(({
             zIndex: 9999
           }}
           className={cn(
-            "rounded-xl border shadow-2xl overflow-hidden py-1.5 transition-colors",
+            "rounded-2xl border-2 shadow-pop-lg overflow-hidden py-1.5 transition-colors",
             theme.colors.surface,
             theme.colors.border
           )}

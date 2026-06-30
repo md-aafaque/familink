@@ -80,7 +80,7 @@ export default function RelationshipMarker({ type, direction = 'vertical', lengt
 
   if (type === 'junction') {
     return (
-      <div className={cn("w-4 h-4 rounded-full border-2 shadow-xl z-10 flex items-center justify-center", theme.colors.surface, theme.colors.border)}>
+      <div className={cn("w-4 h-4 rounded-full border-2 shadow-pop-lg z-10 flex items-center justify-center", theme.colors.surface, theme.colors.border)}>
         <div className="w-1.5 h-1.5 rounded-full bg-primary" />
       </div>
     );

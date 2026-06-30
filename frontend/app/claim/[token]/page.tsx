@@ -5,11 +5,15 @@ import api from '../../../lib/api';
 import { CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { cn } from '@/lib/cn';
+import { useAppTheme } from '@/components/providers/ThemeProvider';
+
 
 export default function ClaimPage() {
   const params = useParams() as any;
   const token = params.token as string;
   const { t } = useLanguage();
+  const { theme } = useAppTheme();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState(t("claim.processing"));
   const [personName, setPersonName] = useState('');
@@ -21,7 +25,6 @@ export default function ClaimPage() {
       try {
         const res = await api.post('/claim', { token });
         
-        // Get person details
         if (res.data.personId) {
           try {
             const personRes = await api.get(`/people/${res.data.personId}`);
@@ -35,7 +38,6 @@ export default function ClaimPage() {
         setMessage(t("claim.success"));
         setStatus('success');
         
-        // Redirect after 3 seconds
         setTimeout(() => {
           if (res.data.personId) {
             router.push(`/person/${res.data.personId}`);
@@ -52,25 +54,30 @@ export default function ClaimPage() {
   }, [token, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-primary-50 to-accent-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <div className="card text-center py-12">
+        <motion.div
+          whileHover={{ y: -4 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="rounded-2xl border-2 border-border bg-card shadow-pop-lg text-center p-12 space-y-6"
+        >
           {status === 'processing' && (
             <>
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                className="mx-auto mb-6 flex justify-center"
+                className="mx-auto flex justify-center"
               >
-                <Loader className="w-16 h-16 text-primary-600" />
+                <Loader className="w-16 h-16 text-primary" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">{t("claim.processingTitle")}</h2>
-              <p className="text-slate-600">{message}</p>
+              <h2 className={cn("text-2xl font-bold", theme.colors.text)}>{t("claim.processingTitle")}</h2>
+              <p className={cn("text-base", theme.colors.textMuted)}>{message}</p>
             </>
           )}
 
@@ -80,21 +87,21 @@ export default function ClaimPage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex justify-center mb-6"
+                className="flex justify-center"
               >
-                <CheckCircle className="w-16 h-16 text-green-500" />
+                <CheckCircle className="w-16 h-16 text-emerald-500" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-green-700 mb-2">{t("claim.successTitle")}</h2>
+              <h2 className={cn("text-2xl font-bold", "text-emerald-700 dark:text-emerald-400")}>{t("claim.successTitle")}</h2>
               {personName && (
-                <p className="text-lg font-medium text-slate-900 mb-2">{personName}</p>
+                <p className={cn("text-lg font-medium", theme.colors.text)}>{personName}</p>
               )}
-              <p className="text-slate-600 mb-6">{message}</p>
-              <div className="pt-6 border-t border-slate-100">
-                <p className="text-sm text-slate-600 mb-4">{t("claim.redirecting")}</p>
+              <p className={cn("text-base", theme.colors.textMuted)}>{message}</p>
+              <div className={cn("pt-6 border-t", "border-border")}>
+                <p className={cn("text-sm mb-4", theme.colors.textMuted)}>{t("claim.redirecting")}</p>
                 <motion.div
                   animate={{ width: '100%' }}
                   transition={{ duration: 3, ease: 'linear' }}
-                  className="h-1 bg-green-500 rounded"
+                  className="h-1.5 bg-primary rounded-full"
                   initial={{ width: 0 }}
                 />
               </div>
@@ -107,23 +114,23 @@ export default function ClaimPage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex justify-center mb-6"
+                className="flex justify-center"
               >
-                <AlertCircle className="w-16 h-16 text-red-500" />
+                <AlertCircle className="w-16 h-16 text-destructive" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-red-700 mb-2">{t("claim.errorTitle")}</h2>
-              <p className="text-red-600 mb-6">{message}</p>
+              <h2 className={cn("text-2xl font-bold", "text-destructive")}>{t("claim.errorTitle")}</h2>
+              <p className={cn("text-base", "text-destructive/80")}>{message}</p>
               <motion.button
                 onClick={() => router.push('/dashboard')}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="btn-primary w-full"
+                className="w-full py-4 bg-primary text-primary-foreground border-2 border-foreground rounded-full font-bold text-sm shadow-pop hover:shadow-pop hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] transition-all duration-300"
               >
                 {t("claim.backToDashboard")}
               </motion.button>
             </>
           )}
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );

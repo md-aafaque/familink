@@ -10,6 +10,8 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { cn } from '@/lib/cn';
 import type { Notification } from '@/lib/notifications';
 import { translateNotification } from '@/lib/notifications';
+import { Button } from "@/components/ui/button";
+
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -53,9 +55,8 @@ export default function NotificationsPage() {
     if (!notif.data) return;
 
     try {
-      // Data might be a string (JSON) or an object depending on how it's handled by the client
       const data = typeof notif.data === 'string' ? JSON.parse(notif.data) : notif.data;
-      
+
       switch (notif.type) {
         case 'access_request_pending':
           router.push('/dashboard/manage/users');
@@ -74,7 +75,6 @@ export default function NotificationsPage() {
           router.push('/dashboard/manage/claims');
           break;
         default:
-          // Stay on page
           break;
       }
     } catch (err) {
@@ -112,54 +112,42 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div>
-      <main className="min-h-screen">
-          {/* Header */}
-          <div className="py-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className={cn("text-3xl font-bold", theme.colors.text)}>{t('notifications.title')}</h1>
-                <p className={cn("mt-1", theme.colors.textMuted)}>{t('notifications.unreadCount').replace('{count}', String(unreadCount))}</p>
-              </div>
-              {notifications.length > 0 && (
-                <div className="flex gap-3">
-                  {unreadCount > 0 && (
-                    <motion.button
-                      onClick={markAllAsRead}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium bg-indigo-500 hover:bg-indigo-600"
-                    >
-                      <Check className="w-4 h-4" />
-                      {t('notifications.markAllRead')}
-                    </motion.button>
-                  )}
-                  <motion.button
-                    onClick={deleteAll}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    {t('notifications.deleteAll')}
-                  </motion.button>
-                </div>
-              )}
+    <div className="relative">
+
+      <main className="relative z-10">
+        {/* Header */}
+        <div className="py-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className={cn("text-3xl font-bold", theme.colors.text)}>{t('notifications.title')}</h1>
+              <p className={cn("mt-1", theme.colors.textMuted)}>{t('notifications.unreadCount').replace('{count}', String(unreadCount))}</p>
             </div>
+            {notifications.length > 0 && (
+              <div className="flex gap-3">
+                {unreadCount > 0 && (
+                  <Button variant="candy" size="sm" onClick={markAllAsRead}>
+                    <Check className="w-4 h-4" />
+                    {t('notifications.markAllRead')}
+                  </Button>
+                )}
+                <Button variant="destructive" size="sm" onClick={deleteAll}>
+                  <Trash2 className="w-4 h-4" />
+                  {t('notifications.deleteAll')}
+                </Button>
+              </div>
+            )}
           </div>
+        </div>
 
         {/* Notifications List */}
         {error ? (
-          <div className={cn("rounded-xl shadow-sm border p-12 text-center", theme.colors.surface, "border-red-200 bg-red-50")}>
-            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
-            <h2 className={cn("text-2xl font-bold mb-2", "text-red-900")}>{t('dataState.error.title')}</h2>
-            <p className="mb-6 text-red-700">{error}</p>
-            <button
-              onClick={() => { setError(null); loadNotifications(); }}
-              className="px-6 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
-            >
+          <div className={cn("rounded-2xl border-2 p-12 text-center shadow-pop-sm", "bg-card border-destructive/20")}>
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-destructive" />
+            <h2 className={cn("text-2xl font-bold mb-2", "text-destructive")}>{t('dataState.error.title')}</h2>
+            <p className="mb-6 text-muted-foreground">{error}</p>
+            <Button variant="destructive" onClick={() => { setError(null); loadNotifications(); }}>
               {t('dataState.error.retry')}
-            </button>
+            </Button>
           </div>
         ) : loading ? (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
@@ -169,18 +157,13 @@ export default function NotificationsPage() {
             <p className={cn("mt-4 font-medium", theme.colors.textMuted)}>{t('notifications.loading')}</p>
           </div>
         ) : notifications.length === 0 ? (
-          <div className={cn("rounded-xl shadow-sm border p-12 text-center", theme.colors.surface, theme.colors.border)}>
-            <Bell className={cn("w-16 h-16 mx-auto mb-4", theme.colors.textMuted)} />
+          <div className={cn("rounded-2xl border-2 border-dashed p-12 text-center shadow-pop-sm", "bg-card")}>
+            <Bell className={cn("w-16 h-16 mx-auto mb-4", "text-muted-foreground")} />
             <h2 className={cn("text-2xl font-bold mb-2", theme.colors.text)}>{t('notifications.noNotifications.title')}</h2>
             <p className={cn("mb-6", theme.colors.textMuted)}>{t('notifications.noNotifications.subtitle')}</p>
-            <motion.button
-              onClick={() => router.push('/dashboard')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={cn("px-4 py-2 text-white rounded-lg font-medium", theme.colors.primary)}
-            >
+            <Button variant="candy" onClick={() => router.push('/dashboard')}>
               {t('notifications.noNotifications.button')}
-            </motion.button>
+            </Button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -194,19 +177,18 @@ export default function NotificationsPage() {
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => handleNotificationClick(notif)}
                   className={cn(
-                    "rounded-xl shadow-sm border transition-all p-6 flex items-start justify-between gap-4 hover:shadow-md cursor-pointer",
-                    theme.colors.surface,
-                    theme.colors.border,
-                    !notif.isRead && "border-orange-500/50 bg-orange-500/10 dark:border-indigo-500/50 dark:bg-indigo-500/10"
+                    "rounded-2xl border-2 transition-all p-6 flex items-start justify-between gap-4 hover:shadow-pop-sm cursor-pointer",
+                    "bg-card border-border",
+                    !notif.isRead && "border-primary/30 bg-primary/5"
                   )}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className={cn("font-semibold text-lg", theme.colors.text)}>
+                      <h3 className={cn("font-bold text-lg", theme.colors.text)}>
                         {title}
                       </h3>
                       {!notif.isRead && (
-                        <div className={cn("px-2 py-1 text-white text-xs rounded-full font-medium", theme.colors.primary)}>
+                        <div className="px-2 py-1 bg-primary text-primary-foreground text-xs rounded-full font-bold">
                           {t('notifications.new')}
                         </div>
                       )}
@@ -227,20 +209,20 @@ export default function NotificationsPage() {
                   <div className="flex gap-2 flex-shrink-0">
                     {!notif.isRead && (
                       <motion.button
-                        onClick={() => markAsRead(notif.id)}
+                        onClick={(e) => { e.stopPropagation(); markAsRead(notif.id); }}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
-                        className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-indigo-100 hover:text-indigo-600")}
+                        className="p-2 rounded-xl transition-colors text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-transparent hover:border-primary/30"
                         title={t('notifications.markAsRead')}
                       >
                         <Check className="w-5 h-5" />
                       </motion.button>
                     )}
                     <motion.button
-                      onClick={() => deleteNotification(notif.id)}
+                      onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn("p-2 rounded-lg transition-colors", theme.colors.textMuted, "hover:bg-red-100 hover:text-red-600")}
+                      className="p-2 rounded-xl transition-colors text-muted-foreground hover:bg-destructive/10 hover:text-destructive border-2 border-transparent hover:border-destructive/30"
                       title={t('notifications.delete')}
                     >
                       <Trash2 className="w-5 h-5" />

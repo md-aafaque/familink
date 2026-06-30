@@ -147,6 +147,7 @@
     "accountSettings": "Account Settings",
     "accessRequests": "Access Requests",
     "treeInvitations": "Tree Invitations",
+    "reviewProposals": "Review Proposals",
     "relationshipProposals": "Relationship Proposals",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
@@ -466,6 +467,7 @@
     "export": "Export",
     "exportPng": "Export PNG",
     "exportPdf": "Export PDF",
+    "connections": "Connections",
     "empty": {
       "title": "Build Your Family Tree",
       "subtitle": "Add your first family member and connect them to start visualizing your history.",

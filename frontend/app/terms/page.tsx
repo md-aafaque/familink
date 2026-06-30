@@ -84,9 +84,13 @@ const sections = [
 
 export default function TermsPage() {
   return (
-    <>
-      <main className="min-h-screen bg-background">
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24 relative">
+    <div className="min-h-screen flex flex-col bg-background">
+      <main className="flex-1 relative overflow-hidden">
+        <div className="absolute -top-48 -right-48 w-[36rem] h-[36rem] bg-orange-500/20 dark:bg-orange-500/15 rounded-full blur-[128px] pointer-events-none" />
+        <div className="absolute -bottom-48 -left-48 w-[36rem] h-[36rem] bg-pink-500/20 dark:bg-pink-500/15 rounded-full blur-[128px] pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 bg-[image:radial-gradient(circle,#CBD5E1_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)] dark:hidden" />
+        <div className="pointer-events-none absolute inset-0 hidden dark:block bg-[image:radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]" />
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24 relative z-10">
           <Link href="/" className="absolute -left-18 top-16 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
             Back
@@ -105,7 +109,7 @@ export default function TermsPage() {
             platform. By using the Service, you agree to be bound by these terms.
           </p>
 
-          <div className="rounded-xl border bg-card p-6 sm:p-8 space-y-10 shadow-sm">
+          <div className="rounded-2xl border-2 bg-card p-6 sm:p-8 space-y-10 shadow-pop-lg">
             {sections.map((section) => (
               <section key={section.id} id={section.id}>
                 <h2 className="mb-3 text-xl font-semibold text-foreground">
@@ -120,6 +124,6 @@ export default function TermsPage() {
         </div>
       </main>
       <Footer page="terms" />
-    </>
+    </div>
   );
 }

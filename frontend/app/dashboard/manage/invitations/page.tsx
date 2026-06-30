@@ -3,14 +3,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import DataState from "@/components/shared/DataState";
-import { 
-  Copy, 
-  Check, 
-  Plus, 
-  ExternalLink, 
-  Shield, 
-  Users, 
-  Eye, 
+import {
+  Copy,
+  Check,
+  Plus,
+  ExternalLink,
+  Shield,
+  Users,
+  Eye,
   Calendar,
   Clock,
   Link2
@@ -22,6 +22,8 @@ import { cn } from "@/lib/cn";
 
 import { useAppTheme } from "@/components/providers/ThemeProvider";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { Button } from "@/components/ui/button";
+
 
 export default function ManageInvitationsPage() {
   const queryClient = useQueryClient();
@@ -30,7 +32,6 @@ export default function ManageInvitationsPage() {
   const { theme } = useAppTheme();
   const { t } = useLanguage();
 
-  // Fetch trees first to get a list
   const { data: trees, isLoading: isLoadingTrees } = useQuery({
     queryKey: ["trees"],
     queryFn: async () => {
@@ -70,145 +71,140 @@ export default function ManageInvitationsPage() {
   };
 
   const inviteTypes = [
-    { type: 'member', title: t('role.member'), icon: Users, color: 'bg-violet-500/10 text-violet-600', desc: t('admin.invitations.desc.member') },
-    { type: 'viewer', title: t('role.viewer'), icon: Eye, color: 'bg-slate-500/10 text-slate-600', desc: t('admin.invitations.desc.viewer') },
-    { type: 'admin', title: t('role.admin'), icon: Shield, color: cn(theme.colors.primaryMuted, theme.colors.accent), desc: t('admin.invitations.desc.admin') },
+    { type: 'member', title: t('role.member'), icon: Users, color: 'bg-primary/10 text-primary', desc: t('admin.invitations.desc.member') },
+    { type: 'viewer', title: t('role.viewer'), icon: Eye, color: 'bg-muted text-muted-foreground', desc: t('admin.invitations.desc.viewer') },
+    { type: 'admin', title: t('role.admin'), icon: Shield, color: cn("bg-primary/20", "text-primary"), desc: t('admin.invitations.desc.admin') },
   ];
 
   return (
-    <div className="space-y-12">
-      <header className="space-y-4">
-        <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
-          {t('admin.invitations.title').split(' ')[0]} <span className={theme.colors.accent}>{t('admin.invitations.title').split(' ').slice(1).join(' ')}</span>
-        </h1>
-        <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
-          {t('admin.invitations.subtitle')}
-        </p>
-      </header>
+    <div className="relative space-y-6">
 
-      {/* Tree Selector */}
-      <section className="relative">
-        <div className={cn("p-8 rounded-[2rem] shadow-xl transition-colors duration-500", theme.colors.primary)}>
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-             <Shield className="w-32 h-32 text-white" />
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">{t('admin.invitations.targetTree.title')}</h3>
-              <p className="text-slate-300 font-medium max-w-md">
-                {t('admin.invitations.targetTree.desc')}
-              </p>
-            </div>
-            
-            <div className="relative min-w-[300px]">
-              <CustomSelect
-                value={selectedTreeId}
-                onChange={setSelectedTreeId}
-                options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
-                placeholder={t('admin.chooseTree')}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Generate Section */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {!selectedTreeId && !isLoadingTrees && (
-          <div className={cn("md:col-span-3 p-12 rounded-[2rem] text-center border-2 border-dashed transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-            <p className={cn("font-bold italic", theme.colors.textMuted)}>{t('admin.invitations.selectToGenerate')}</p>
-          </div>
-        )}
-        {selectedTreeId && inviteTypes.map((item) => (
-          <div key={item.type} className={cn("p-8 rounded-[2rem] border shadow-sm space-y-6 flex flex-col transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center", item.color)}>
-              <item.icon className="w-7 h-7" />
-            </div>
-            <div className="flex-1 space-y-2">
-              <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.invitations.link').replace('{role}', item.title)}</h3>
-              <p className={cn("text-sm leading-relaxed", theme.colors.textMuted)}>{item.desc}</p>
-            </div>
-            <button
-              onClick={() => generateMutation.mutate(item.type)}
-              disabled={generateMutation.isPending}
-              className={cn(
-                "w-full py-3 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95",
-                theme.colors.primary
-              )}
-            >
-              <Plus className="w-4 h-4" />
-              {t('admin.invitations.generate')}
-            </button>
-          </div>
-        ))}
-      </section>
+      <div className="relative z-10">
+        <header className="space-y-4">
+          <h1 className={cn("text-4xl font-bold tracking-tight", theme.colors.text)}>
+            {t('admin.invitations.title').split(' ')[0]} <span className="text-primary">{t('admin.invitations.title').split(' ').slice(1).join(' ')}</span>
+          </h1>
+          <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
+            {t('admin.invitations.subtitle')}
+          </p>
+        </header>
 
-      {/* Active Links */}
-      <section className="space-y-6">
-        <h2 className={cn("text-2xl font-bold", theme.colors.text)}>{t('admin.invitations.activeLinks')}</h2>
-        
-        {selectedTreeId ? (
-          <DataState isLoading={isLoading} isError={isError} error={error as Error}>
-            <div className="space-y-4">
-              {invitations?.length > 0 ? (
-                invitations.map((inv: any) => (
-                <div key={inv.token} className={cn("p-6 rounded-3xl border shadow-sm flex flex-col md:flex-row items-center gap-6 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-                  <div className="flex-1 min-w-0 w-full space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className={cn(
-                        "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                        inv.role === 'admin' ? cn(theme.colors.primaryMuted, theme.colors.accent) : 
-                        inv.role === 'member' ? "bg-violet-500/10 text-violet-600" : "bg-slate-500/10 text-slate-500"
-                      )}>
-                        {t(`role.${inv.role}`)}
-                      </span>
-                      <div className={cn("flex items-center gap-1 text-xs font-medium", theme.colors.textMuted)}>
-                        <Clock className="w-3 h-3" />
-                        {t('admin.invitations.expires').replace('{date}', new Date(inv.expiresAt).toLocaleDateString())}
+        {/* Tree Selector */}
+        <section className="relative mt-8">
+          <div className={cn("p-8 rounded-[2rem] shadow-pop-lg transition-colors", "bg-primary")}>
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Shield className="w-32 h-32 text-white" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-white">{t('admin.invitations.targetTree.title')}</h3>
+                <p className="text-primary-foreground/70 font-medium max-w-md">
+                  {t('admin.invitations.targetTree.desc')}
+                </p>
+              </div>
+              <div className="relative min-w-[300px]">
+                <CustomSelect
+                  value={selectedTreeId}
+                  onChange={setSelectedTreeId}
+                  options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
+                  placeholder={t('admin.chooseTree')}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Generate Section */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          {!selectedTreeId && !isLoadingTrees && (
+            <div className={cn("md:col-span-3 p-12 rounded-2xl text-center border-2 border-dashed bg-card")}>
+              <p className={cn("font-bold italic", "text-muted-foreground")}>{t('admin.invitations.selectToGenerate')}</p>
+            </div>
+          )}
+          {selectedTreeId && inviteTypes.map((item) => (
+            <div key={item.type} className={cn("p-8 rounded-2xl border-2 bg-card shadow-pop-sm space-y-6 flex flex-col")}>
+              <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center", item.color)}>
+                <item.icon className="w-7 h-7" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.invitations.link').replace('{role}', item.title)}</h3>
+                <p className={cn("text-sm leading-relaxed", theme.colors.textMuted)}>{item.desc}</p>
+              </div>
+              <Button
+                variant="candy"
+                onClick={() => generateMutation.mutate(item.type)}
+                disabled={generateMutation.isPending}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4" />
+                {t('admin.invitations.generate')}
+              </Button>
+            </div>
+          ))}
+        </section>
+
+        {/* Active Links */}
+        <section className="space-y-6 mt-12">
+          <h2 className={cn("text-2xl font-bold", theme.colors.text)}>{t('admin.invitations.activeLinks')}</h2>
+
+          {selectedTreeId ? (
+            <DataState isLoading={isLoading} isError={isError} error={error as Error}>
+              <div className="space-y-4">
+                {invitations?.length > 0 ? (
+                  invitations.map((inv: any) => (
+                    <div key={inv.token} className={cn("p-6 rounded-2xl border-2 bg-card shadow-pop-sm flex flex-col md:flex-row items-center gap-6")}>
+                      <div className="flex-1 min-w-0 w-full space-y-3">
+                        <div className="flex items-center gap-3">
+                          <span className={cn(
+                            "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border-2",
+                            inv.role === 'admin' ? "bg-primary/10 text-primary border-primary/20" :
+                              inv.role === 'member' ? "bg-primary/10 text-primary border-primary/20" : "bg-muted text-muted-foreground border-border"
+                          )}>
+                            {t(`role.${inv.role}`)}
+                          </span>
+                          <div className={cn("flex items-center gap-1 text-xs font-medium", theme.colors.textMuted)}>
+                            <Clock className="w-3 h-3" />
+                            {t('admin.invitations.expires').replace('{date}', new Date(inv.expiresAt).toLocaleDateString())}
+                          </div>
+                        </div>
+                        <div className={cn("flex items-center gap-2 p-3 rounded-2xl border-2 font-mono text-xs truncate", "bg-muted border-border")}>
+                          <Link2 className="w-4 h-4 flex-shrink-0" />
+                          {inv.invitationUrl}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 w-full md:w-auto">
+                        <Button
+                          variant="outline"
+                          onClick={() => copyToClipboard(inv.invitationUrl, inv.token)}
+                        >
+                          {copiedToken === inv.token ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
+                          {copiedToken === inv.token ? t('admin.invitations.copied') : t('admin.invitations.copy')}
+                        </Button>
+                        <a
+                          href={inv.invitationUrl}
+                          target="_blank"
+                          className={cn("p-3 rounded-xl transition-all border-2 border-border hover:bg-muted")}
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                        </a>
                       </div>
                     </div>
-                    <div className={cn("flex items-center gap-2 p-3 rounded-2xl border font-mono text-xs truncate transition-colors duration-500", theme.colors.bg, theme.colors.border, theme.colors.textMuted)}>
-                      <Link2 className="w-4 h-4 flex-shrink-0" />
-                      {inv.invitationUrl}
-                    </div>
+                  ))
+                ) : (
+                  <div className={cn("p-12 rounded-2xl text-center border-2 border-dashed bg-card")}>
+                    <p className={cn("font-medium italic", "text-muted-foreground")}>{t('admin.invitations.noLinks')}</p>
                   </div>
-                  <div className="flex items-center gap-2 w-full md:w-auto">
-                    <button
-                      onClick={() => copyToClipboard(inv.invitationUrl, inv.token)}
-                      className={cn(
-                        "flex-1 md:flex-none px-6 py-3 border rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95",
-                        theme.colors.bg,
-                        theme.colors.border,
-                        theme.colors.text
-                      )}
-                    >
-                      {copiedToken === inv.token ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                      {copiedToken === inv.token ? t('admin.invitations.copied') : t('admin.invitations.copy')}
-                    </button>
-                    <a
-                      href={inv.invitationUrl}
-                      target="_blank"
-                      className={cn("p-3 rounded-2xl transition-all", theme.colors.bg, theme.colors.textMuted, "hover:" + theme.colors.text)}
-                    >
-                      <ExternalLink className="w-5 h-5" />
-                    </a>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className={cn("p-12 rounded-[2rem] text-center border-2 border-dashed transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-                <p className={cn("font-medium italic", theme.colors.textMuted)}>{t('admin.invitations.noLinks')}</p>
+                )}
               </div>
-            )}
-          </div>
-        </DataState>
-        ) : (
-          <div className={cn("p-12 rounded-[2rem] text-center transition-colors duration-500", theme.colors.surface)}>
-             <p className={cn("font-medium italic", theme.colors.textMuted)}>{t('admin.invitations.selectToView')}</p>
-          </div>
-        )}
-      </section>
+            </DataState>
+          ) : (
+            <div className={cn("p-12 rounded-2xl text-center bg-card")}>
+              <p className={cn("font-medium italic", "text-muted-foreground")}>{t('admin.invitations.selectToView')}</p>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

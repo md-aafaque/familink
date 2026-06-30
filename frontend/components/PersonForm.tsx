@@ -204,7 +204,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
           <button
             type="button"
             onClick={() => document.getElementById('profile-image-upload')?.click()}
-            className={cn("absolute bottom-0 right-0 p-2.5 rounded-full shadow-lg transition-all", theme.colors.primary, "text-white hover:scale-110 active:scale-95")}
+            className={cn("absolute bottom-0 right-0 p-2.5 rounded-full shadow-pop-lg transition-all", theme.colors.primary, "text-white hover:scale-110 active:scale-95")}
           >
             <Camera className="w-5 h-5" />
           </button>
@@ -572,7 +572,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
               <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('personForm.searchExisting')} className={inputBaseClass() + " pl-10"} />
             </div>
             {searchTerm && filteredPeople && filteredPeople.length > 0 && (
-              <div className={cn("max-h-60 overflow-y-auto border rounded-xl shadow-lg", theme.colors.border, theme.colors.surface)}>
+              <div className={cn("max-h-60 overflow-y-auto border-2 rounded-xl shadow-pop-lg", theme.colors.border, theme.colors.surface)}>
                 {filteredPeople.map((p: any) => (
                   <button key={p.id} type="button" onClick={() => { setSelectedLinkPerson(p); setSearchTerm(""); }} className={cn("w-full px-6 py-4 text-left text-sm hover:bg-black/5 transition-all flex items-center justify-between", theme.colors.text)}>
                     <div className="flex items-center gap-4">
@@ -621,7 +621,7 @@ export default function PersonForm({ initialData, onSubmit, isLoading, treeId }:
         </div>
       )}
 
-      <button type="submit" disabled={isLoading || isUploading} className={cn("w-full py-4 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-3", theme.colors.primary)}>
+      <button type="submit" disabled={isLoading || isUploading} className={cn("w-full py-4 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-pop-lg hover:opacity-90 transition-all flex items-center justify-center gap-3", theme.colors.primary)}>
         {isLoading || isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
         {isEditing ? t('personForm.updateProfile') : t('personForm.createProfile')}
       </button>

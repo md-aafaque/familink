@@ -21,7 +21,6 @@ export default function NotificationsMenu() {
 
   useEffect(() => {
     loadNotifications();
-    // Poll every 10 seconds
     const interval = setInterval(loadNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -85,9 +84,8 @@ export default function NotificationsMenu() {
     if (!notif.data) return;
 
     try {
-      // Data might be a string (JSON) or an object depending on how it's handled by the client
       const data = typeof notif.data === 'string' ? JSON.parse(notif.data) : notif.data;
-      
+
       switch (notif.type) {
         case 'access_request_pending':
           router.push('/dashboard/manage/users');
@@ -124,16 +122,13 @@ export default function NotificationsMenu() {
     }
   };
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // The bell button handles its own click, so we shouldn't close if that's clicked
-      // However, the overlay is meant for outside clicks.
       if (open) {
         setOpen(false);
       }
     };
-    
+
     if (open) {
       document.addEventListener('click', handleClickOutside);
     }
@@ -150,16 +145,16 @@ export default function NotificationsMenu() {
           e.stopPropagation();
           setOpen(!open);
         }}
-        className="relative p-2 hover:bg-slate-100 rounded-lg transition-colors"
+        className="relative p-2 rounded-xl hover:bg-muted transition-colors border-2 border-transparent hover:border-border"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <Bell className="w-6 h-6 text-slate-700" />
+        <Bell className="w-5 h-5 text-foreground" />
         {unreadCount > 0 && (
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
+            className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center font-bold border-2 border-background"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </motion.div>
@@ -175,19 +170,19 @@ export default function NotificationsMenu() {
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              "fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 rounded-2xl shadow-2xl border overflow-hidden z-[100] backdrop-blur-xl",
-              theme.colors.surface,
+              "fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 rounded-2xl border-2 shadow-pop-lg overflow-hidden z-[100] backdrop-blur-xl",
+              "bg-background",
               theme.colors.border
             )}
             onClick={(e) => e.stopPropagation()}
-            style={{ 
+            style={{
               maxWidth: '400px',
             }}
           >
             {/* Header */}
-            <div className={cn("border-b p-4 flex items-center justify-between", theme.colors.primaryMuted, theme.colors.border)}>
+            <div className={cn("border-b p-4 flex items-center justify-between", "bg-muted/50", theme.colors.border)}>
               <div>
-                <h3 className={cn("font-semibold", theme.colors.text)}>{t('notificationsMenu.title')}</h3>
+                <h3 className={cn("font-bold", theme.colors.text)}>{t('notificationsMenu.title')}</h3>
                 <p className={cn("text-sm", theme.colors.textMuted)}>{t('notifications.unreadCount').replace('{count}', String(unreadCount))}</p>
               </div>
               {notifications.length > 0 && (
@@ -195,7 +190,7 @@ export default function NotificationsMenu() {
                   {unreadCount > 0 && (
                     <button
                       onClick={() => markAllAsRead()}
-                      className={cn("p-1.5 rounded transition-colors", theme.colors.surface, theme.colors.textMuted, "hover:" + theme.colors.accent)}
+                      className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border")}
                       title={t('notificationsMenu.markAllRead')}
                     >
                       <Check className="w-4 h-4" />
@@ -203,7 +198,7 @@ export default function NotificationsMenu() {
                   )}
                   <button
                     onClick={() => deleteAll()}
-                    className={cn("p-1.5 rounded transition-colors", theme.colors.surface, theme.colors.textMuted, "hover:text-red-500")}
+                    className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border hover:text-red-500")}
                     title={t('notifications.deleteAll')}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -216,7 +211,7 @@ export default function NotificationsMenu() {
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="p-12 text-center space-y-4">
-                  <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mx-auto", theme.colors.bg)}>
+                  <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mx-auto", "bg-muted")}>
                     <Bell className={cn("w-8 h-8 opacity-20", theme.colors.text)} />
                   </div>
                   <div className="space-y-1">
@@ -228,66 +223,66 @@ export default function NotificationsMenu() {
                   {notifications.map((notif) => {
                     const { title, message } = translateNotification(notif, t);
                     return (
-                    <motion.div
-                      key={notif.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      onClick={() => handleNotificationClick(notif)}
-                      className={cn(
-                        "p-4 transition-colors cursor-pointer",
-                        !notif.isRead ? theme.colors.primaryMuted : theme.colors.hover
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className={cn("font-bold text-sm", theme.colors.text)}>
-                              {title}
-                            </h4>
-                            {!notif.isRead && (
-                              <div className={cn("w-2 h-2 rounded-full", theme.colors.primary)} />
-                            )}
+                      <motion.div
+                        key={notif.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        onClick={() => handleNotificationClick(notif)}
+                        className={cn(
+                          "p-4 transition-colors cursor-pointer",
+                          !notif.isRead ? "bg-primary/5" : "hover:bg-muted/50"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className={cn("font-bold text-sm", theme.colors.text)}>
+                                {title}
+                              </h4>
+                              {!notif.isRead && (
+                                <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                              )}
+                            </div>
+                            <p className={cn("text-sm mt-1 line-clamp-2", theme.colors.textMuted)}>
+                              {message}
+                            </p>
+                            <p className={cn("text-[10px] font-bold uppercase tracking-widest mt-2 opacity-40", theme.colors.text)}>
+                              {formatDateTime(notif.createdAt)}
+                            </p>
                           </div>
-                          <p className={cn("text-sm mt-1 line-clamp-2", theme.colors.textMuted)}>
-                            {message}
-                          </p>
-                          <p className={cn("text-[10px] font-black uppercase tracking-widest mt-2 opacity-40", theme.colors.text)}>
-                            {formatDateTime(notif.createdAt)}
-                          </p>
-                        </div>
 
-                        <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                          {!notif.isRead && (
+                          <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                            {!notif.isRead && (
+                              <button
+                                onClick={() => markAsRead(notif.id)}
+                                className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border")}
+                                title={t('notifications.markAsRead')}
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                            )}
                             <button
-                              onClick={() => markAsRead(notif.id)}
-                              className={cn("p-1.5 rounded transition-colors", theme.colors.bg, theme.colors.textMuted, "hover:" + theme.colors.accent)}
-                              title={t('notifications.markAsRead')}
+                              onClick={() => deleteNotification(notif.id)}
+                              className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border hover:text-red-500")}
+                              title={t('notifications.delete')}
                             >
-                              <Check className="w-4 h-4" />
+                              <X className="w-4 h-4" />
                             </button>
-                          )}
-                          <button
-                            onClick={() => deleteNotification(notif.id)}
-                            className={cn("p-1.5 rounded transition-colors", theme.colors.bg, theme.colors.textMuted, "hover:text-red-500")}
-                            title={t('notifications.delete')}
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className={cn("p-3 text-center border-t", theme.colors.bg, theme.colors.border)}>
+              <div className={cn("p-3 text-center border-t", "bg-muted/30", theme.colors.border)}>
                 <a
                   href="/notifications"
-                  className={cn("text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-80 transition-colors", theme.colors.accent)}
+                  className={cn("text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-80 transition-colors", "text-primary")}
                 >
                   {t('notificationsMenu.viewAll')}
                 </a>
@@ -297,7 +292,6 @@ export default function NotificationsMenu() {
         )}
       </AnimatePresence>
 
-      {/* Close on outside click */}
       {open && (
         <div
           className="fixed inset-0 z-40"

@@ -11,6 +11,8 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 import { useAppTheme } from "@/components/providers/ThemeProvider";
 import { useLanguage } from "@/components/providers/LanguageProvider";
+import { Button } from "@/components/ui/button";
+
 
 export default function ManageClaimsPage() {
   const queryClient = useQueryClient();
@@ -18,7 +20,6 @@ export default function ManageClaimsPage() {
   const { theme } = useAppTheme();
   const { t } = useLanguage();
 
-  // Fetch trees first to get a list
   const { data: trees, isLoading: isLoadingTrees } = useQuery({
     queryKey: ["trees"],
     queryFn: async () => {
@@ -27,7 +28,6 @@ export default function ManageClaimsPage() {
     },
   });
 
-  // Initialize selectedTreeId
   useEffect(() => {
     if (trees?.length > 0 && !selectedTreeId) {
       const adminTree = trees.find((t: any) => t.role === 'admin');
@@ -63,116 +63,114 @@ export default function ManageClaimsPage() {
   });
 
   return (
-    <div className="space-y-12">
-      <header className="space-y-4">
-        <h1 className={cn("text-4xl font-black tracking-tight", theme.colors.text)}>
-          {t('admin.claims.title').split(' ')[0]} <span className={theme.colors.accent}>{t('admin.claims.title').split(' ').slice(1).join(' ')}</span>
-        </h1>
-        <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
-          {t('admin.claims.subtitle')}
-        </p>
-      </header>
+    <div className="relative space-y-6">
 
-      {/* Tree Selector */}
-      <section className="relative">
-        <div className={cn("p-8 rounded-[2rem] shadow-xl transition-colors duration-500", theme.isDark ? "bg-slate-900" : "bg-slate-900")}>
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-             <Fingerprint className="w-32 h-32 text-white" />
-          </div>
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white">{t('admin.claims.selectTree.title')}</h3>
-              <p className="text-slate-300 font-medium">{t('admin.claims.selectTree.desc')}</p>
+
+      <div className="relative z-10">
+        <header className="space-y-4">
+          <h1 className={cn("text-4xl font-bold tracking-tight", theme.colors.text)}>
+            {t('admin.claims.title').split(' ')[0]} <span className="text-primary">{t('admin.claims.title').split(' ').slice(1).join(' ')}</span>
+          </h1>
+          <p className={cn("text-lg max-w-2xl font-medium", theme.colors.textMuted)}>
+            {t('admin.claims.subtitle')}
+          </p>
+        </header>
+
+        {/* Tree Selector */}
+        <section className="relative mt-8">
+          <div className={cn("p-8 rounded-[2rem] shadow-pop-lg transition-colors", "bg-primary")}>
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Fingerprint className="w-32 h-32 text-white" />
             </div>
-            <div className="relative min-w-[300px]">
-              <CustomSelect
-                value={selectedTreeId}
-                onChange={setSelectedTreeId}
-                options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
-                placeholder={t('admin.claims.chooseTree')}
-                className="w-full md:min-w-[300px]"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <DataState isLoading={isLoading} isError={isError} error={error as Error}>
-        <div className="grid grid-cols-1 gap-6">
-          {requests?.length > 0 ? (
-            requests.map((req: any) => (
-              <motion.div 
-                layout
-                key={req.id}
-                className={cn("p-8 rounded-[2rem] border shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row items-center justify-between gap-8", theme.colors.surface, theme.colors.border)}
-              >
-                <div className="flex items-center gap-6 flex-1">
-                  <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center", theme.colors.primaryMuted)}>
-                    <Fingerprint className={cn("w-8 h-8", theme.colors.accent)} />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName}</h3>
-                      <span className={theme.colors.textMuted}>{t('admin.claims.wantsToClaim')}</span>
-                      <h3 className={cn("text-xl font-bold", theme.colors.accent)}>{req.person.firstName} {req.person.lastName}</h3>
-                    </div>
-                    <div className={cn("flex flex-wrap gap-4 text-sm font-medium", theme.colors.textMuted)}>
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" />
-                        {req.userEmail}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {t('admin.claims.requested').replace('{date}', formatDate(req.createdAt))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                  <button
-                    onClick={() => approveMutation.mutate(req.id)}
-                    disabled={approveMutation.isPending}
-                    className={cn(
-                      "flex-1 md:flex-none px-8 py-3 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 shadow-lg shadow-black/5",
-                      theme.colors.primary
-                    )}
-                    >
-                    <Check className="w-5 h-5" />
-                    {t('admin.approve')}
-                  </button>
-                  <button
-                    onClick={() => rejectMutation.mutate(req.id)}
-                    disabled={rejectMutation.isPending}
-                    className={cn(
-                      "flex-1 md:flex-none px-8 py-3 border rounded-2xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95",
-                      theme.colors.bg,
-                      theme.colors.border,
-                      theme.colors.textMuted,
-                      "hover:text-red-600 hover:border-red-100 hover:bg-red-50"
-                    )}
-                  >
-                    <X className="w-5 h-5" />
-                    {t('admin.reject')}
-                  </button>
-                </div>
-              </motion.div>
-            ))
-          ) : (
-            <div className={cn("border-2 border-dashed rounded-[2rem] p-20 text-center space-y-6 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
-              <div className={cn("w-20 h-20 rounded-full flex items-center justify-center mx-auto", theme.colors.bg)}>
-                <Fingerprint className={cn("w-10 h-10", theme.colors.textMuted)} />
-              </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
               <div className="space-y-2">
-                <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.claims.noRequests.title')}</h3>
-                <p className={cn("max-w-sm mx-auto font-medium", theme.colors.textMuted)}>
-                  {t('admin.claims.noRequests.subtitle')}
-                </p>
+                <h3 className="text-2xl font-bold text-white">{t('admin.claims.selectTree.title')}</h3>
+                <p className="text-primary-foreground/70 font-medium">{t('admin.claims.selectTree.desc')}</p>
+              </div>
+              <div className="relative min-w-[300px]">
+                <CustomSelect
+                  value={selectedTreeId}
+                  onChange={setSelectedTreeId}
+                  options={trees?.map((tree: any) => ({ label: `${tree.name} (${tree.role})`, value: tree.id })) || []}
+                  placeholder={t('admin.claims.chooseTree')}
+                  className="w-full md:min-w-[300px]"
+                />
               </div>
             </div>
-          )}
+          </div>
+        </section>
+
+        <div className="mt-8">
+          <DataState isLoading={isLoading} isError={isError} error={error as Error}>
+            <div className="grid grid-cols-1 gap-6">
+              {requests?.length > 0 ? (
+                requests.map((req: any) => (
+                  <motion.div
+                    layout
+                    key={req.id}
+                    className={cn("p-8 rounded-2xl border-2 bg-card shadow-pop-sm hover:shadow-pop-lg transition-all flex flex-col md:flex-row items-center justify-between gap-8")}
+                  >
+                    <div className="flex items-center gap-6 flex-1">
+                      <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center", "bg-primary/10")}>
+                        <Fingerprint className={cn("w-8 h-8", "text-primary")} />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className={cn("text-xl font-bold", theme.colors.text)}>{req.userName}</h3>
+                          <span className={"text-muted-foreground"}>{t('admin.claims.wantsToClaim')}</span>
+                          <h3 className={cn("text-xl font-bold", "text-primary")}>{req.person.firstName} {req.person.lastName}</h3>
+                        </div>
+                        <div className={cn("flex flex-wrap gap-4 text-sm font-medium", theme.colors.textMuted)}>
+                          <div className="flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            {req.userEmail}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {t('admin.claims.requested').replace('{date}', formatDate(req.createdAt))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                      <Button
+                        variant="candy"
+                        onClick={() => approveMutation.mutate(req.id)}
+                        disabled={approveMutation.isPending}
+                      >
+                        <Check className="w-5 h-5" />
+                        {t('admin.approve')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => rejectMutation.mutate(req.id)}
+                        disabled={rejectMutation.isPending}
+                        className="hover:text-destructive hover:border-destructive/30"
+                      >
+                        <X className="w-5 h-5" />
+                        {t('admin.reject')}
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className={cn("border-2 border-dashed rounded-2xl p-20 text-center space-y-6", "bg-card")}>
+                  <div className={cn("w-20 h-20 rounded-full flex items-center justify-center mx-auto", "bg-muted")}>
+                    <Fingerprint className={cn("w-10 h-10", "text-muted-foreground")} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('admin.claims.noRequests.title')}</h3>
+                    <p className={cn("max-w-sm mx-auto font-medium", theme.colors.textMuted)}>
+                      {t('admin.claims.noRequests.subtitle')}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DataState>
         </div>
-      </DataState>
+      </div>
     </div>
   );
 }

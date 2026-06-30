@@ -79,7 +79,7 @@ export default function MergeProfileModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         className={cn(
-          "relative w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors duration-500",
+          "relative w-full max-w-lg rounded-[2.5rem] border-2 shadow-pop-lg overflow-hidden flex flex-col max-h-[90vh] transition-colors duration-500",
           theme.colors.surface,
           theme.colors.border
         )}
@@ -167,8 +167,8 @@ export default function MergeProfileModal({
                           className={cn(
                             "w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left",
                             selectedTarget?.id === p.id
-                              ? cn(theme.colors.primaryMuted, theme.colors.border, "shadow-sm")
-                              : cn(theme.colors.surface, theme.colors.border, "hover:border-indigo-400/30")
+                              ? cn(theme.colors.primaryMuted, theme.colors.border, "shadow-pop-sm")
+                              : cn(theme.colors.surface, theme.colors.border, "hover:border-primary/30")
                           )}
                         >
                           <div className={cn(
@@ -260,7 +260,7 @@ export default function MergeProfileModal({
                     onClick={() => mergeMutation.mutate()}
                     disabled={mergeMutation.isPending}
                     className={cn(
-                      "flex-2 py-4 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg disabled:opacity-50",
+                      "flex-2 py-4 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-pop-lg disabled:opacity-50",
                       theme.colors.primary
                     )}
                   >

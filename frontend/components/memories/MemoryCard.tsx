@@ -43,10 +43,10 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
         transition={{ duration: 0.3 }}
         onClick={() => !isConfirmingDelete && setIsDetailsOpen(true)}
         className={cn(
-          "group relative flex flex-col rounded-2xl border overflow-hidden transition-all hover:shadow-xl cursor-pointer",
+          "group relative flex flex-col rounded-2xl border overflow-hidden transition-all hover:shadow-pop-lg cursor-pointer",
           theme.colors.surface,
           theme.colors.border,
-          isConfirmingDelete && "ring-2 ring-red-500/50 shadow-lg shadow-red-500/10"
+          isConfirmingDelete && "ring-2 ring-red-500/50 shadow-pop-lg shadow-red-500/10"
         )}
       >
         {/* Image Section */}
@@ -98,7 +98,7 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: -10 }}
                       className={cn(
-                        "absolute right-0 mt-1 w-32 rounded-xl shadow-xl border z-10 p-1",
+                        "absolute right-0 mt-1 w-32 rounded-xl shadow-pop-lg border z-10 p-1",
                         theme.colors.surface,
                         theme.colors.border
                       )}
@@ -140,7 +140,7 @@ export default function MemoryCard({ memory, onEdit, onDelete, isOwner }: Memory
                 <div className="flex flex-col gap-2 w-full max-w-[160px]">
                   <button 
                     onClick={() => { onDelete?.(memory.id); setIsConfirmingDelete(false); }}
-                    className="w-full py-2.5 bg-white text-red-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                    className="w-full py-2.5 bg-white text-red-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-pop-lg active:scale-95 transition-all"
                   >
                     {t('memoryCard.confirmDelete.confirm')}
                   </button>

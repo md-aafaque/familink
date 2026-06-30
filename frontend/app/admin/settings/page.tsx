@@ -5,13 +5,16 @@ import { cn } from '@/lib/cn';
 import { useAppTheme } from '@/components/providers/ThemeProvider';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 
+
 export default function AdminSettings() {
   const router = useRouter();
   const { theme } = useAppTheme();
   const { t } = useLanguage();
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6 overflow-hidden">
+
+      <div className="relative z-10">
       {/* Header */}
       <div>
         <button
@@ -83,6 +86,7 @@ export default function AdminSettings() {
         <button className="btn-primary">{t('common.save')}</button>
         <button className="btn-secondary">{t('common.cancel')}</button>
       </div>
+    </div>
     </div>
   );
 }

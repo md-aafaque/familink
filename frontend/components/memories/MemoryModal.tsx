@@ -205,7 +205,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             className={cn(
-              "relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border flex flex-col",
+              "relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-pop-lg border flex flex-col",
               theme.colors.surface,
               theme.colors.border
             )}
@@ -378,7 +378,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
                       {t('memoryModal.addPerson')}
                     </button>
                     <div className={cn(
-                      "absolute bottom-full left-0 mb-2 w-64 max-h-64 overflow-hidden rounded-xl shadow-xl border flex flex-col hidden group-focus-within:flex group-hover:flex z-20",
+                      "absolute bottom-full left-0 mb-2 w-64 max-h-64 overflow-hidden rounded-xl shadow-pop-lg border flex flex-col hidden group-focus-within:flex group-hover:flex z-20",
                       theme.colors.surface,
                       theme.colors.border
                     )}>
@@ -425,7 +425,7 @@ export default function MemoryModal({ treeId, isOpen, onClose, initialPersonId, 
               disabled={saveMutation.isPending}
               onClick={() => saveMutation.mutate()}
               className={cn(
-                "px-8 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all flex items-center gap-2",
+                "px-8 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-black uppercase tracking-widest shadow-pop-lg shadow-primary/20 transition-all flex items-center gap-2",
                 "hover:opacity-90 active:scale-[0.98]",
                 saveMutation.isPending && "opacity-50 cursor-not-allowed"
               )}

@@ -12,6 +12,8 @@ import { useLanguage } from "./providers/LanguageProvider";
 import { cn } from "@/lib/cn";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
+import PageBackground from "./decorations/PageBackground";
+import { OrangeBlob, DotPattern } from "./shared/DecorativeElements";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
@@ -33,44 +35,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isAdmin = trees?.some((t: any) => t.role === 'admin');
   const isManagementRoute = pathname.startsWith('/dashboard/manage');
+  const isTreeRoute = pathname.startsWith('/tree/');
 
   useEffect(() => {
-    // 1. Auth Protection
     if (!authLoading && !user) {
       const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
       router.replace(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;
     }
 
-    // 2. Admin Protection (RBAC)
     if (!authLoading && !treesLoading && user && isManagementRoute && !isAdmin) {
       console.warn("[RBAC] Unauthorized access to management route. Redirecting...");
       setIsRedirecting(true);
       router.replace("/dashboard");
     }
 
-    // 3. Reset redirect state if we've moved away from management routes
     if (!isManagementRoute && isRedirecting) {
       setIsRedirecting(false);
     }
   }, [user, authLoading, treesLoading, isAdmin, isManagementRoute, router, isRedirecting]);
 
-  // Loading State
   if (authLoading || (isManagementRoute && treesLoading) || isRedirecting) {
     return (
-      <div className={cn("flex items-center justify-center h-screen", theme.colors.bg)}>
-        <div className="text-center space-y-4">
+      <div className={cn("flex items-center justify-center h-screen bg-background relative overflow-hidden")}>
+        <OrangeBlob className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" size="lg" />
+        <DotPattern fade />
+        <div className="relative z-10 text-center space-y-4">
           {isRedirecting ? (
             <>
               <ShieldAlert className="w-12 h-12 text-amber-500 mx-auto animate-pulse" />
               <div className="space-y-1">
-                <p className={cn("text-lg font-black uppercase tracking-tighter", theme.colors.text)}>{t('layout.accessRestricted')}</p>
+                <p className={cn("text-lg font-bold uppercase tracking-tighter", theme.colors.text)}>{t('layout.accessRestricted')}</p>
                 <p className={cn("text-sm font-medium", theme.colors.textMuted)}>{t('layout.noPermission')}</p>
               </div>
             </>
           ) : (
             <>
-              <Loader2 className={cn("w-10 h-10 animate-spin mx-auto", theme.colors.accent)} />
+              <Loader2 className={cn("w-10 h-10 animate-spin mx-auto", "text-primary")} />
               <p className={cn("text-sm font-medium", theme.colors.textMuted)}>{t('layout.loadingWorkspace')}</p>
             </>
           )}
@@ -81,19 +82,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
-  return (
-    <div className={cn("flex h-screen overflow-hidden", theme.colors.bg)}>
-      <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <Header />
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-6 md:p-8 lg:p-10">
-            <div className="max-w-6xl mx-auto">
+   return (
+    <div className={cn("flex h-screen overflow-hidden")}>
+      {!isTreeRoute && <PageBackground variant="dashboard" />}
+      <div className="relative z-10 flex flex-1 h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <Header />
+          {isTreeRoute ? (
+            <main className="relative flex-1 overflow-hidden">
               {children}
-            </div>
-          </div>
-          <Footer />
-        </main>
+            </main>
+          ) : (
+            <main className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
+                <div className="px-6 md:px-8 lg:px-10 pt-6 md:pt-8 lg:pt-10 pb-6 md:pb-8 lg:pb-10">
+                  <div className="max-w-6xl mx-auto">
+                    {children}
+                  </div>
+                </div>
+              </div>
+              <Footer />
+            </main>
+          )}
+        </div>
       </div>
     </div>
   );

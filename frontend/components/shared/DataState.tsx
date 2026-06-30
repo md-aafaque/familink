@@ -35,17 +35,17 @@ export default function DataState({
 
   if (isError) {
     return (
-      <div className="card border-red-200 bg-red-50 p-8 text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mb-2">
-          <AlertCircle className="w-6 h-6" />
+      <div className="rounded-xl border-2 border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/20 p-8 md:p-12 text-center space-y-4 shadow-pop-sm">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/40 border-2 border-red-200 dark:border-red-700 text-red-500">
+          <AlertCircle className="w-7 h-7" />
         </div>
-        <h3 className="text-lg font-bold text-red-900">{t('dataState.error.title')}</h3>
-        <p className="text-red-700 max-w-md mx-auto">
+        <h3 className="text-lg font-bold text-red-800 dark:text-red-300">{t('dataState.error.title')}</h3>
+        <p className="text-sm text-red-600 dark:text-red-400 max-w-md mx-auto">
           {error?.message || t('dataState.error.subtitle')}
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="btn-secondary border-red-300 text-red-700 hover:bg-red-100"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white border-2 border-red-700 dark:border-red-300 rounded-full font-bold text-sm shadow-pop hover:shadow-pop hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] transition-all duration-300"
         >
           {t('dataState.error.retry')}
         </button>

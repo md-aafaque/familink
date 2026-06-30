@@ -5,25 +5,31 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/cn"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap text-sm font-bold ring-offset-background transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:opacity-90",
+        default:
+          "bg-primary text-primary-foreground border-2 border-foreground rounded-full shadow-pop hover:shadow-pop hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_#1E293B] active:dark:shadow-[2px_2px_0px_0px_#000000]",
         destructive:
-          "bg-red-600 text-white hover:bg-red-700",
-        outline:
-          "border border-slate-300 bg-white hover:bg-slate-50 hover:text-slate-900",
+          "bg-destructive text-destructive-foreground border-2 border-foreground rounded-full shadow-pop hover:shadow-pop hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:opacity-80",
-        ghost: "hover:bg-slate-100 hover:text-slate-900",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-transparent text-foreground border-2 border-foreground rounded-full hover:bg-[#FBBF24] dark:hover:bg-[#FCD34D] hover:text-foreground transition-colors duration-300",
+        outline:
+          "bg-background text-foreground border-2 border-border rounded-full hover:bg-muted",
+        ghost:
+          "bg-transparent text-foreground rounded-full hover:bg-muted",
+        link:
+          "text-primary underline-offset-4 hover:underline",
+        candy:
+          "bg-primary text-primary-foreground border-2 border-foreground rounded-full shadow-pop hover:shadow-pop hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_#1E293B] active:dark:shadow-[2px_2px_0px_0px_#000000] flex items-center gap-2",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-12 px-6 py-3",
+        sm: "h-10 px-4 py-2 text-xs",
+        lg: "h-14 px-8 py-4 text-base",
+        xl: "h-16 px-10 py-5 text-lg",
+        icon: "h-12 w-12 rounded-full",
       },
     },
     defaultVariants: {

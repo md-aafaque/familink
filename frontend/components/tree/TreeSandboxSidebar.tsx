@@ -52,7 +52,7 @@ export default function TreeSandboxSidebar({
       className={cn(
         "h-full flex flex-col transition-colors duration-500",
         theme.colors.sidebar.bg,
-        "backdrop-blur-xl z-40 border-r",
+        "backdrop-blur-xl z-40 border",
         theme.colors.sidebar.border
       )}
     >
@@ -129,7 +129,7 @@ export default function TreeSandboxSidebar({
            onClick={onAddNew}
            title={t('treeSandbox.addRelative')}
            className={cn(
-           "w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl",
+           "w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-pop-lg",
            theme.colors.primary,
            "text-white",
            isCollapsed && "py-3 px-0"
@@ -196,10 +196,10 @@ function DraggableSandboxItem({ person, isCollapsed, onClick, onDrop }: { person
         cursor: "grabbing"
       }}
       className={cn(
-        "rounded-[1.5rem] border group transition-all cursor-pointer",
+        "rounded-3xl border group transition-all cursor-pointer",
         theme.colors.surface,
         theme.colors.border,
-        "hover:shadow-lg hover:border-primary/50",
+        "hover:shadow-pop-lg hover:border-primary/50",
         isCollapsed ? "p-2" : "p-4"
       )}
       onClick={onClick}

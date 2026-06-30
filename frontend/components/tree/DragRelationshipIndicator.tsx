@@ -39,7 +39,7 @@ export default function DragRelationshipIndicator() {
     }, "");
   }, [dragHistory]);
 
-  const mainColor = theme.isDark ? "#6366f1" : "#f97316";
+  const mainColor = theme.isDark ? "#FB923C" : "#F97316";
 
   // 2. Conditional Return (After all hooks)
   if (!draggingPersonId || !dragCoordinates || !dragStartCoords) return null;

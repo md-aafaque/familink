@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, AlertTriangle, Info, X } from "lucide-react"
 import { cn } from "@/lib/cn"
 
 const toastVariants = cva(
-  "relative flex items-start gap-3 w-80 rounded-xl border p-4 shadow-lg backdrop-blur-sm",
+  "relative flex items-start gap-3 w-80 rounded-2xl border-2 p-4 shadow-pop-lg backdrop-blur-sm",
   {
     variants: {
       variant: {
@@ -69,7 +69,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         <button
           type="button"
           onClick={onDismiss}
-          className="shrink-0 rounded-md p-0.5 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="shrink-0 rounded-md p-0.5 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30"
           aria-label="Dismiss"
         >
           <X className="h-4 w-4" />

@@ -71,7 +71,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
     <div className="grid grid-cols-1 md:grid-cols-3 gap-10 transition-colors duration-500">
       <div className="md:col-span-2 space-y-10">
         {/* Current Permissions */}
-        <div className={cn("p-10 rounded-[3rem] border shadow-sm space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
+        <div className={cn("p-10 rounded-2xl border-2 shadow-pop-sm space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
           <div className="flex items-center justify-between">
             <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>{t('permissionsTab.activePermissions')}</h3>
             <span className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors duration-500", theme.colors.primaryMuted, theme.colors.accent, "border-primary/20")}>
@@ -104,13 +104,13 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
                   <div className="flex items-center gap-6">
                     <span className={cn(
                       "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest",
-                      p.permission === 'owner' ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" : cn(theme.colors.primaryMuted, theme.colors.accent)
+                      p.permission === 'owner' ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" : cn(theme.colors.primaryMuted, theme.colors.accent)
                     )}>
                       {p.permission}
                     </span>
                     <button
                       onClick={() => revokeMutation.mutate(p.userId)}
-                      className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
+                      className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -122,17 +122,17 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
         </div>
 
         {/* Grant New Permission */}
-        <div className={cn("p-10 rounded-[3rem] border shadow-sm space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
+        <div className={cn("p-10 rounded-2xl border-2 shadow-pop-sm space-y-8 transition-colors duration-500", theme.colors.surface, theme.colors.border)}>
           <h3 className={cn("text-2xl font-black transition-colors duration-500", theme.colors.text)}>{t('permissionsTab.grantAccess')}</h3>
           
           <div className="space-y-6">
             <div className="relative group">
-              <Search className={cn("absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:" + theme.colors.accent + " transition-colors")} />
+              <Search className={cn("absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:" + theme.colors.accent + " transition-colors")} />
               <input
                 type="text"
                 placeholder={t('permissionsTab.searchPlaceholder')}
                 className={cn(
-                  "w-full pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-bold outline-none transition-all border",
+                  "w-full pl-14 pr-6 py-5 rounded-xl text-sm font-bold outline-none transition-all border",
                   theme.colors.bg,
                   theme.colors.border,
                   "focus:ring-8 focus:ring-primary/10 focus:border-primary/50",
@@ -181,7 +181,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
                 disabled={!selectedUserId || grantMutation.isPending}
                 onClick={() => grantMutation.mutate()}
                 className={cn(
-                  "px-10 py-5 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 transition-all shadow-xl disabled:opacity-50",
+                  "px-10 py-5 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 transition-all shadow-pop-lg disabled:opacity-50",
                   theme.colors.primary
                 )}
               >
@@ -194,7 +194,7 @@ export default function PersonPermissionsTab({ personId, treeId }: PersonPermiss
       </div>
 
       <div className="space-y-10">
-        <div className={cn("p-10 rounded-[3rem] text-white shadow-2xl transition-all duration-500", theme.isDark ? "bg-slate-800" : "bg-linear-to-br from-slate-800 to-slate-900")}>
+        <div className={cn("p-10 rounded-2xl text-white shadow-pop-lg border-2 border-white/10 transition-all duration-500", "bg-card")}>
           <ShieldCheck className={cn("w-12 h-12 mb-8 opacity-40", theme.isDark ? theme.colors.accent : "text-white")} />
           <h3 className="text-2xl font-black mb-4">{t('permissionsTab.accessControl.title')}</h3>
           <p className="text-white/70 text-sm leading-relaxed font-medium">

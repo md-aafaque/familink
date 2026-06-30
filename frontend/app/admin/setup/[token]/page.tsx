@@ -2,13 +2,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import api from '../../../../lib/api';
-import { Mail, Lock, User, Loader, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Loader, AlertCircle, CheckCircle } from 'lucide-react';
 import BrandLogo from "@/components/shared/BrandLogo";
+import { useAppTheme } from '@/components/providers/ThemeProvider';
+import { cn } from '@/lib/cn';
+
 
 export default function AdminSetupPage() {
   const router = useRouter();
   const params = useParams();
   const token = params.token as string;
+  const { theme } = useAppTheme();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,7 +26,6 @@ export default function AdminSetupPage() {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (!name || !email || !password || !confirmPassword) {
       setError('All fields are required');
       return;
@@ -58,7 +61,6 @@ export default function AdminSetupPage() {
       setPassword('');
       setConfirmPassword('');
 
-      // Redirect after 3 seconds
       setTimeout(() => {
         router.push('/admin/login');
       }, 3000);
@@ -71,19 +73,20 @@ export default function AdminSetupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 px-4">
-        <div className="card max-w-md text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">✓</span>
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+
+        <div className="rounded-2xl border-2 border-border bg-card shadow-pop-lg max-w-md text-center p-12 space-y-6 relative z-10">
+          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto border-2 border-emerald-200 dark:border-emerald-700">
+            <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Account Created!</h2>
-          <p className="text-slate-600 mb-6">
+          <h2 className={cn("text-2xl font-bold", theme.colors.text)}>Account Created!</h2>
+          <p className={cn("text-base", theme.colors.textMuted)}>
             Your admin account has been successfully set up. You can now sign in with your credentials.
           </p>
-          <p className="text-sm text-slate-500 mb-6">Redirecting to admin login...</p>
+          <p className={cn("text-sm", theme.colors.textMuted)}>Redirecting to admin login...</p>
           <button
             onClick={() => router.push('/admin/login')}
-            className="btn-primary w-full"
+            className="w-full py-4 bg-primary text-primary-foreground border-2 border-foreground rounded-full font-bold text-sm shadow-pop hover:shadow-pop hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] transition-all duration-300"
           >
             Go to Admin Login
           </button>
@@ -93,106 +96,100 @@ export default function AdminSetupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md">
-        <div className="card">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-4">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 relative overflow-hidden">
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="rounded-2xl border-2 border-border bg-card shadow-pop-lg p-8 md:p-10">
+          <div className="text-center mb-8 space-y-3">
+            <div className="flex items-center justify-center gap-2">
               <BrandLogo className="w-10 h-10" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Set Up Admin Account</h2>
-            <p className="text-slate-600">Complete your admin account setup</p>
+            <h2 className={cn("text-2xl font-bold", theme.colors.text)}>Set Up Admin Account</h2>
+            <p className={cn("text-sm", theme.colors.textMuted)}>Complete your admin account setup</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Field */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Full Name <span className="text-red-500">*</span>
+              <label className={cn("block text-sm font-bold mb-2", theme.colors.text)}>
+                Full Name <span className="text-destructive">*</span>
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full input-field pl-10"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-border bg-input text-foreground text-sm outline-none focus:border-primary focus:shadow-pop-sm transition-all"
                   disabled={loading}
                 />
               </div>
             </div>
 
-            {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Email Address <span className="text-red-500">*</span>
+              <label className={cn("block text-sm font-bold mb-2", theme.colors.text)}>
+                Email Address <span className="text-destructive">*</span>
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="admin@example.com"
-                  className="w-full input-field pl-10"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-border bg-input text-foreground text-sm outline-none focus:border-primary focus:shadow-pop-sm transition-all"
                   disabled={loading}
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className={cn("text-xs mt-1.5", theme.colors.textMuted)}>
                 This should match the email address from your invite
               </p>
             </div>
 
-            {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Password <span className="text-red-500">*</span>
+              <label className={cn("block text-sm font-bold mb-2", theme.colors.text)}>
+                Password <span className="text-destructive">*</span>
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••"
-                  className="w-full input-field pl-10"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-border bg-input text-foreground text-sm outline-none focus:border-primary focus:shadow-pop-sm transition-all"
                   disabled={loading}
                 />
               </div>
             </div>
 
-            {/* Confirm Password Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Confirm Password <span className="text-red-500">*</span>
+              <label className={cn("block text-sm font-bold mb-2", theme.colors.text)}>
+                Confirm Password <span className="text-destructive">*</span>
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
                   placeholder="••••••"
-                  className="w-full input-field pl-10"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-border bg-input text-foreground text-sm outline-none focus:border-primary focus:shadow-pop-sm transition-all"
                   disabled={loading}
                 />
               </div>
             </div>
 
-            {/* Error Message */}
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
                 {error}
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-primary flex items-center justify-center gap-2 mt-6"
+              className="w-full h-12 bg-primary text-primary-foreground border-2 border-foreground rounded-full font-bold text-sm shadow-pop hover:shadow-pop hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_#1E293B] dark:active:shadow-[2px_2px_0px_0px_#000000] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-pop"
             >
               {loading ? (
                 <>
@@ -205,10 +202,9 @@ export default function AdminSetupPage() {
             </button>
           </form>
 
-          {/* Note */}
-          <div className="mt-6 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <p className="text-xs text-indigo-700">
-              💡 After setup, you'll be able to sign in at the admin login page.
+          <div className={cn("mt-6 p-3 rounded-xl bg-primary/10 border border-primary/20")}>
+            <p className={cn("text-xs", "text-primary")}>
+              After setup, you'll be able to sign in at the admin login page.
             </p>
           </div>
         </div>

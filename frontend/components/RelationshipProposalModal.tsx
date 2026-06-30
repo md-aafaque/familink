@@ -102,7 +102,7 @@ export default function RelationshipProposalModal({
         exit={{   opacity: 0, scale: 0.93, y: 24  }}
         transition={{ type: "spring", stiffness: 320, damping: 28 }}
         className={cn(
-          "relative w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden transition-colors duration-500",
+          "relative w-full max-w-lg rounded-3xl shadow-pop-lg overflow-hidden transition-colors duration-500",
           theme.colors.surface
         )}
       >
@@ -170,7 +170,7 @@ export default function RelationshipProposalModal({
                   className={cn(
                     "py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border",
                     type === rt.value
-                      ? cn(theme.colors.primary, "text-white border-transparent shadow-md")
+                      ? cn(theme.colors.primary, "text-white border-transparent shadow-pop-sm")
                       : cn(theme.colors.bg, theme.colors.border, theme.colors.textMuted, "hover:border-primary/40")
                   )}
                 >
@@ -230,7 +230,7 @@ export default function RelationshipProposalModal({
             disabled={!canSubmit}
             className={cn(
               "w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all",
-              "text-white shadow-lg hover:opacity-90 active:scale-[0.98]",
+              "text-white shadow-pop-lg hover:opacity-90 active:scale-[0.98]",
               "disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100",
               theme.colors.primary
             )}

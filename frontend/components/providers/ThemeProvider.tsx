@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import GlobalBackground from '../shared/GlobalBackground';
 
 export type AppThemeType = 'light' | 'dark';
 
@@ -42,31 +43,31 @@ const themes: Record<AppThemeType, AppTheme> = {
     name: 'Light',
     isDark: false,
     colors: {
-      bg: 'bg-white',
+      bg: 'bg-[#FFFDF5]',
       surface: 'bg-white',
-      border: 'border-slate-200',
-      borderAccent: 'border-orange-500',
-      text: 'text-slate-900',
-      textMuted: 'text-slate-500',
-      primary: 'bg-orange-600',
-      primaryMuted: 'bg-orange-50',
-      accent: 'text-orange-600',
-      hover: 'hover:bg-orange-100',
+      border: 'border-[#E2E8F0]',
+      borderAccent: 'border-[#F97316]',
+      text: 'text-[#1E293B]',
+      textMuted: 'text-[#64748B]',
+      primary: 'bg-[#F97316]',
+      primaryMuted: 'bg-[#F97316]/10',
+      accent: 'text-[#F97316]',
+      hover: 'hover:bg-[#F97316]/10',
       sidebar: {
-        bg: 'bg-slate-50',
-        border: 'border-slate-200',
-        itemHover: 'hover:bg-slate-200/50',
-        activeText: 'text-orange-600',
-        hoverText: 'hover:text-slate-900',
+        bg: 'bg-white',
+        border: 'border-[#E2E8F0]',
+        itemHover: 'hover:bg-[#F1F5F9]',
+        activeText: 'text-[#F97316]',
+        hoverText: 'hover:text-[#1E293B]',
       },
       header: {
-        bg: 'bg-white/80',
-        border: 'border-slate-200',
+        bg: 'bg-[#FFFDF5]/80',
+        border: 'border-[#E2E8F0]',
       },
       tree: {
-        canvas: '#ffffff',
-        grid: '#f1f5f9',
-        lines: '#e2e8f0',
+        canvas: '#FFFDF5',
+        grid: '#F1F5F9',
+        lines: '#E2E8F0',
       }
     }
   },
@@ -74,30 +75,30 @@ const themes: Record<AppThemeType, AppTheme> = {
     name: 'Dark',
     isDark: true,
     colors: {
-      bg: 'bg-slate-950',
-      surface: 'bg-slate-900',
-      border: 'border-slate-800',
-      borderAccent: 'border-indigo-500',
-      text: 'text-slate-100',
-      textMuted: 'text-slate-400',
-      primary: 'bg-indigo-500',
-      primaryMuted: 'bg-indigo-900/30',
-      accent: 'text-indigo-400',
-      hover: 'hover:bg-white/5',
+      bg: 'bg-[#0F172A]',
+      surface: 'bg-[#1E293B]',
+      border: 'border-[#334155]',
+      borderAccent: 'border-[#FB923C]',
+      text: 'text-[#F1F5F9]',
+      textMuted: 'text-[#94A3B8]',
+      primary: 'bg-[#FB923C]',
+      primaryMuted: 'bg-[#FB923C]/15',
+      accent: 'text-[#FB923C]',
+      hover: 'hover:bg-[#FB923C]/10',
       sidebar: {
-        bg: 'bg-slate-900',
-        border: 'border-slate-800',
-        itemHover: 'hover:bg-slate-800',
-        activeText: 'text-indigo-400',
-        hoverText: 'hover:text-slate-100',
+        bg: 'bg-[#1E293B]',
+        border: 'border-[#334155]',
+        itemHover: 'hover:bg-[#334155]',
+        activeText: 'text-[#FB923C]',
+        hoverText: 'hover:text-[#F1F5F9]',
       },
       header: {
-        bg: 'bg-slate-950/80',
-        border: 'border-slate-800',
+        bg: 'bg-[#0F172A]/80',
+        border: 'border-[#334155]',
       },
       tree: {
-        canvas: '#020617',
-        grid: '#1e293b',
+        canvas: '#0F172A',
+        grid: '#1E293B',
         lines: '#334155',
       }
     }
@@ -137,6 +138,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme: themes[themeType], themeType, setTheme }}>
+      <GlobalBackground />
       {children}
     </ThemeContext.Provider>
   );

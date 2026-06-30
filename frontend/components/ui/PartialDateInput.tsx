@@ -104,7 +104,7 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
     ];
 
     const cellClass = cn(
-      "h-11 border rounded-xl text-sm font-medium outline-none transition-all text-center",
+      "h-11 border-2 rounded-xl text-sm font-medium outline-none transition-all text-center",
       theme.colors.bg,
       theme.colors.text,
       error ? "border-red-500 focus:ring-red-500/20" : theme.colors.border,
@@ -149,7 +149,7 @@ const PartialDateInput = forwardRef<HTMLInputElement, PartialDateInputProps>(
         <div className="relative shrink-0">
           <button type="button" onClick={handleCalendarPick}
             className={cn(
-              "h-11 w-11 flex items-center justify-center rounded-xl border transition-all cursor-pointer",
+              "h-11 w-11 flex items-center justify-center rounded-xl border-2 transition-all cursor-pointer",
               theme.colors.border,
               "hover:bg-black/5 dark:hover:bg-white/5"
             )}

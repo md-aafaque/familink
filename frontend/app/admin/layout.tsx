@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/api';
+import PageBackground from '@/components/decorations/PageBackground';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -60,5 +61,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return null;
   }
 
-  return children;
+  return (
+    <div className="relative">
+      <PageBackground variant="admin" />
+      {children}
+    </div>
+  );
 }
