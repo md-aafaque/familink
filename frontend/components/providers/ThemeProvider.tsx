@@ -44,7 +44,7 @@ const themes: Record<AppThemeType, AppTheme> = {
     isDark: false,
     colors: {
       bg: 'bg-[#FFFDF5]',
-      surface: 'bg-white',
+      surface: 'bg-[#FFFDF5]',
       border: 'border-[#E2E8F0]',
       borderAccent: 'border-[#F97316]',
       text: 'text-[#1E293B]',
@@ -54,9 +54,9 @@ const themes: Record<AppThemeType, AppTheme> = {
       accent: 'text-[#F97316]',
       hover: 'hover:bg-[#F97316]/10',
       sidebar: {
-        bg: 'bg-white',
+        bg: 'bg-[#FFFDF5]',
         border: 'border-[#E2E8F0]',
-        itemHover: 'hover:bg-[#F1F5F9]',
+        itemHover: 'hover:bg-[#F97316]/5',
         activeText: 'text-[#F97316]',
         hoverText: 'hover:text-[#1E293B]',
       },
