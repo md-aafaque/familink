@@ -8,6 +8,7 @@ import { cn } from '../../../lib/cn';
 import dynamic from 'next/dynamic';
 import { useAppTheme } from '../../../components/providers/ThemeProvider';
 import { useLanguage } from '../../../components/providers/LanguageProvider';
+import { OrangeBlob, DotPattern } from '../../../components/shared/DecorativeElements';
 
 
 const FamilyTreeContainer = dynamic(() => import('../../../components/tree/FamilyTreeContainer'), {
@@ -18,6 +19,8 @@ function UnifiedLoader({ text }: { text: string }) {
   const { theme } = useAppTheme();
   return (
     <div className={cn("flex flex-col items-center justify-center h-full w-full gap-5 bg-background relative overflow-hidden")}>
+      <OrangeBlob className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" size="lg" />
+      <DotPattern fade />
 
       <div className="relative z-10 w-14 h-14">
         <div className={cn("absolute inset-0 rounded-full border-[2.5px] border-t-2 animate-spin", "border-border border-t-primary")} />
