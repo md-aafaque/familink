@@ -12,7 +12,7 @@ import jsPDF from "jspdf";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, Heart,
-  Search, X, ChevronDown, Grid3X3, Leaf, ScrollText, Moon,
+  Search, X, ChevronDown,
   Users,
 } from "lucide-react";
 import SandboxPanel from "./SandboxPanel";
@@ -20,9 +20,12 @@ import RelationshipProposalModal from "../RelationshipProposalModal";
 import { useRouter } from "next/navigation";
 import CreatePersonModal from "../CreatePersonModal";
 import { cn } from "@/lib/cn";
-import SoftShapes from "./backgrounds/SoftShapes";
-import Sparkles from "./backgrounds/Sparkles";
-import FamilyMotifs from "./backgrounds/FamilyMotifs";
+import DotPattern, { DarkDotPattern } from "../decorations/DotPattern";
+import { ScatteredStars } from "../decorations/DecorativeStars";
+import { OrangeBlob, PinkBlob, YellowBlob } from "../decorations/DecorativeBlobs";
+import { OrangeCircle, YellowCircle, PinkCircle, GreenCircle, RingCircle, Semicircle } from "../decorations/DecorativeCircles";
+import FloatingShapes, { Triangle, Diamond, RoundedSquare, SmallCircle } from "../decorations/FloatingShapes";
+import { Leaves, ConnectionNodes, BranchDecorations, Flowers, Berries } from "../decorations/FamilyDecorations";
 import TreeNodeCard, { getNodeAccent } from "./TreeNodeCard";
 import ConnectionLine from "./ConnectionLine";
 import CanvasToolbar from "./CanvasToolbar";
@@ -91,7 +94,6 @@ const UNIT_W = CARD_W + H_GAP;
 // ─────────────────────────────────────────────────────────────────────────────
 const THEMES = {
   light: {
-    name: "Light", Icon: Grid3X3,
     canvas: "#FFFDF5", gridDot: "#c8d5e3", dotR: 0.85,
     line: "#94a3b8", spouseLine: "#f59e0b", accent: "#f59e0b",
     panel:   "bg-card/80 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm",
@@ -103,45 +105,39 @@ const THEMES = {
     cardBg: "bg-card", cardBorder: "border-muted-foreground/30",
   },
   dark: {
-    name: "Dark", Icon: Moon,
     canvas: "#0F172A", gridDot: "#1a2233", dotR: 0.75,
     line: "#263045", spouseLine: "#3b82f6", accent: "#3b82f6",
     panel:   "bg-card/90 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm shadow-black/30",
-    toolbar: "bg-card/95 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-lg shadow-black/50",
     text: "text-foreground", muted: "text-muted-foreground",
     chipOn:  "bg-primary text-primary-foreground",
     chipOff: "text-muted-foreground hover:bg-muted hover:text-foreground",
-    iconBtn: "bg-card/90 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm text-muted-foreground hover:text-foreground",
     cardBg: "bg-card", cardBorder: "border-muted-foreground/30",
   },
   sepia: {
-    name: "Sepia", Icon: ScrollText,
     canvas: "#FFFDF5", gridDot: "#d9c9a3", dotR: 0.9,
     line: "#b09070", spouseLine: "#c17a3a", accent: "#9a6b2e",
     panel:   "bg-card/90 backdrop-blur-xl border border-amber-200/60 shadow-pop-sm shadow-amber-100/30",
-    toolbar: "bg-card/95 backdrop-blur-xl border border-amber-300/50 shadow-pop-lg shadow-amber-100/40",
     text: "text-foreground", muted: "text-muted-foreground",
     chipOn:  "bg-amber-700 text-white",
     chipOff: "text-amber-700 hover:bg-amber-100 hover:text-amber-900",
-    iconBtn: "bg-card/90 backdrop-blur-xl border border-amber-200/60 shadow-pop-sm text-amber-700 hover:text-amber-900",
     cardBg: "bg-card", cardBorder: "border-amber-200/70",
   },
   forest: {
-    name: "Forest", Icon: Leaf,
     canvas: "#FFFDF5", gridDot: "#b0ccb0", dotR: 0.85,
     line: "#68966a", spouseLine: "#34d399", accent: "#16a34a",
     panel:   "bg-card/85 backdrop-blur-xl border border-emerald-200/60 shadow-pop-sm shadow-emerald-100/30",
-    toolbar: "bg-card/90 backdrop-blur-xl border border-emerald-200/60 shadow-pop-lg shadow-emerald-100/40",
     text: "text-foreground", muted: "text-muted-foreground",
     chipOn:  "bg-emerald-600 text-white",
     chipOff: "text-emerald-600 hover:bg-emerald-100 hover:text-emerald-800",
-    iconBtn: "bg-card/85 backdrop-blur-xl border border-emerald-200/60 shadow-pop-sm text-emerald-600 hover:text-emerald-800",
     cardBg: "bg-card", cardBorder: "border-emerald-200/70",
   },
 } as const;
 
 export type ThemeKey = keyof typeof THEMES;
 type Theme    = (typeof THEMES)[ThemeKey];
+
+export type DecorationLayer = "dots" | "whimsy" | "nature" | "vibrant";
+export type ActiveLayers = Record<DecorationLayer, boolean>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme Background SVG
@@ -423,7 +419,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const [proposalSrc, setProposalSrc]       = useState<string | null>(null);
   const [proposalTgt, setProposalTgt]       = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTool, setActiveTool] = useState<"select" | "connect" | "layout">("select");
+  const [activeLayers, setActiveLayers] = useState<ActiveLayers>({ dots: true, whimsy: true, nature: true, vibrant: true });
   const [mobileSandboxOpen, setMobileSandboxOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -686,6 +682,15 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
     } finally { setIsExporting(false); }
   }, [t.canvas]);
 
+  const toggleLayer = useCallback((layer: DecorationLayer) => {
+    setActiveLayers(prev => ({ ...prev, [layer]: !prev[layer] }));
+  }, []);
+
+  const toggleAllLayers = useCallback(() => {
+    const allActive = Object.values(activeLayers).every(Boolean);
+    setActiveLayers({ dots: !allActive, whimsy: !allActive, nature: !allActive, vibrant: !allActive });
+  }, [activeLayers]);
+
   // ── Loading state ─────────────────────────────────────────────────────────
   if (isLoading) {
     return null; // Parent page handles initial loading
@@ -695,6 +700,8 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
 
   const canvasW = (layout?.totalWidth  ?? 0) + PADDING * 2;
   const canvasH = (layout?.totalHeight ?? 0) + PADDING * 2;
+  const decorationScale = Math.max(0.5, Math.min(2, canvasW / 1500));
+  const showFullDecorations = decorationScale >= 0.7;
 
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden">
@@ -759,12 +766,11 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               transformRef={transformRef}
               isFullScreen={isFullScreen}
               onToggleFullScreen={toggleFS}
-              themeKey={themeKey}
-              onThemeToggle={() => setThemeKey(k => k === 'dark' ? 'light' : 'dark')}
-              showGrid={false}
-              onToggleGrid={() => {}}
-              activeTool={activeTool}
-              onToolChange={setActiveTool}
+              activeLayers={activeLayers}
+              onToggleLayer={toggleLayer}
+              onToggleAll={toggleAllLayers}
+              onExport={doExport}
+              isExporting={isExporting}
             />
           </div>
         )}
@@ -786,43 +792,41 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
               width: peopleInTree.length === 0 ? "100%" : canvasW, 
               height: peopleInTree.length === 0 ? "100%" : canvasH,
               minWidth: "100%",
-              minHeight: "100%"
+              minHeight: "100%",
+              backgroundColor: t.canvas
             }}>
+
+              {/* Decorative background layers (inside exportRef, behind content) */}
+              {peopleInTree.length > 0 && Object.values(activeLayers).some(Boolean) && (
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  {activeLayers.dots && (
+                    <><DotPattern fade size={Math.round(25 * decorationScale)} dotSize={Math.max(1, Math.round(1.5 * decorationScale))} dotOpacity={0.10} fadeEnd={158} /><DarkDotPattern fade size={Math.round(25 * decorationScale)} dotSize={Math.max(0.5, 1.5 * decorationScale)} dotOpacity={0.065} fadeEnd={158} /></>
+                  )}
+                  {activeLayers.whimsy && (
+                    <>{showFullDecorations && <><ScatteredStars tight scale={decorationScale} /><FloatingShapes tight scale={decorationScale} /></>}
+                      {/* Corner + mid-edge shapes for full coverage */}
+                      <Triangle className="absolute text-yellow-400/17 dark:text-yellow-400/12" style={{ left: "1%", top: "1%", width: 16 * decorationScale, height: 16 * decorationScale }} />
+                      <Diamond className="absolute text-orange-400/17 dark:text-orange-400/12" style={{ right: "1%", top: "1%", width: 18 * decorationScale, height: 18 * decorationScale }} />
+                      <SmallCircle className="absolute text-pink-400/17 dark:text-pink-400/12" style={{ left: "1%", bottom: "1%", width: 14 * decorationScale, height: 14 * decorationScale }} />
+                      <RoundedSquare className="absolute text-emerald-400/17 dark:text-emerald-400/12" style={{ right: "1%", bottom: "1%", width: 16 * decorationScale, height: 16 * decorationScale }} />
+                      <Triangle className="absolute text-orange-400/17 dark:text-orange-400/12" style={{ left: "50%", top: "1%", width: 20 * decorationScale, height: 20 * decorationScale }} />
+                      <Diamond className="absolute text-pink-400/17 dark:text-pink-400/12" style={{ left: "50%", bottom: "1%", width: 16 * decorationScale, height: 16 * decorationScale }} />
+                      <SmallCircle className="absolute text-yellow-400/17 dark:text-yellow-400/12" style={{ left: "1%", top: "50%", width: 15 * decorationScale, height: 15 * decorationScale }} />
+                      <RoundedSquare className="absolute text-emerald-400/17 dark:text-emerald-400/12" style={{ right: "1%", top: "50%", width: 17 * decorationScale, height: 17 * decorationScale }} />
+                    </>
+                  )}
+                  {activeLayers.nature && (
+                    <>{showFullDecorations && <><Leaves scale={decorationScale} /><ConnectionNodes scale={decorationScale} /><BranchDecorations scale={decorationScale} /><Flowers scale={decorationScale} /><Berries scale={decorationScale} /></>}</>
+                  )}
+                  {activeLayers.vibrant && (
+                    <><OrangeCircle className="top-0 -left-12" size="lg" noBlur scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /><PinkCircle className="-bottom-12 -right-12" size="lg" noBlur scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /><GreenCircle className="-bottom-12 left-1/4" size="lg" noBlur scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /><YellowCircle className="top-1/3 -right-12" size="lg" noBlur scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /><RingCircle className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" size="md" scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /><Semicircle className="top-0 left-1/2 -translate-x-1/2 rotate-180" scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /><OrangeBlob className="top-1/3 left-1/4" size="md" noBlur scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /><PinkBlob className="bottom-1/3 right-1/4" size="md" noBlur scale={decorationScale * 0.85} style={{ filter: "blur(4px)" }} /></>
+                  )}
+                </div>
+              )}
 
               {peopleInTree.length > 0 && (
                 <>
-                  {/* Layers 1–4 — Decorative canvas background (pan/zoom with tree) */}
-                  <svg className="absolute inset-0 pointer-events-none" viewBox={`0 0 ${canvasW} ${canvasH}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                    <defs>
-                      <pattern id={`bg-dots-${themeKey}`} x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-                        <circle cx="0.5" cy="0.5" r={t.dotR} fill={t.gridDot} opacity="0.08" />
-                      </pattern>
-                      <radialGradient id={`bg-glow-${themeKey}`} cx="50%" cy="30%" r="60%">
-                        <stop offset="0%" stopColor={t.accent} stopOpacity="0.04" />
-                        <stop offset="100%" stopColor={t.accent} stopOpacity="0" />
-                      </radialGradient>
-                    </defs>
-
-                    {/* Layer 0: Canvas fill */}
-                    <rect width="100%" height="100%" fill={t.canvas} />
-
-                    {/* Layer 1: Dot grid at 0.08 opacity */}
-                    <rect width="100%" height="100%" fill={`url(#bg-dots-${themeKey})`} />
-
-                    {/* Layer 2: Soft geometric shapes */}
-                    <SoftShapes accentColor={t.accent} themeKey={themeKey} />
-
-                    {/* Layer 3: Mini decorations — sparkles */}
-                    <Sparkles accentColor={t.accent} themeKey={themeKey} />
-
-                    {/* Layer 4: Family motifs */}
-                    <FamilyMotifs accentColor={t.accent} themeKey={themeKey} />
-
-                    {/* Glow overlay */}
-                    <rect width="100%" height="100%" fill={`url(#bg-glow-${themeKey})`} />
-                  </svg>
-
-                  {/* Layer 2 — Connector SVG + connection markers */}
+                  {/* Connector SVG + connection markers */}
                   {layout && (
                     <svg className="absolute inset-0 pointer-events-none" viewBox={`0 0 ${canvasW} ${canvasH}`} preserveAspectRatio="xMidYMid slice">
                       <g transform={`translate(${PADDING},${PADDING})`}>
