@@ -13,17 +13,17 @@ function seedRandom(seed: string): () => number {
     h = ((h << 5) - h) + seed.charCodeAt(i);
     h |= 0;
   }
-  let s = (h >>> 0) / 0xffffffff;
+  let s = Math.abs(h) / 0x7fffffff;
   return () => {
-    s = Math.imul(16807, s) | 0;
-    return (s & 0x7fffffff) / 0x7fffffff;
+    s = (s * 16807) % 2147483647;
+    return s / 2147483647;
   };
 }
 
 const COLORS = ["#F97316", "#FBBF24", "#F472B6", "#34D399"];
 const TYPES = ["circle", "diamond", "triangle", "star"] as const;
 
-function renderStar(cx: string, cy: string, s: number, color: string, opacity: number) {
+function renderStarPoints(cx: string, cy: string, s: number): string {
   const pts = 5;
   const outerR = s;
   const innerR = s * 0.4;
@@ -35,11 +35,7 @@ function renderStar(cx: string, cy: string, s: number, color: string, opacity: n
     const py = parseFloat(cy) + r * Math.sin(angle);
     points.push(`${px.toFixed(2)},${py.toFixed(2)}`);
   }
-  return (
-    <polygon key={`star-${cx}-${cy}`}
-      points={points.join(" ")}
-      fill={color} opacity={opacity} />
-  );
+  return points.join(" ");
 }
 
 export default function Sparkles({ accentColor, themeKey }: SparklesProps) {
@@ -81,7 +77,7 @@ export default function Sparkles({ accentColor, themeKey }: SparklesProps) {
                 fill={d.color} opacity={d.opacity} />
             );
           case "star":
-            return renderStar(`${d.x}`, `${d.y}`, s * 2, d.color, d.opacity);
+            return <polygon key={i} points={renderStarPoints(`${d.x}`, `${d.y}`, s * 2)} fill={d.color} opacity={d.opacity} />;
           default:
             return (
               <circle key={i} cx={`${d.x}%`} cy={`${d.y}%`} r={s}

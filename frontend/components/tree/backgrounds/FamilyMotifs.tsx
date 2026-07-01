@@ -13,10 +13,10 @@ function seedRandom(seed: string): () => number {
     h = ((h << 5) - h) + seed.charCodeAt(i);
     h |= 0;
   }
-  let s = (h >>> 0) / 0xffffffff;
+  let s = Math.abs(h) / 0x7fffffff;
   return () => {
-    s = Math.imul(16807, s) | 0;
-    return (s & 0x7fffffff) / 0x7fffffff;
+    s = (s * 16807) % 2147483647;
+    return s / 2147483647;
   };
 }
 
@@ -25,9 +25,9 @@ const MOTIF_COLORS = ["#F97316", "#FBBF24", "#F472B6", "#34D399", "#60A5FA", "#A
 /* Motif types for variety */
 type MotifType = "branch" | "leaf" | "nodeCluster" | "heritageRing";
 
-function renderBranch(cx: number, cy: number, s: number, color: string, opacity: number) {
+function renderBranch(i: number, cx: number, cy: number, s: number, color: string, opacity: number) {
   return (
-    <g key={`branch-${cx}-${cy}`} opacity={opacity}>
+    <g key={i} opacity={opacity}>
       <circle cx={`${cx}%`} cy={`${cy}%`} r={s} fill="none" stroke={color} strokeWidth="0.3" />
       <circle cx={`${cx + 1.2}%`} cy={`${cy - 0.8}%`} r={s * 0.5} fill={color} />
       <line x1={`${cx - s * 0.6}%`} y1={`${cy + s * 0.6}%`}
@@ -37,9 +37,9 @@ function renderBranch(cx: number, cy: number, s: number, color: string, opacity:
   );
 }
 
-function renderLeaf(cx: number, cy: number, s: number, color: string, opacity: number) {
+function renderLeaf(i: number, cx: number, cy: number, s: number, color: string, opacity: number) {
   return (
-    <g key={`leaf-${cx}-${cy}`} opacity={opacity}>
+    <g key={i} opacity={opacity}>
       <ellipse cx={`${cx}%`} cy={`${cy}%`} rx={s * 0.8} ry={s * 0.5}
         fill="none" stroke={color} strokeWidth="0.25"
         transform={`rotate(${cx * 3.6}, ${cx}%, ${cy}%)`} />
@@ -51,9 +51,9 @@ function renderLeaf(cx: number, cy: number, s: number, color: string, opacity: n
   );
 }
 
-function renderNodeCluster(cx: number, cy: number, s: number, color: string, opacity: number) {
+function renderNodeCluster(i: number, cx: number, cy: number, s: number, color: string, opacity: number) {
   return (
-    <g key={`nc-${cx}-${cy}`} opacity={opacity}>
+    <g key={i} opacity={opacity}>
       <circle cx={`${cx}%`} cy={`${cy}%`} r={s * 0.4} fill={color} />
       <circle cx={`${cx + s * 0.6}%`} cy={`${cy - s * 0.3}%`} r={s * 0.25} fill="none" stroke={color} strokeWidth="0.2" />
       <circle cx={`${cx - s * 0.5}%`} cy={`${cy + s * 0.5}%`} r={s * 0.2} fill="none" stroke={color} strokeWidth="0.15" />
@@ -65,9 +65,9 @@ function renderNodeCluster(cx: number, cy: number, s: number, color: string, opa
   );
 }
 
-function renderHeritageRing(cx: number, cy: number, s: number, color: string, opacity: number) {
+function renderHeritageRing(i: number, cx: number, cy: number, s: number, color: string, opacity: number) {
   return (
-    <g key={`hr-${cx}-${cy}`} opacity={opacity}>
+    <g key={i} opacity={opacity}>
       <circle cx={`${cx}%`} cy={`${cy}%`} r={s} fill="none" stroke={color} strokeWidth="0.2" />
       <circle cx={`${cx}%`} cy={`${cy}%`} r={s * 0.7} fill="none" stroke={color} strokeWidth="0.15" strokeDasharray="1 2" />
       <circle cx={`${cx}%`} cy={`${cy}%`} r={s * 0.3} fill={color} opacity={0.5} />
@@ -98,13 +98,13 @@ export default function FamilyMotifs({ accentColor, themeKey }: FamilyMotifsProp
 
   return (
     <>
-      {motifs.map((m) => {
+      {motifs.map((m, i) => {
         const s = m.size;
         switch (m.type) {
-          case "branch":  return renderBranch(m.x, m.y, s, m.color, m.opacity);
-          case "leaf":    return renderLeaf(m.x, m.y, s, m.color, m.opacity);
-          case "nodeCluster": return renderNodeCluster(m.x, m.y, s, m.color, m.opacity);
-          case "heritageRing": return renderHeritageRing(m.x, m.y, s, m.color, m.opacity);
+          case "branch":  return renderBranch(i, m.x, m.y, s, m.color, m.opacity);
+          case "leaf":    return renderLeaf(i, m.x, m.y, s, m.color, m.opacity);
+          case "nodeCluster": return renderNodeCluster(i, m.x, m.y, s, m.color, m.opacity);
+          case "heritageRing": return renderHeritageRing(i, m.x, m.y, s, m.color, m.opacity);
         }
       })}
     </>
