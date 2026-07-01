@@ -8,14 +8,14 @@ import Link from '@tiptap/extension-link';
 import { cn } from '@/lib/cn';
 import { useAppTheme } from '../providers/ThemeProvider';
 import { useLanguage } from '../providers/LanguageProvider';
-import { 
-  Bold, 
-  Italic, 
-  Underline as UnderlineIcon, 
-  List, 
-  ListOrdered, 
-  Quote, 
-  Undo, 
+import {
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
   Redo,
   Link as LinkIcon
 } from 'lucide-react';
@@ -64,15 +64,15 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
 
   if (!editor) return null;
 
-  const MenuButton = ({ 
-    onClick, 
-    active, 
-    disabled, 
-    children, 
-    title 
-  }: { 
-    onClick: () => void; 
-    active?: boolean; 
+  const MenuButton = ({
+    onClick,
+    active,
+    disabled,
+    children,
+    title
+  }: {
+    onClick: () => void;
+    active?: boolean;
     disabled?: boolean;
     children: React.ReactNode;
     title: string;
@@ -83,10 +83,10 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
       disabled={disabled}
       title={title}
       className={cn(
-        "p-2 rounded-md transition-colors",
-        active 
-          ? "bg-primary text-primary-foreground" 
-          : cn("hover:bg-slate-200 dark:hover:bg-slate-700", theme.colors.textMuted),
+        "p-2 rounded-xl transition-all",
+        active
+          ? "bg-primary text-primary-foreground shadow-pop-sm"
+          : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
         disabled && "opacity-30 cursor-not-allowed"
       )}
     >
@@ -96,15 +96,12 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
 
   return (
     <div className={cn(
-      "rounded-xl border overflow-hidden",
-      theme.colors.border,
-      theme.colors.bg
+      "rounded-xl overflow-hidden border-2",
+      "border-border bg-input"
     )}>
-      {/* Toolbar */}
       <div className={cn(
-        "flex flex-wrap gap-1 p-1 border-b",
-        theme.colors.border,
-        theme.colors.surface
+        "flex flex-wrap gap-0.5 p-1.5 border-b-2",
+        "border-border bg-card"
       )}>
         <MenuButton
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -127,8 +124,8 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
         >
           <UnderlineIcon className="w-4 h-4" />
         </MenuButton>
-        
-        <div className={cn("w-[1px] h-6 my-1 mx-1", theme.colors.border, "bg-slate-300 dark:bg-slate-700")} />
+
+        <div className="w-px h-6 my-1 mx-0.5 bg-border" />
 
         <MenuButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -152,17 +149,16 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
           <Quote className="w-4 h-4" />
         </MenuButton>
 
-        <div className={cn("w-[1px] h-6 my-1 mx-1", theme.colors.border, "bg-slate-300 dark:bg-slate-700")} />
+        <div className="w-px h-6 my-1 mx-0.5 bg-border" />
 
         <MenuButton
           onClick={() => {
             let url = window.prompt('URL');
             if (url) {
-                // Prepend https:// if no protocol is present
-                if (!/^https?:\/\//i.test(url) && !/^mailto:/i.test(url)) {
-                    url = 'https://' + url;
-                }
-                editor.chain().focus().setLink({ href: url }).run();
+              if (!/^https?:\/\//i.test(url) && !/^mailto:/i.test(url)) {
+                url = 'https://' + url;
+              }
+              editor.chain().focus().setLink({ href: url }).run();
             }
           }}
           active={editor.isActive('link')}
@@ -189,14 +185,11 @@ export default function StoryEditor({ content, onChange, placeholder }: StoryEdi
         </MenuButton>
       </div>
 
-      {/* Editor Content */}
       <EditorContent editor={editor} />
-      
-      {/* Character Count/Footer */}
+
       <div className={cn(
-        "px-4 py-2 border-t text-[10px] font-bold uppercase tracking-widest flex justify-between",
-        theme.colors.border,
-        theme.colors.textMuted
+        "px-4 py-2.5 border-t-2 text-[10px] font-black uppercase tracking-widest flex justify-between",
+        "border-border text-muted-foreground"
       )}>
         <span>{t('storyEditor.footerLabel')}</span>
         <span>{t('storyEditor.charCount').replace('{count}', String(editor.getText().length))}</span>

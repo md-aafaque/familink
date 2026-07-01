@@ -9,9 +9,8 @@ import {
   ImageIcon,
   Plus,
   Search,
-  ChevronDown,
   LayoutGrid,
-  LayoutList
+  LayoutList,
 } from 'lucide-react';
 import MemoryCard from '@/components/memories/MemoryCard';
 import MemoryModal from '@/components/memories/MemoryModal';
@@ -21,7 +20,6 @@ import DataState from '@/components/shared/DataState';
 import CustomSelect from '@/components/ui/CustomSelect';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from "@/components/ui/button";
-
 
 export default function FamilyWallPage() {
   const { theme } = useAppTheme();
@@ -87,23 +85,23 @@ export default function FamilyWallPage() {
   });
 
   return (
-    <div className="relative space-y-6">
-
-      <div className="relative z-10">
-        {/* Header Section */}
+    <div className="relative space-y-8">
+      <div className="relative z-10 space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className={cn("p-2 rounded-xl bg-primary/10")}>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
                 <ImageIcon className="w-6 h-6 text-primary" />
               </div>
-              <h1 className={cn("text-3xl font-bold uppercase tracking-tight", theme.colors.text)}>
-                {t('memories.title')}
-              </h1>
+              <div>
+                <h1 className="text-3xl font-black uppercase tracking-tight text-foreground">
+                  {t('memories.title')}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('memories.subtitle')}
+                </p>
+              </div>
             </div>
-            <p className={cn("text-sm max-w-lg", theme.colors.textMuted)}>
-              {t('memories.subtitle')}
-            </p>
           </div>
 
           <Button
@@ -116,12 +114,12 @@ export default function FamilyWallPage() {
           </Button>
         </div>
 
-        {/* Toolbar */}
         <div className={cn(
-          "mt-6 p-4 rounded-2xl border-2 bg-card shadow-pop-sm flex flex-col md:flex-row gap-4 items-center justify-between",
+          "p-5 rounded-[2.5rem] border-2 shadow-pop-sm flex flex-col md:flex-row gap-4 items-center justify-between",
+          theme.colors.surface,
+          theme.colors.border
         )}>
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-            {/* Tree Selector */}
             <div className="min-w-[200px]">
               <CustomSelect
                 options={trees?.map((tree: any) => ({ value: tree.id, label: tree.name })) || []}
@@ -132,21 +130,19 @@ export default function FamilyWallPage() {
               />
             </div>
 
-            {/* Search */}
             <div className="relative w-full md:w-64">
-              <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4", "text-muted-foreground")} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder={t('memories.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-border outline-none text-sm transition-all focus:border-primary focus:shadow-pop-sm bg-background"
+                className="w-full h-11 pl-10 pr-4 rounded-xl border-2 border-border bg-input text-foreground placeholder:text-muted-foreground outline-none transition-all text-sm focus:border-primary focus:shadow-pop-sm focus:shadow-primary/30"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
-            {/* Filter Type */}
             <div className="flex bg-muted p-1 rounded-xl border-2 border-border">
               {[
                 { key: 'all', label: t('memories.filter.all') },
@@ -158,7 +154,7 @@ export default function FamilyWallPage() {
                   key={item.key}
                   onClick={() => setFilterType(item.key)}
                   className={cn(
-                    "px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
+                    "px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
                     filterType === item.key
                       ? "bg-primary text-primary-foreground shadow-pop-sm"
                       : "text-muted-foreground hover:text-foreground"
@@ -169,17 +165,17 @@ export default function FamilyWallPage() {
               ))}
             </div>
 
-            {/* View Toggle */}
-            <div className="flex items-center border-2 border-border rounded-xl overflow-hidden bg-card">
+            <div className="flex items-center border-2 border-border rounded-xl overflow-hidden">
               <button
                 onClick={() => setViewMode('grid')}
-                className={cn("p-2 transition-colors", viewMode === 'grid' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+                className={cn("p-2.5 transition-all", viewMode === 'grid' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5")}
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
+              <div className="w-px h-5 bg-border" />
               <button
                 onClick={() => setViewMode('list')}
-                className={cn("p-2 transition-colors", viewMode === 'list' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+                className={cn("p-2.5 transition-all", viewMode === 'list' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5")}
               >
                 <LayoutList className="w-4 h-4" />
               </button>
@@ -187,8 +183,7 @@ export default function FamilyWallPage() {
           </div>
         </div>
 
-        {/* Main Grid */}
-        <div className="mt-8">
+        <div>
           <DataState
             isLoading={memoriesLoading}
             isError={isError}
@@ -211,14 +206,18 @@ export default function FamilyWallPage() {
               </div>
             ) : (
               <div className={cn(
-                "flex flex-col items-center justify-center p-20 rounded-2xl border-2 border-dashed text-center space-y-4 bg-card",
+                "flex flex-col items-center justify-center py-24 px-8 rounded-[2.5rem] border-2 border-dashed text-center space-y-6",
+                theme.colors.surface,
+                theme.colors.border
               )}>
-                <div className={cn("p-4 rounded-full bg-primary/10")}>
-                  <ImageIcon className="w-8 h-8 text-primary opacity-40" />
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
+                  <ImageIcon className="w-8 h-8 text-primary/40" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className={cn("text-xl font-bold", theme.colors.text)}>{t('memories.noMemories.title')}</h3>
-                  <p className={cn("text-sm opacity-60 max-w-xs mx-auto", theme.colors.textMuted)}>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black uppercase tracking-tight text-foreground">
+                    {t('memories.noMemories.title')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                     {searchQuery || filterType !== 'all'
                       ? t('memories.noMemories.searchSubtitle')
                       : t('memories.noMemories.emptySubtitle')}
@@ -234,7 +233,6 @@ export default function FamilyWallPage() {
           </DataState>
         </div>
 
-        {/* Modal */}
         {selectedTreeId && (
           <MemoryModal
             treeId={selectedTreeId}
