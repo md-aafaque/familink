@@ -8,6 +8,7 @@ import { formatDateTime } from '../lib/dateUtils';
 import { useAppTheme } from './providers/ThemeProvider';
 import { useLanguage } from './providers/LanguageProvider';
 import { cn } from '@/lib/cn';
+import SurfaceDecorations from './shared/SurfaceDecorations';
 import type { Notification } from '@/lib/notifications';
 import { translateNotification } from '@/lib/notifications';
 
@@ -145,7 +146,7 @@ export default function NotificationsMenu() {
           e.stopPropagation();
           setOpen(!open);
         }}
-        className="relative p-2 rounded-xl hover:bg-muted transition-colors border-2 border-transparent hover:border-border"
+        className="relative p-2 rounded-xl hover:bg-[#F97316]/5 transition-colors border-2 border-transparent hover:border-[#E2E8F0]"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -154,7 +155,7 @@ export default function NotificationsMenu() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center font-bold border-2 border-background"
+            className="absolute -top-1 -right-1 w-5 h-5 bg-[#F97316] text-white text-[10px] rounded-full flex items-center justify-center font-bold border-2 border-[#FFFDF5]"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </motion.div>
@@ -170,8 +171,8 @@ export default function NotificationsMenu() {
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              "fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 rounded-2xl border-2 shadow-pop-lg overflow-hidden z-[100] backdrop-blur-xl",
-              "bg-background",
+              "fixed md:absolute top-16 md:top-auto right-4 md:right-0 md:mt-2 w-[calc(100vw-2rem)] md:w-96 rounded-2xl border-2 shadow-[4px_4px_0px_rgba(15,23,42,0.08)] overflow-hidden z-[100]",
+              theme.colors.surface,
               theme.colors.border
             )}
             onClick={(e) => e.stopPropagation()}
@@ -179,8 +180,9 @@ export default function NotificationsMenu() {
               maxWidth: '400px',
             }}
           >
+            <SurfaceDecorations density="light" />
             {/* Header */}
-            <div className={cn("border-b p-4 flex items-center justify-between", "bg-muted/50", theme.colors.border)}>
+            <div className={cn("border-b p-4 flex items-center justify-between", "bg-[#F97316]/5", theme.colors.border)}>
               <div>
                 <h3 className={cn("font-bold", theme.colors.text)}>{t('notificationsMenu.title')}</h3>
                 <p className={cn("text-sm", theme.colors.textMuted)}>{t('notifications.unreadCount').replace('{count}', String(unreadCount))}</p>
@@ -190,7 +192,7 @@ export default function NotificationsMenu() {
                   {unreadCount > 0 && (
                     <button
                       onClick={() => markAllAsRead()}
-                      className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border")}
+                      className={cn("p-1.5 rounded-lg transition-colors hover:bg-[#F97316]/10 border-2 border-transparent hover:border-[#E2E8F0]")}
                       title={t('notificationsMenu.markAllRead')}
                     >
                       <Check className="w-4 h-4" />
@@ -198,7 +200,7 @@ export default function NotificationsMenu() {
                   )}
                   <button
                     onClick={() => deleteAll()}
-                    className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border hover:text-red-500")}
+                    className={cn("p-1.5 rounded-lg transition-colors hover:bg-[#F97316]/10 border-2 border-transparent hover:border-[#E2E8F0] hover:text-red-500")}
                     title={t('notifications.deleteAll')}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -211,7 +213,7 @@ export default function NotificationsMenu() {
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="p-12 text-center space-y-4">
-                  <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mx-auto", "bg-muted")}>
+                  <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mx-auto", "bg-[#F97316]/10")}>
                     <Bell className={cn("w-8 h-8 opacity-20", theme.colors.text)} />
                   </div>
                   <div className="space-y-1">
@@ -230,7 +232,7 @@ export default function NotificationsMenu() {
                         onClick={() => handleNotificationClick(notif)}
                         className={cn(
                           "p-4 transition-colors cursor-pointer",
-                          !notif.isRead ? "bg-primary/5" : "hover:bg-muted/50"
+                          !notif.isRead ? "bg-[#F97316]/5" : "hover:bg-[#F97316]/3"
                         )}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -255,7 +257,7 @@ export default function NotificationsMenu() {
                             {!notif.isRead && (
                               <button
                                 onClick={() => markAsRead(notif.id)}
-                                className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border")}
+                                className={cn("p-1.5 rounded-lg transition-colors hover:bg-[#F97316]/10 border-2 border-transparent hover:border-[#E2E8F0]")}
                                 title={t('notifications.markAsRead')}
                               >
                                 <Check className="w-4 h-4" />
@@ -263,7 +265,7 @@ export default function NotificationsMenu() {
                             )}
                             <button
                               onClick={() => deleteNotification(notif.id)}
-                              className={cn("p-1.5 rounded-lg transition-colors hover:bg-background border-2 border-transparent hover:border-border hover:text-red-500")}
+                              className={cn("p-1.5 rounded-lg transition-colors hover:bg-[#F97316]/10 border-2 border-transparent hover:border-[#E2E8F0] hover:text-red-500")}
                               title={t('notifications.delete')}
                             >
                               <X className="w-4 h-4" />
@@ -279,10 +281,10 @@ export default function NotificationsMenu() {
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className={cn("p-3 text-center border-t", "bg-muted/30", theme.colors.border)}>
+              <div className={cn("p-3 text-center border-t", "bg-[#F97316]/3", theme.colors.border)}>
                 <a
                   href="/notifications"
-                  className={cn("text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-80 transition-colors", "text-primary")}
+                  className={cn("text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-80 transition-colors", "text-[#F97316]")}
                 >
                   {t('notificationsMenu.viewAll')}
                 </a>

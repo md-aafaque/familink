@@ -38,7 +38,7 @@ export default function CookieConsent() {
           className={cn(
             "fixed bottom-0 left-0 right-0 z-50",
             "border-t border-border",
-            "bg-white dark:bg-gray-950",
+            "bg-[#FFFDF5] dark:bg-gray-950",
             "p-4 sm:p-5"
           )}
         >

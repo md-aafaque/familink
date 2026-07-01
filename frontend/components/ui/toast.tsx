@@ -13,13 +13,13 @@ const toastVariants = cva(
     variants: {
       variant: {
         success:
-          "bg-white border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100",
+          "bg-[#FFFDF5] border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100",
         error:
-          "bg-white border-red-200 text-red-900 dark:bg-red-950 dark:border-red-800 dark:text-red-100",
+          "bg-[#FFFDF5] border-red-200 text-red-900 dark:bg-red-950 dark:border-red-800 dark:text-red-100",
         warning:
-          "bg-white border-amber-200 text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-100",
+          "bg-[#FFFDF5] border-amber-200 text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-100",
         info:
-          "bg-white border-orange-200 text-orange-900 dark:bg-orange-950 dark:border-orange-800 dark:text-orange-100",
+          "bg-[#FFFDF5] border-orange-200 text-orange-900 dark:bg-orange-950 dark:border-orange-800 dark:text-orange-100",
       },
     },
     defaultVariants: {

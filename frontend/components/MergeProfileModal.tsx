@@ -6,6 +6,7 @@ import api from "../lib/api";
 import { X, Search, GitMerge, Loader2, AlertTriangle, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppTheme } from "./providers/ThemeProvider";
+import SurfaceDecorations from "./shared/SurfaceDecorations";
 import { useLanguage } from "./providers/LanguageProvider";
 
 interface MergeProfileModalProps {
@@ -65,7 +66,7 @@ export default function MergeProfileModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center pt-20 pb-8 px-4 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -84,6 +85,7 @@ export default function MergeProfileModal({
           theme.colors.border
         )}
       >
+        <SurfaceDecorations density="light" />
         {/* Header */}
         <div className={cn(
           "p-8 border-b flex items-center justify-between transition-colors duration-500",

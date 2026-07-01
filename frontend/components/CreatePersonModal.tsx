@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { cn } from "../lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
 import { useLanguage } from "./providers/LanguageProvider";
+import SurfaceDecorations from "./shared/SurfaceDecorations";
 import PersonForm from "./PersonForm";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../lib/api";
@@ -38,7 +39,7 @@ export default function CreatePersonModal({
   });
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center pt-20 pb-8 px-4 overflow-y-auto">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -59,6 +60,7 @@ export default function CreatePersonModal({
           theme.colors.surface
         )}
       >
+        <SurfaceDecorations density="light" />
         {/* Header */}
         <div className={cn("px-8 py-6 border-b flex items-center justify-between", theme.colors.border)}>
           <div className="flex items-center gap-4">
