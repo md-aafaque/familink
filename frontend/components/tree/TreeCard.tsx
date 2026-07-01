@@ -87,7 +87,7 @@ const TreeCard = memo(({
               "w-24 h-24 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-inner border-4 overflow-hidden",
               isFocus
                 ? "rotate-6 border-primary/20 bg-primary/5"
-                : "group-hover:-rotate-3 border-transparent bg-slate-100 dark:bg-slate-800"
+                : "group-hover:-rotate-3 border-transparent bg-[#FFFDF5] dark:bg-slate-800"
             )}>
               {person.imageUrl ? (
                 <img src={person.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -116,7 +116,7 @@ const TreeCard = memo(({
             
             <div className="flex flex-wrap gap-1.5 justify-center">
               {person.status === 'ghost' && (
-                <span className={cn("px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-colors duration-500", theme.isDark ? "bg-slate-800 text-slate-400 border-white/5" : "bg-slate-100 text-slate-500 border-slate-200/30")}>{t('personPage.statusBadge.ghost')}</span>
+                <span className={cn("px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-colors duration-500", theme.isDark ? "bg-slate-800 text-slate-400 border-white/5" : "bg-[#FFFDF5] text-slate-500 border-slate-200/30")}>{t('personPage.statusBadge.ghost')}</span>
               )}
               {person.deathDate && (
                 <span className="px-3 py-1 bg-zinc-900 text-zinc-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/5">{t('personPage.statusBadge.deceased')}</span>

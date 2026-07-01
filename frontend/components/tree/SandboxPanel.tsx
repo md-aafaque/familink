@@ -138,7 +138,7 @@ export default function SandboxPanel({
                 className={cn(
                   "w-full pl-10 pr-4 py-3 rounded-full text-sm font-medium outline-none transition-all border-2",
                   "focus:ring-4 focus:ring-[#F97316]/10 focus:border-[#F97316]/50",
-                  "bg-white dark:bg-[#0F172A]",
+                  "bg-[#FFFDF5] dark:bg-[#0F172A]",
                   "border-[#E2E8F0] dark:border-[#334155]",
                   "text-[#1E293B] dark:text-[#F8FAFC]",
                   "shadow-[2px_2px_0px_rgba(15,23,42,0.06)]",
@@ -267,7 +267,7 @@ function SandboxItem({ person, isCollapsed, onClick, onDrop }: {
       }}
       className={cn(
         "rounded-2xl border-2 group transition-all cursor-pointer relative",
-        "bg-white dark:bg-[#0F172A]",
+        "bg-[#FFFDF5] dark:bg-[#0F172A]",
         "border-[#E2E8F0] dark:border-[#334155]",
         "hover:-translate-y-1 hover:shadow-[6px_6px_0px_#1E293B] hover:border-[#F97316]/50",
         "shadow-[3px_3px_0px_rgba(15,23,42,0.08)]",

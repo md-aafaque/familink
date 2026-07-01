@@ -82,7 +82,7 @@ export default function CanvasToolbar({
       "absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto",
       "flex items-center gap-1 px-3",
       "h-14 rounded-[999px]",
-      "bg-white dark:bg-[#1E293B]",
+      "bg-[#FFFDF5] dark:bg-[#1E293B]",
       "border-2 border-[#E2E8F0] dark:border-[#334155]",
       "shadow-[4px_4px_0px_rgba(15,23,42,0.08)] dark:shadow-[4px_4px_0px_rgba(0,0,0,0.3)]",
     )}>

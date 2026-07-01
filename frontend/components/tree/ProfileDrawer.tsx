@@ -151,7 +151,7 @@ export default function ProfileDrawer({
         </div>
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-xl bg-white/80 dark:bg-[#1E293B]/80 backdrop-blur-sm text-muted-foreground hover:text-foreground transition-colors border border-muted-foreground/30"
+          className="absolute top-4 right-4 z-10 p-2 rounded-xl bg-[#FFFDF5]/80 dark:bg-[#1E293B]/80 backdrop-blur-sm text-muted-foreground hover:text-foreground transition-colors border border-muted-foreground/30"
         >
           <X className="w-4 h-4" />
         </button>
