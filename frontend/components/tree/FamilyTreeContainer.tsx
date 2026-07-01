@@ -12,7 +12,7 @@ import jsPDF from "jspdf";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, Heart,
-  Search, Maximize2, Minimize2, X, ChevronDown, Grid3X3, Leaf, ScrollText, Moon,
+  Search, X, ChevronDown, Grid3X3, Leaf, ScrollText, Moon,
   Users,
 } from "lucide-react";
 import SandboxPanel from "./SandboxPanel";
@@ -399,6 +399,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const exportRef      = useRef<HTMLDivElement>(null);
   const transformRef   = useRef<ReactZoomPanPinchRef | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   // Tracks whether the initial centering has fired (for delay logic)
   const centeredRef    = useRef(false);
 
@@ -409,6 +410,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   useEffect(() => {
     setThemeKey(appTheme.isDark ? "dark" : "light");
   }, [appTheme.isDark]);
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFullScreen, setIsFullScreen]     = useState(false);
   const [focusId, setFocusId]               = useState<string | null>(null);
@@ -424,6 +426,24 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const [activeTool, setActiveTool] = useState<"select" | "connect" | "layout">("select");
   const [mobileSandboxOpen, setMobileSandboxOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Collapse search when drawer opens
+  useEffect(() => {
+    if (drawerPersonId) setSearchOpen(false);
+  }, [drawerPersonId]);
+
+  // Click outside search container → close dropdown (always), collapse bar too when drawer is open
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+        searchInputRef.current?.blur();
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [drawerPersonId, searchOpen]);
 
   const t = THEMES[themeKey];
 
@@ -560,7 +580,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
   const searchHitIds = useMemo(() => new Set(searchResults.map(p => p.id)), [searchResults]);
 
   const openSearch  = useCallback(() => { setSearchOpen(true);  setTimeout(() => searchInputRef.current?.focus(), 80); }, []);
-  const closeSearch = useCallback(() => { setSearchOpen(false); setSearchQuery(""); }, []);
+  const closeSearch = useCallback(() => { setSearchOpen(false); }, []);
 
   // ── Centering ──────────────────────────────────────────────────────────────
   /**
@@ -714,7 +734,7 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         {peopleInTree.length > 0 && (
           <div className="absolute inset-0 pointer-events-none z-20">
 
-            {/* Stats — right of sandbox, bottom */}
+            {/* Stats — to the right of sandbox, bottom-aligned */}
             <div className="absolute pointer-events-auto flex items-center gap-2 z-30"
               style={{ bottom: 20, left: isSidebarCollapsed ? 96 : 324 }}>
                 <div className={cn("flex items-center gap-2 px-4 h-9 rounded-xl border-2 text-[11px] font-bold shadow-pop-sm", t.panel, t.cardBorder, t.muted)}>
@@ -911,20 +931,23 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
         </TransformWrapper>
       </div>
 
-      {/* Search — right side of sandbox panel */}
+      {/* Search — expanded when no drawer, icon-only when drawer open */}
       {peopleInTree.length > 0 && (
-        <div className="absolute z-40 pointer-events-auto"
-          style={{ top: 16, left: isSidebarCollapsed ? 88 : 316 }}>
-          <motion.div animate={{ width: searchOpen ? 240 : 36 }}
+        <div ref={searchContainerRef} className="absolute z-40 pointer-events-auto"
+          style={{ top: 16, right: drawerPersonId ? 460 : 16 }}>
+          <motion.div             animate={{ width: drawerPersonId && !searchOpen ? 36 : 240 }}
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            className={cn("h-10 rounded-xl border-2 flex items-center overflow-hidden transition-shadow", t.panel, t.cardBorder, "focus-within:shadow-pop-sm")}>
-            <button onClick={searchOpen ? closeSearch : openSearch}
+            className={cn("h-10 rounded-xl border-2 flex items-center overflow-hidden transition-shadow", t.panel, t.cardBorder)}>
+            <button onClick={drawerPersonId ? (searchOpen ? closeSearch : openSearch) : undefined}
               className={cn("min-w-[36px] h-full flex items-center justify-center flex-shrink-0 transition-colors", t.muted, "hover:opacity-70")}>
               <Search className="w-4 h-4" />
             </button>
-            <input ref={searchInputRef} value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search people&hellip;" className={cn("flex-1 bg-transparent outline-none text-xs font-semibold pr-2", t.text)} />
-            {searchQuery && (
+            {(!drawerPersonId || searchOpen) && (
+              <input ref={searchInputRef} value={searchQuery} onChange={e => { setSearchQuery(e.target.value); if (!searchOpen) openSearch(); }}
+                onFocus={() => { if (!searchOpen) openSearch(); }}
+                placeholder="Search people&hellip;" className={cn("flex-1 bg-transparent outline-none text-xs font-semibold pr-2 min-w-0", t.text)} />
+            )}
+            {(!drawerPersonId || searchOpen) && searchQuery && (
               <button onClick={() => setSearchQuery("")} className={cn("mr-2 flex-shrink-0 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors", t.muted)}>
                 <X className="w-3 h-3" />
               </button>
@@ -955,15 +978,6 @@ function TreeCanvas({ treeId }: FamilyTreeProps) {
           </AnimatePresence>
         </div>
       )}
-
-      {/* Fullscreen — left of profile drawer, or top-right when closed */}
-      <div className="absolute z-40 pointer-events-auto"
-        style={{ top: 16, right: drawerPersonId ? 428 : 16 }}>
-        <button onClick={toggleFS} title={isFullScreen ? tLang('treePage.exitFullscreen') : tLang('treePage.fullscreen')}
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 bg-card/80 backdrop-blur-xl border border-muted-foreground/30 shadow-pop-sm text-muted-foreground hover:text-primary">
-          {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </button>
-      </div>
 
       {/* ══════════════════════════════════════════════════════════════════
           RIGHT DRAWER — Profile floating card (desktop only; mobile uses full-screen)
