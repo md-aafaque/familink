@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { cn } from "@/lib/cn";
 
 interface ShapeProps {
@@ -7,7 +8,7 @@ interface ShapeProps {
   style?: React.CSSProperties;
 }
 
-function Triangle({ className, style }: ShapeProps) {
+export function Triangle({ className, style }: ShapeProps) {
   return (
     <svg
       viewBox="0 0 20 20"
@@ -20,7 +21,7 @@ function Triangle({ className, style }: ShapeProps) {
   );
 }
 
-function Diamond({ className, style }: ShapeProps) {
+export function Diamond({ className, style }: ShapeProps) {
   return (
     <svg
       viewBox="0 0 20 20"
@@ -33,7 +34,7 @@ function Diamond({ className, style }: ShapeProps) {
   );
 }
 
-function RoundedSquare({ className, style }: ShapeProps) {
+export function RoundedSquare({ className, style }: ShapeProps) {
   return (
     <svg
       viewBox="0 0 20 20"
@@ -46,7 +47,7 @@ function RoundedSquare({ className, style }: ShapeProps) {
   );
 }
 
-function SmallCircle({ className, style }: ShapeProps) {
+export function SmallCircle({ className, style }: ShapeProps) {
   return (
     <svg
       viewBox="0 0 20 20"
@@ -59,82 +60,45 @@ function SmallCircle({ className, style }: ShapeProps) {
   );
 }
 
-const shapes = [
-  {
-    id: 1,
-    Component: Triangle,
-    x: "5%",
-    y: "20%",
-    size: 16,
-    color: "text-orange-400/20 dark:text-orange-400/18",
-    delay: "0s",
-  },
-  {
-    id: 2,
-    Component: Diamond,
-    x: "92%",
-    y: "15%",
-    size: 14,
-    color: "text-yellow-400/20 dark:text-yellow-400/18",
-    delay: "2s",
-  },
-  {
-    id: 3,
-    Component: RoundedSquare,
-    x: "3%",
-    y: "75%",
-    size: 12,
-    color: "text-pink-400/20 dark:text-pink-400/18",
-    delay: "1s",
-  },
-  {
-    id: 4,
-    Component: SmallCircle,
-    x: "95%",
-    y: "80%",
-    size: 10,
-    color: "text-emerald-400/20 dark:text-emerald-400/18",
-    delay: "3s",
-  },
-  {
-    id: 5,
-    Component: Triangle,
-    x: "50%",
-    y: "5%",
-    size: 11,
-    color: "text-orange-400/20 dark:text-orange-400/18",
-    delay: "1.5s",
-  },
-  {
-    id: 6,
-    Component: Diamond,
-    x: "40%",
-    y: "92%",
-    size: 13,
-    color: "text-pink-400/20 dark:text-pink-400/15",
-    delay: "2.5s",
-  },
-  {
-    id: 7,
-    Component: SmallCircle,
-    x: "88%",
-    y: "40%",
-    size: 8,
-    color: "text-yellow-400/20 dark:text-yellow-400/18",
-    delay: "0.7s",
-  },
-  {
-    id: 8,
-    Component: RoundedSquare,
-    x: "12%",
-    y: "55%",
-    size: 9,
-    color: "text-emerald-400/20 dark:text-emerald-400/15",
-    delay: "3.2s",
-  },
-];
+const shapeColors = [
+  "text-orange-400/17 dark:text-orange-400/12",
+  "text-yellow-400/17 dark:text-yellow-400/12",
+  "text-pink-400/17 dark:text-pink-400/12",
+  "text-emerald-400/17 dark:text-emerald-400/12",
+] as const;
 
-export default function FloatingShapes({ className }: { className?: string }) {
+const ShapeTypes = [Triangle, Diamond, RoundedSquare, SmallCircle] as const;
+
+function generateShapes(count: number, jitter = 0.6, scale = 1) {
+  const cols = Math.ceil(Math.sqrt(count));
+  const rows = Math.ceil(count / cols);
+  const result = [];
+  for (let i = 0; i < count; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const cellW = 85 / cols;
+    const cellH = 85 / rows;
+    const x = 7.5 + col * cellW + Math.random() * cellW * jitter;
+    const y = 7.5 + row * cellH + Math.random() * cellH * jitter;
+    const size = Math.floor((Math.random() * 18 + 11) * scale);
+    const delay = (Math.random() * 5).toFixed(2);
+    const colorIdx = Math.floor(Math.random() * shapeColors.length);
+    const shapeIdx = Math.floor(Math.random() * ShapeTypes.length);
+    result.push({
+      id: i,
+      Component: ShapeTypes[shapeIdx],
+      x: x.toFixed(1) + "%",
+      y: y.toFixed(1) + "%",
+      size,
+      color: shapeColors[colorIdx],
+      delay: delay + "s",
+    });
+  }
+  return result;
+}
+
+export default function FloatingShapes({ className, tight, scale = 1 }: { className?: string; tight?: boolean; scale?: number }) {
+  const shapes = useMemo(() => generateShapes(tight ? 10 : 24, tight ? 0.3 : 0.6, scale), [tight, scale]);
   return (
     <div className={cn("pointer-events-none absolute inset-0 overflow-hidden hidden md:block", className)}>
       {shapes.map((shape) => {

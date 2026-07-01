@@ -23,7 +23,7 @@ function seedRandom(seed: string): () => number {
 const COLORS = ["#F97316", "#FBBF24", "#F472B6", "#34D399"];
 const TYPES = ["circle", "diamond", "triangle", "star"] as const;
 
-function renderStarPoints(cx: string, cy: string, s: number): string {
+function renderStarPoints(s: number): string {
   const pts = 5;
   const outerR = s;
   const innerR = s * 0.4;
@@ -31,8 +31,8 @@ function renderStarPoints(cx: string, cy: string, s: number): string {
   for (let i = 0; i < pts * 2; i++) {
     const r = i % 2 === 0 ? outerR : innerR;
     const angle = (Math.PI / pts) * i - Math.PI / 2;
-    const px = parseFloat(cx) + r * Math.cos(angle);
-    const py = parseFloat(cy) + r * Math.sin(angle);
+    const px = r * Math.cos(angle);
+    const py = r * Math.sin(angle);
     points.push(`${px.toFixed(2)},${py.toFixed(2)}`);
   }
   return points.join(" ");
@@ -51,8 +51,8 @@ export default function Sparkles({ accentColor, themeKey }: SparklesProps) {
         type: TYPES[i % TYPES.length],
         x: rng() * 100,
         y: rng() * 100,
-        size: 0.3 + rng() * 0.7,
-        opacity: 0.07 + rng() * 0.06,
+        size: 3 + rng() * 6,
+        opacity: 0.15 + rng() * 0.15,
         color: COLORS[i % COLORS.length],
       });
     }
@@ -67,17 +67,23 @@ export default function Sparkles({ accentColor, themeKey }: SparklesProps) {
           case "diamond":
             return (
               <polygon key={i}
-                points={`${d.x},${d.y - s * 2.2} ${d.x + s * 1.4},${d.y} ${d.x},${d.y + s * 2.2} ${d.x - s * 1.4},${d.y}`}
-                fill={d.color} opacity={d.opacity} />
+                points={`0,${-s * 2.2} ${s * 1.4},0 0,${s * 2.2} ${-s * 1.4},0`}
+                fill={d.color} opacity={d.opacity}
+                transform={`translate(${d.x}%, ${d.y}%)`} />
             );
           case "triangle":
             return (
               <polygon key={i}
-                points={`${d.x},${d.y - s * 2} ${d.x + s * 1.6},${d.y + s * 1.6} ${d.x - s * 1.6},${d.y + s * 1.6}`}
-                fill={d.color} opacity={d.opacity} />
+                points={`0,${-s * 2} ${s * 1.6},${s * 1.6} ${-s * 1.6},${s * 1.6}`}
+                fill={d.color} opacity={d.opacity}
+                transform={`translate(${d.x}%, ${d.y}%)`} />
             );
           case "star":
-            return <polygon key={i} points={renderStarPoints(`${d.x}`, `${d.y}`, s * 2)} fill={d.color} opacity={d.opacity} />;
+            return (
+              <polygon key={i} points={renderStarPoints(s * 2)}
+                fill={d.color} opacity={d.opacity}
+                transform={`translate(${d.x}%, ${d.y}%)`} />
+            );
           default:
             return (
               <circle key={i} cx={`${d.x}%`} cy={`${d.y}%`} r={s}

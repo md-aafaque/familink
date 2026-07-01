@@ -16,8 +16,8 @@ export default function SoftShapes({ accentColor, themeKey }: SoftShapesProps) {
       { type: "circle" as const, cx: 85, cy: 15, r: 28, opacity: 0.06, color: "#FBBF24", fill: false },
       /* Bottom‑left — pink blob */
       { type: "circle" as const, cx: 10, cy: 85, r: 22, opacity: 0.07, color: "#F472B6", fill: true },
-      /* Bottom‑right — purple blob */
-      { type: "circle" as const, cx: 88, cy: 86, r: 24, opacity: 0.07, color: "#A78BFA", fill: true },
+      /* Bottom‑right — blue blob */
+      { type: "circle" as const, cx: 88, cy: 86, r: 24, opacity: 0.07, color: "#60A5FA", fill: true },
       /* Mid‑left — green ring */
       { type: "circle" as const, cx: 6, cy: 50, r: 14, opacity: 0.05, color: "#34D399", fill: false },
       /* Mid‑right — blue ring */

@@ -88,8 +88,8 @@ export default function FamilyMotifs({ accentColor, themeKey }: FamilyMotifsProp
         type: types[i % types.length],
         x: 5 + rng() * 90,
         y: 5 + rng() * 90,
-        size: 2 + rng() * 5,
-        opacity: 0.03 + rng() * 0.03,
+        size: 3 + rng() * 6,
+        opacity: 0.08 + rng() * 0.08,
         color: MOTIF_COLORS[i % MOTIF_COLORS.length],
       });
     }

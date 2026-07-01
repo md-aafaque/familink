@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { cn } from "@/lib/cn";
 
 interface StarProps {
@@ -26,7 +27,7 @@ function Star({ className, style, size = 16 }: StarProps) {
 export function OrangeStar({ className, style, size = 12 }: StarProps) {
   return (
     <Star
-      className={cn("text-orange-400/25 dark:text-orange-400/15", className)}
+      className={cn("text-orange-400/19 dark:text-orange-400/14", className)}
       style={style}
       size={size}
     />
@@ -36,7 +37,7 @@ export function OrangeStar({ className, style, size = 12 }: StarProps) {
 export function YellowStar({ className, style, size = 12 }: StarProps) {
   return (
     <Star
-      className={cn("text-yellow-400/25 dark:text-yellow-400/15", className)}
+      className={cn("text-yellow-400/19 dark:text-yellow-400/14", className)}
       style={style}
       size={size}
     />
@@ -46,7 +47,7 @@ export function YellowStar({ className, style, size = 12 }: StarProps) {
 export function PinkStar({ className, style, size = 12 }: StarProps) {
   return (
     <Star
-      className={cn("text-pink-400/25 dark:text-pink-400/15", className)}
+      className={cn("text-pink-400/19 dark:text-pink-400/14", className)}
       style={style}
       size={size}
     />
@@ -55,20 +56,24 @@ export function PinkStar({ className, style, size = 12 }: StarProps) {
 
 const starColors = ["orange", "yellow", "pink"] as const;
 
-const defaultStars = [
-  { color: "orange" as const, x: "10%", y: "15%", size: 14, delay: "0s" },
-  { color: "yellow" as const, x: "85%", y: "20%", size: 10, delay: "1.5s" },
-  { color: "pink" as const, x: "20%", y: "80%", size: 12, delay: "3s" },
-  { color: "orange" as const, x: "75%", y: "70%", size: 16, delay: "0.8s" },
-  { color: "yellow" as const, x: "50%", y: "10%", size: 8, delay: "2.2s" },
-  { color: "pink" as const, x: "90%", y: "50%", size: 10, delay: "1s" },
-  { color: "orange" as const, x: "5%", y: "50%", size: 12, delay: "2.5s" },
-  { color: "yellow" as const, x: "65%", y: "85%", size: 14, delay: "0.3s" },
-  { color: "pink" as const, x: "35%", y: "25%", size: 9, delay: "1.8s" },
-  { color: "orange" as const, x: "45%", y: "90%", size: 11, delay: "3.5s" },
-  { color: "yellow" as const, x: "15%", y: "40%", size: 13, delay: "0.5s" },
-  { color: "pink" as const, x: "80%", y: "5%", size: 8, delay: "2.8s" },
-];
+function generateStars(count: number, jitter = 0.6, scale = 1) {
+  const cols = Math.ceil(Math.sqrt(count));
+  const rows = Math.ceil(count / cols);
+  const stars = [];
+  for (let i = 0; i < count; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const cellW = 85 / cols;
+    const cellH = 85 / rows;
+    const x = 7.5 + col * cellW + Math.random() * cellW * jitter;
+    const y = 7.5 + row * cellH + Math.random() * cellH * jitter;
+    const size = Math.floor((Math.random() * 25 + 11) * scale);
+    const delay = (Math.random() * 5).toFixed(2);
+    const color = starColors[Math.floor(Math.random() * starColors.length)];
+    stars.push({ color, x: x.toFixed(1) + "%", y: y.toFixed(1) + "%", size, delay: delay + "s" });
+  }
+  return stars;
+}
 
 const StarComponent = {
   orange: OrangeStar,
@@ -76,8 +81,8 @@ const StarComponent = {
   pink: PinkStar,
 };
 
-export function ScatteredStars({ count, className }: { count?: number; className?: string }) {
-  const stars = count ? defaultStars.slice(0, count) : defaultStars;
+export function ScatteredStars({ className, tight, scale = 1 }: { className?: string; tight?: boolean; scale?: number }) {
+  const stars = useMemo(() => generateStars(tight ? 18 : 42, tight ? 0.3 : 0.6, scale), [tight, scale]);
   return (
     <div className={cn("pointer-events-none absolute inset-0 overflow-hidden hidden md:block", className)}>
       {stars.map((star, i) => {
