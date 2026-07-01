@@ -28,7 +28,7 @@ import { cn } from "@/lib/cn";
 import { useAppTheme } from "./providers/ThemeProvider";
 import { useSidebar } from "./providers/SidebarProvider";
 import { useLanguage } from "./providers/LanguageProvider";
-import { OrangeBlob, GreenBlob } from "./shared/DecorativeElements";
+import SurfaceDecorations from "./shared/SurfaceDecorations";
 
 export default function Sidebar() {
   const { signOut, user } = useAuth();
@@ -58,7 +58,7 @@ export default function Sidebar() {
     { label: t("nav.manageInvites"), icon: ShieldCheck, href: "/dashboard/manage/invitations", active: pathname === "/dashboard/manage/invitations" },
   ];
 
-  function NavItem({ href, icon: Icon, label, active, onClick }: { href: string; icon: any; label: string; active: boolean; onClick?: () => void }) {
+      function NavItem({ href, icon: Icon, label, active, onClick }: { href: string; icon: any; label: string; active: boolean; onClick?: () => void }) {
     return (
       <Link
         href={href}
@@ -66,24 +66,26 @@ export default function Sidebar() {
         className={cn(
           "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border-2 relative overflow-hidden group",
           active
-            ? "bg-primary/10 border-primary/30 text-primary font-bold shadow-pop-sm"
-            : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            ? "bg-[#F97316]/10 border-[#F97316]/30 text-[#F97316] font-bold dark:bg-[#FB923C]/15 dark:border-[#FB923C]/30 dark:text-[#FB923C] shadow-[2px_2px_0px_rgba(15,23,42,0.08)] dark:shadow-[2px_2px_0px_rgba(0,0,0,0.3)]"
+            : "border-transparent text-muted-foreground hover:bg-[#F97316]/5 dark:hover:bg-[#FB923C]/10",
+            theme.colors.sidebar.hoverText
         )}
       >
         {active && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#F97316] to-[#FBBF24] dark:from-[#FB923C] dark:to-[#FBBF24] rounded-r-full" />
         )}
         <div className={cn(
-          "w-8 h-8 rounded-lg flex items-center justify-center border-2 transition-all shrink-0",
+          "w-8 h-8 rounded-xl flex items-center justify-center border-2 transition-all shrink-0",
           active
-            ? "bg-primary/10 border-primary/20 text-primary"
-            : "border-transparent group-hover:border-border text-muted-foreground/60 group-hover:text-foreground"
+            ? "bg-[#F97316]/10 border-[#F97316]/20 text-[#F97316] dark:bg-[#FB923C]/15 dark:border-[#FB923C]/30 dark:text-[#FB923C]"
+            : "border-transparent group-hover:border-[#E2E8F0] dark:group-hover:border-[#334155] text-muted-foreground/60",
+            theme.colors.sidebar.hoverText
         )}>
           <Icon className="w-4 h-4" />
         </div>
         {label}
         {active && (
-          <Sprout className="w-3 h-3 ml-auto text-primary/40" />
+          <Sprout className="w-3 h-3 ml-auto text-[#F97316]/40 dark:text-[#FB923C]/40" />
         )}
       </Link>
     );
@@ -99,13 +101,12 @@ export default function Sidebar() {
       )}
 
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-45 w-64 lg:static lg:translate-x-0 transition-transform duration-300 ease-in-out transform flex flex-col border-r bg-background overflow-hidden",
+        "fixed inset-y-0 left-0 z-45 w-64 lg:static lg:translate-x-0 transition-transform duration-300 ease-in-out transform flex flex-col border-r overflow-hidden",
         isOpen ? "translate-x-0" : "-translate-x-full",
         theme.colors.sidebar.bg,
         theme.colors.sidebar.border
       )}>
-        <OrangeBlob className="-top-32 -right-32" size="lg" />
-        <GreenBlob className="-bottom-32 -left-32" size="lg" />
+        <SurfaceDecorations variant="sidebar" />
 
         <div className={cn("h-16 flex items-center px-6 border-b relative z-10", theme.colors.sidebar.border)}>
           <Link href="/dashboard" className="flex items-center gap-2.5" onClick={close}>
@@ -138,25 +139,26 @@ export default function Sidebar() {
           )}
         </nav>
 
-        <div className={cn("p-4 border-t mt-auto relative z-10", theme.colors.sidebar.border)}>
+        <div className={cn("p-3 border-t mt-auto relative z-10", theme.colors.sidebar.border)}>
           <Link
             href="/dashboard/settings"
             onClick={close}
             className={cn(
-              "flex items-center gap-3 mb-4 p-2.5 rounded-xl transition-all group border-2",
+              "flex items-center gap-3 p-2.5 rounded-xl transition-all group",
               pathname === "/dashboard/settings"
-                ? "bg-primary/10 border-primary/30"
-                : "border-transparent hover:bg-muted/50"
+                ? "bg-[#F97316]/10 dark:bg-[#FB923C]/15 shadow-[2px_2px_0px_rgba(15,23,42,0.08)]"
+                : "hover:bg-[#F97316]/5 dark:hover:bg-[#FB923C]/10",
+                theme.colors.sidebar.hoverText
             )}
           >
             <div className={cn(
               "w-10 h-10 rounded-xl flex items-center justify-center border-2 overflow-hidden shrink-0",
-              pathname === "/dashboard/settings" ? "border-primary bg-primary/10" : "border-border"
+              pathname === "/dashboard/settings" ? "border-[#F97316]/20 dark:border-[#FB923C]/30 bg-[#F97316]/10 dark:bg-[#FB923C]/15" : "border-[#E2E8F0] dark:border-[#334155]"
             )}>
               {user?.user_metadata?.avatar_url ? (
                 <img src={user.user_metadata.avatar_url} className="w-full h-full object-cover" alt="" />
               ) : (
-                <UserCircle className={cn("w-5 h-5", pathname === "/dashboard/settings" ? "text-primary" : "opacity-60")} />
+                <UserCircle className={cn("w-5 h-5", pathname === "/dashboard/settings" ? "text-[#F97316]" : "opacity-60")} />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -166,7 +168,7 @@ export default function Sidebar() {
             <Settings className={cn(
               "w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-all duration-300",
               theme.colors.text,
-              pathname === "/dashboard/settings" && "opacity-100 text-primary"
+              pathname === "/dashboard/settings" && "opacity-100 text-[#F97316]"
             )} />
           </Link>
 

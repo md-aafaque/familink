@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import api from '../../lib/api';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import BrandLogo from '@/components/shared/BrandLogo';
+import SurfaceDecorations from '@/components/shared/SurfaceDecorations';
 import { SiGoogle } from 'react-icons/si';
 import Link from 'next/link';
 import { useLanguage } from "@/components/providers/LanguageProvider";
@@ -68,8 +69,9 @@ function LoginFormContent() {
           <motion.div
             whileHover={{ y: -4 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="rounded-2xl border-2 border-border bg-card p-8 shadow-pop-lg"
+            className="rounded-2xl border-2 border-border bg-card p-8 shadow-pop-lg relative overflow-hidden"
           >
+            <SurfaceDecorations density="light" />
             <div className="text-center mb-8">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <BrandLogo className="w-10 h-10" />
@@ -103,7 +105,7 @@ function LoginFormContent() {
                   <input
                     type="email"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 bg-background border-2 border-input rounded-xl focus:border-primary focus:shadow-pop-sm outline-none transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-input border-2 border-border rounded-xl focus:border-primary focus:shadow-pop-sm outline-none transition-all"
                     placeholder={t('login.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -120,7 +122,7 @@ function LoginFormContent() {
                   <input
                     type="password"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 bg-background border-2 border-input rounded-xl focus:border-primary focus:shadow-pop-sm outline-none transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-input border-2 border-border rounded-xl focus:border-primary focus:shadow-pop-sm outline-none transition-all"
                     placeholder={t('login.passwordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

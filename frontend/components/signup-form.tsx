@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from './providers/LanguageProvider'
+import SurfaceDecorations from './shared/SurfaceDecorations'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,9 +48,10 @@ export function SignupForm({
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto relative overflow-hidden" style={{ backgroundColor: '#FFFDF5' }}>
+      <SurfaceDecorations density="light" />
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900">
+        <CardTitle className="text-2xl font-bold text-[#1E293B]">
           {t('signupForm.title')}
         </CardTitle>
         <CardDescription>
@@ -108,7 +110,7 @@ export function SignupForm({
           <Button
             type="submit"
             disabled={submitting}
-            className="w-full"
+            className="w-full bg-[#F97316] hover:bg-[#EA580C] text-white shadow-[3px_3px_0px_rgba(15,23,42,0.15)] hover:shadow-[5px_5px_0px_rgba(15,23,42,0.2)] hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-[2px] active:translate-y-[2px] transition-all"
             size="lg"
           >
             {submitting ? t('signupForm.creating') : t('signupForm.submit')}
