@@ -140,38 +140,6 @@ export default function Sidebar() {
         </nav>
 
         <div className={cn("p-3 border-t mt-auto relative z-10", theme.colors.sidebar.border)}>
-          <Link
-            href="/dashboard/settings"
-            onClick={close}
-            className={cn(
-              "flex items-center gap-3 p-2.5 rounded-xl transition-all group",
-              pathname === "/dashboard/settings"
-                ? "bg-[#F97316]/10 dark:bg-[#FB923C]/15 shadow-[2px_2px_0px_rgba(15,23,42,0.08)]"
-                : "hover:bg-[#F97316]/5 dark:hover:bg-[#FB923C]/10",
-                theme.colors.sidebar.hoverText
-            )}
-          >
-            <div className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center border-2 overflow-hidden shrink-0",
-              pathname === "/dashboard/settings" ? "border-[#F97316]/20 dark:border-[#FB923C]/30 bg-[#F97316]/10 dark:bg-[#FB923C]/15" : "border-[#E2E8F0] dark:border-[#334155]"
-            )}>
-              {user?.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url} className="w-full h-full object-cover" alt="" />
-              ) : (
-                <UserCircle className={cn("w-5 h-5", pathname === "/dashboard/settings" ? "text-[#F97316]" : "opacity-60")} />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={cn("text-xs font-bold truncate", theme.colors.text)}>{user?.user_metadata.full_name || t('common.defaultUserName')}</p>
-              <p className={cn("text-[9px] font-medium truncate opacity-50 uppercase tracking-widest", theme.colors.textMuted)}>{t("nav.accountSettings")}</p>
-            </div>
-            <Settings className={cn(
-              "w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-all duration-300",
-              theme.colors.text,
-              pathname === "/dashboard/settings" && "opacity-100 text-[#F97316]"
-            )} />
-          </Link>
-
           <button
             onClick={signOut}
             className={cn(
